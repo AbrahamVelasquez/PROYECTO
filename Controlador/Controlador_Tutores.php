@@ -17,6 +17,9 @@ class Tutores_Controlador {
     }
 
     public function probarRol() {
+        echo" <form action='index.php' method='POST'>
+        <input type='submit' name='btnLogOut' value='Cerrar sesión' onclick='" . "return confirm(" . "¿Está seguro que quiere cerrar sesión?" . "') > 
+        </form>";
         $this -> tutor -> probarRol();
     }
 
