@@ -1,5 +1,4 @@
 # Gestión de Prácticas
-Sebas
 
 Este proyecto trata sobre la automatización del proceso
 de asignación de prácticas por parte de los tutores. 
