@@ -22,24 +22,29 @@ if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])){
 // que me muestre el controlador de viviendas.
 } else if (isset($_SESSION['usuario'])) {
 
-    echo "<form action='index.php' method='POST'>
-        <input type='submit' name='btnLogOut' value='Cerrar sesión'> 
-    </form>";
-
-    // Intentar aplicar la confirmación
-    // return confirm('¿Está seguro que quiere cerrar sesión?')
-
     if ($_SESSION['rol'] == 'tutor') {
         $controlador = "Tutores";
+        $accion = "probarRol";
     } else if ($_SESSION['rol'] == 'admin') {
         $controlador = "Admin";
+        $accion =  "mostrarTutores";
     }
 
-    require_once 'Controlador/Controlador_' . $controlador . ".php";
-     $controlador = $controlador . "_controlador"; // Guardo, ahora, el nombre de la clase, que va variando según
-                                                  // el controlador a ir. eje:Animal_controlador  
-    $controlador = new $controlador; // Se crea un nuevo objeto de la clase correpondiente
-    call_user_func(array($controlador, 'probarRol')); // Para probar que tutor y admin funcionan
+    if (isset($_POST['accion'])){
+        $accion = $_POST['accion'];
+    }
+
+    if (!isset($_POST['btnVerTutores']) && $_SESSION['rol'] == 'admin') {
+        require_once "Vista/Vista_Admin.php";   
+    } else {
+        require_once 'Controlador/Controlador_' . $controlador . ".php";
+        $controlador = $controlador . "_controlador"; // Guardo, ahora, el nombre de la clase, que va variando según
+                                                    // el controlador a ir. eje: Usuario_controlador  
+        $controlador = new $controlador; // Se crea un nuevo objeto de la clase correpondiente
+        call_user_func(array($controlador, $accion)); 
+    }
+
+
 
 // Cuando vengo del login, que me muestre el controlador usuarios
 // y haga la comprobación. 
