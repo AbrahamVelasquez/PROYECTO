@@ -16,9 +16,14 @@ class Admin_Controlador {
         $this -> admin = new Admin();
     }
 
-    public function probarRol() {
-        $this -> admin -> probarRol();
+    public function mostrarTutores() {
+        $tutores = $this->admin->obtenerTutores();
+        
+        // Cuando tiene los datos, llama a la Vista: "Muéstralos así"
+        require 'Vista/Tabla_Tutores.php';
     }
+
+    
 
 }
 
