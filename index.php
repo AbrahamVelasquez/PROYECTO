@@ -34,7 +34,7 @@ if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])){
         $accion = $_POST['accion'];
     }
 
-    if (!isset($_POST['btnVerTutores'])) {
+    if (!isset($_POST['btnVerTutores']) && $_SESSION['rol'] == 'admin') {
         require_once "Vista/Vista_Admin.php";   
     } else {
         require_once 'Controlador/Controlador_' . $controlador . ".php";
