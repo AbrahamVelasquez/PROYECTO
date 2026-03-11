@@ -10,10 +10,19 @@ class Admin {
         $this -> conn = Conexion::getConexion();  // El modelo obtiene esa conexión
     }
       
-    public function probarRol() {
-        echo "hola soy admin";
+    public function obtenerTutores() {
+        $sql = "SELECT * FROM tutores";
+        $stmt = $this->conn->query($sql); 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerPorId($id) {
+        $sql = "SELECT * FROM tutores WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
 }
 
