@@ -28,3 +28,6 @@ permisos para ver todo el sitio.
 7. Usuarios
 
 ## Esto es una prueba...
+## Probar conflicto merge
+
+
