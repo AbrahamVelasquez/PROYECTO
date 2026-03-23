@@ -21,8 +21,9 @@ permisos para ver todo el sitio.
 
 1. Tutores
 2. Alumnos
-3. Empresa
+3. Convenios
 4. Cursos
 5. Ciclos
 6. Asignaciones
 7. Usuarios
+8. Mi Listado

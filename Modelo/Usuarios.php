@@ -14,61 +14,41 @@ class Usuarios {
         $this -> conn = Conexion::getConexion();  // El modelo obtiene esa conexión
     }
         
-    public function set_session($usr, $rol) {
+    public function set_session($usr, $rol, $id_usr, $id_tutor) { // Añadimos id_tutor
         $_SESSION['usuario'] = $usr;
         $_SESSION['rol'] = $rol;
+        $_SESSION['id_usuario'] = $id_usr;
+        $_SESSION['id_tutor'] = $id_tutor; // <--- ESTO ES VITAL
     }
-    
+
     public function validarDatos() {
-        // Datos del formulario
         $user_post = strtolower(trim($_POST['usuario'])); 
-        // Lo pongo en minúsculas y le quito espacios al inicio y final
         $password_post = $_POST['contrasena'];
 
-        // Buscar el usuario en la base de datos
-        $sql = "SELECT *
-                FROM usuarios
-                WHERE username
-                LIKE :usuario";
-        $stmt = $this -> conn -> prepare($sql);
-        $stmt -> bindParam(':usuario', $user_post);
-        $stmt -> execute();
-        $usuarios = $stmt -> fetchAll();
+        // Modificamos la consulta para traer el id_tutor también
+        $sql = "SELECT u.*, t.id_tutor 
+                FROM usuarios u
+                LEFT JOIN tutores t ON u.id_usuario = t.id_usuario
+                WHERE u.username = :usuario";
+                
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario', $user_post);
+        $stmt->execute();
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC); // Fetch directo, más limpio
 
-        // Si no hay nada en el array, vacío, es que 
-        // no hay ningún usuario con ese nombre, por 
-        // ende necesitamos que nos regrese al index 
-        // diciendo que el usuario no es válido
-        if (count($usuarios) == 0) {
-
+        if (!$fila) {
             header("Location: index.php?mensaje=El usuario no es válido");
             die();
-
-        // De lo contrario, que pase a comprobar la contraseña
-        } else {
-            
-            foreach ($usuarios as $fila) { // Recorro el array y compruebo la contraseña
-
-                $password_bbdd = $fila['password'];
-                $rol_bbdd = $fila['rol'];
-                // Contraseña de la base de datos correspondiente al usuario.
-                
-                if ($password_post !== $password_bbdd) { 
-                // En caso de no ser la misma que me lleve al index diciendo que no es correcta
-
-                    header("Location: index.php?mensaje=La contraseña no es correcta");
-                    die();
-
-                }
-            }
         }
 
-        // En caso de ser correcto (tanto usuario como contraseña)
-        // LLamamos al método para crear la sesión y la cookie
+        if ($password_post !== $fila['password']) { 
+            header("Location: index.php?mensaje=La contraseña no es correcta");
+            die();
+        }
 
-        $this -> set_session($user_post, $rol_bbdd);
+        // Pasamos el id_tutor que hemos sacado del JOIN
+        $this->set_session($user_post, $fila['rol'], $fila['id_usuario'], $fila['id_tutor']);
         header("Location: index.php");
-
     }
 
 }
