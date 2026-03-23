@@ -1,5 +1,9 @@
 <?php
 
+////////////////////////////////////////////////
+// Este fichero, por ahora, no se está usando //
+////////////////////////////////////////////////
+
 require_once "./Core/Conexion.php"; // Importa la clase Conexion 
 
 class Alumnos {
