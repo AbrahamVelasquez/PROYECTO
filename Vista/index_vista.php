@@ -219,6 +219,7 @@
                     </table>
                 </div>
             </div>
+        <</div>
 
         <div data-tab="2">
           <?php include 'Vista/Tabla_Alumnos.php'; ?>
