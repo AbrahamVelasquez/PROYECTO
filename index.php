@@ -1,68 +1,62 @@
 <?php
-
-// Este es el index, mi centro de operaciones,
-// aquel que me dirigé, al "Login" al "Logout"
-// y a los distintos controladores.
-// Seguí en conjunto la lógica de PUFOSA y Protectora_Animales
-
-// Inicio la sesión
 session_start();
 
-// El primer if corresponde a cuando quiero cerrar
-// la sesión. Si he presionado el botón de Logout
-// y, siempre y cuando haya sesión: comprobado con el
-// $_SESSION['usuario'], me dirigirá a el fichero
-// "Logout.php" el cual me sirve para cerrar la sesión.
-if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])){
+/**
+ * INDEX PRINCIPAL - SISTEMA FFE
+ * Orquesta la carga de controladores según el Rol y la Sesión
+ */
 
+// 1. GESTIÓN DE LOGOUT
+if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
     require_once 'Controlador/Logout.php';
-    die();
+    exit();
+} 
 
-// En caso de ya existir usuario (Que la comprobación salga correcta)
-// que me muestre el controlador de viviendas.
-} else if (isset($_SESSION['usuario'])) {
-
+// 2. SESIÓN ACTIVA (USUARIO LOGUEADO)
+else if (isset($_SESSION['usuario'])) {
+    
+    // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
-        $controlador = "Tutores";
-        $accion = "probarRol";
+        $nomControlador = "Tutores";
+        $accion = "mostrarPanel"; 
     } else if ($_SESSION['rol'] == 'admin') {
-        $controlador = "Admin";
-        $accion =  "mostrarTutores";
+        $nomControlador = "Admin";
+        $accion = "mostrarTutores";
     }
 
-    if (isset($_POST['accion'])){
+    // Si viene una acción específica por POST (navegación interna)
+    if (isset($_POST['accion'])) {
         $accion = $_POST['accion'];
     }
 
-    if (!isset($_POST['btnVerTutores'])) {
-        require_once "Vista/Vista_Admin.php";   
-    } else {
-        require_once 'Controlador/Controlador_' . $controlador . ".php";
-        $controlador = $controlador . "_controlador"; // Guardo, ahora, el nombre de la clase, que va variando según
-                                                    // el controlador a ir. eje: Usuario_controlador  
-        $controlador = new $controlador; // Se crea un nuevo objeto de la clase correpondiente
-        call_user_func(array($controlador, $accion)); 
-    }
-
-
-
-// Cuando vengo del login, que me muestre el controlador usuarios
-// y haga la comprobación. 
-} else if (!empty($_REQUEST['btnLogIn'])) {
-
-    require_once 'Controlador/Controlador_Usuarios.php' ;
-    $user = new Usuarios_Controlador();
-    $user -> validarUsuario();
-
-} else {
-// Este else es el que se mostrará por defecto al abrir
-// el proyecto, y me lleva a "Login.php", como su nombre
-// indica, mi página de loguearme.
-
-    require_once './Vista/Login.php';
-    die(); 
+    // Carga dinámica del controlador
+    $rutaControlador = 'Controlador/Controlador_' . $nomControlador . ".php";
     
+    if (file_exists($rutaControlador)) {
+        require_once $rutaControlador;
+        $nombreClase = $nomControlador . "_Controlador";
+        $controlador = new $nombreClase();
+        
+        // Ejecutamos la acción (ej. mostrarPanel() en Tutores)
+        if (method_exists($controlador, $accion)) {
+            call_user_func(array($controlador, $accion));
+        } else {
+            die("Error: La acción [{$accion}] no existe en el controlador [{$nombreClase}].");
+        }
+    } else {
+        die("Error: No se encontró el archivo del controlador en: {$rutaControlador}");
+    }
+} 
+
+// 3. PROCESO DE LOGIN (PETICIÓN DE ACCESO)
+else if (!empty($_REQUEST['btnLogIn'])) {
+    require_once 'Controlador/Controlador_Usuarios.php';
+    $user = new Usuarios_Controlador();
+    $user->validarUsuario();
+} 
+
+// 4. PANTALLA INICIAL (LOGIN POR DEFECTO)
+else {
+    require_once './Vista/Login.php';
+    exit(); 
 }
-
-
-?>
