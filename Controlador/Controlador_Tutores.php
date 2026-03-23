@@ -1,28 +1,22 @@
 <?php
-
-// Traemos el Modelo
-require_once './Modelo/Tutores.php';
+require_once 'Controlador/Controlador_Convenios.php';
+require_once 'Modelo/Tutores.php'; // Importamos el modelo
 
 class Tutores_Controlador {
+public function mostrarPanel() {
+    $convControlador = new Convenios_Controlador();
+    $data = $convControlador->gestionar();
+    $convenios = $data['busqueda'];
+    $misConvenios = $data['favoritos'];
 
-    private $tutor; 
-    // Este atributo será el objeto
-    // con el que accederé a los métodos
-    // de verificación e inicio.
-    // Por defecto es NULL
+    $tutorModelo = new Tutores();
+    $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
 
-    // El constructor para darle valor al atributo.
-    public function __construct() {
-        $this -> tutor = new Tutores();
-    }
+    // Variables limpias para la vista
+    $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
+    $cicloTutor = $perfil['nombre_ciclo'] ?? 'Sin Ciclo';
+    $cursoTutor = $perfil['nombre_curso'] ?? 'Sin Curso';
 
-    public function probarRol() {
-        echo" <form action='index.php' method='POST'>
-        <input type='submit' name='btnLogOut' value='Cerrar sesión' onclick='" . "return confirm(" . "¿Está seguro que quiere cerrar sesión?" . "') > 
-        </form>";
-        $this -> tutor -> probarRol();
-    }
-
+    require_once 'Vista/index_vista.php';
 }
-
-?>
+}
