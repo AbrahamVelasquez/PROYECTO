@@ -6,7 +6,7 @@
     <title>Proyecto</title>
 </head>
 <body>
-    <div class="flex justify-between items-center mb-8">
+<div class="flex justify-between items-center mb-8">
   <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white text-sm">👥</span>
     Listado de Alumnado
@@ -40,8 +40,8 @@
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
   <table class="w-full text-left table-tech border-collapse">
     <thead>
-      <tr>
-        <th>APELLIDOS, NOMBRE ALUMNO</th>
+      <tr class="bg-slate-50 text-slate-600">
+        <th class="p-4">APELLIDOS, NOMBRE ALUMNO</th>
         <th class="w-10">SEXO</th>
         <th class="w-24 border-section">DNI / NIE</th>
         <th>NOMBRE EMPRESA</th>
@@ -55,92 +55,69 @@
       </tr>
     </thead>
     <tbody class="divide-y divide-slate-100 uppercase bg-white">
-      
-      <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-bold">MARTÍNEZ SOSA, CARLOS</td>
-        <td class="text-center">H</td>
-        <td class="text-center font-mono border-section">44556677Z</td>
-        <td colspan="7" class="text-center bg-red-50/30 text-red-600 border-section tracking-[0.2em] font-black italic py-4">
-          ⚠️ PENDIENTE DE ASIGNACIÓN DE PLAZA
-        </td>
-        <td class="text-center">
-          <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[8px] border border-red-200 font-black">SIN ASIGNAR</span>
-        </td>
-      </tr>
+      <?php if (empty($alumnos)): ?>
+        <tr>
+            <td colspan="11" class="py-10 text-center text-slate-400 italic text-xs">No hay alumnos matriculados en este ciclo.</td>
+        </tr>
+      <?php else: ?>
+        <?php foreach ($alumnos as $al): 
+            $tieneEmpresa = !empty($al['id_convenio']);
+            $tieneDireccion = !empty($al['direccion']);
+            $tieneFechas = !empty($al['fecha_inicio']) && !empty($al['fecha_final']);
+            $tieneHorario = !empty($al['horario']) && !empty($al['horas_dia']);
 
-      <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-bold">GARCÍA MARTÍNEZ, ALEJANDRO</td>
-        <td class="text-center">H</td>
-        <td class="text-center font-mono border-section">12345678X</td>
-        <td class="text-orange-600">INDITEX S.A.</td>
-        <td class="text-center">0892</td>
-        <td colspan="5" class="text-center bg-orange-50/30 text-orange-600 border-section tracking-wider font-black italic py-4">
-          ⚠️ FALTA DIRECCIÓN, FECHAS Y HORARIO
-        </td>
-        <td class="text-center">
-          <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[8px] border border-amber-200 font-black">EN PROCESO</span>
-        </td>
-      </tr>
+            if (!$tieneEmpresa) {
+                $estado = "SIN ASIGNAR";
+                $colorEstado = "bg-red-100 text-red-700 border-red-200";
+            } elseif (!$tieneDireccion || !$tieneFechas || !$tieneHorario) {
+                $estado = "EN PROCESO";
+                $colorEstado = "bg-amber-100 text-amber-700 border-amber-200";
+            } else {
+                $estado = "COMPLETADO";
+                $colorEstado = "bg-emerald-100 text-emerald-700 border-emerald-200";
+            }
+        ?>
+        <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="font-bold p-4"><?= htmlspecialchars($al['apellido1'] . " " . $al['apellido2'] . ", " . $al['nombre']) ?></td>
+            <td class="text-center"><?= htmlspecialchars($al['sexo'] ?? '-') ?></td>
+            <td class="text-center font-mono border-section"><?= htmlspecialchars($al['dni'] ?? '-') ?></td>
 
-      <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-bold">REYES CALVO, LUCÍA</td>
-        <td class="text-center">M</td>
-        <td class="text-center font-mono border-section">55661122K</td>
-        <td>PIXEL ART STUDIO</td>
-        <td class="text-center">0125</td>
-        <td class="border-section text-[9px] lowercase font-medium">Av. Libertad 42, Sevilla</td>
-        <td class="text-center">01/03/26</td>
-        <td class="text-center">20/06/26</td>
-        <td colspan="2" class="text-center bg-orange-50/30 text-orange-600 border-section font-black italic">
-          ⚠️ FALTA HORARIO
-        </td>
-        <td class="text-center">
-          <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[8px] border border-amber-200 font-black">EN PROCESO</span>
-        </td>
-      </tr>
+            <?php if (!$tieneEmpresa): ?>
+            <td colspan="7" class="text-center bg-red-50/30 text-red-600 border-section tracking-[0.2em] font-black italic py-4">
+                ⚠️ PENDIENTE DE ASIGNACIÓN DE PLAZA
+            </td>
+            <?php elseif (!$tieneDireccion || !$tieneFechas || !$tieneHorario): ?>
+            <td class="text-orange-600"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
+            <td class="text-center"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
+            <td colspan="5" class="text-center bg-orange-50/30 text-orange-600 border-section tracking-wider font-black italic py-4">
+                ⚠️ FALTA <?php 
+                $faltas = [];
+                if (!$tieneDireccion) $faltas[] = "DIRECCIÓN";
+                if (!$tieneFechas) $faltas[] = "FECHAS";
+                if (!$tieneHorario) $faltas[] = "HORARIO";
+                echo implode(", ", $faltas);
+                ?>
+            </td>
+            <?php else: ?>
+            <td><?= htmlspecialchars($al['nombre_empresa']) ?></td>
+            <td class="text-center"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
+            <td class="border-section text-[9px] lowercase font-medium"><?= htmlspecialchars($al['direccion'] . ", " . $al['municipio']) ?></td>
+            <td class="text-center"><?= date("d/m/y", strtotime($al['fecha_inicio'])) ?></td>
+            <td class="text-center"><?= date("d/m/y", strtotime($al['fecha_final'])) ?></td>
+            <td class="text-center"><?= htmlspecialchars($al['horario']) ?></td>
+            <td class="text-center border-section"><?= number_format($al['horas_dia'] ?? 0, 0) ?></td>
+            <?php endif; ?>
 
-      <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-bold">LOPEZ RUIZ, MARIA ESTHER</td>
-        <td class="text-center">M</td>
-        <td class="text-center font-mono border-section">77123321Y</td>
-        <td>TECH SOLUTIONS S.L.</td>
-        <td class="text-center">0042</td>
-        <td class="border-section text-[9px] lowercase font-medium">C/ Mayor 15, Madrid</td>
-        <td class="text-center">01/03/26</td>
-        <td class="text-center">20/06/26</td>
-        <td class="text-center">08:00 - 14:00</td>
-        <td class="text-center border-section">6</td>
-        <td class="text-center">
-          <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[8px] border border-emerald-200 font-black">COMPLETADO</span>
-        </td>
-      </tr>
-
-      <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-bold">DOMÍNGUEZ FERRI, MARC</td>
-        <td class="text-center">H</td>
-        <td class="text-center font-mono border-section">33998844M</td>
-        <td>CLOUD NETWORKS</td>
-        <td class="text-center">0551</td>
-        <td class="border-section text-[9px] lowercase font-medium">P. de Gracia 10, Barcelona</td>
-        <td class="text-center">15/03/26</td>
-        <td class="text-center">30/06/26</td>
-        <td class="text-center">09:00 - 15:00</td>
-        <td class="text-center border-section">6</td>
-        <td class="text-center">
-          <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[8px] border border-emerald-200 font-black">COMPLETADO</span>
-        </td>
-      </tr>
-
+            <td class="text-center">
+              <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
+                  <?= $estado ?>
+              </span>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+      <?php endif; ?>
     </tbody>
   </table>
-</div>
-
-<div class="mt-6 flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-  <p>Mostrando 5 alumnos asignados a tu tutoría</p>
-  <div class="flex gap-2">
-    <button class="px-3 py-1 border border-slate-200 rounded hover:bg-white transition-colors cursor-not-allowed">Ant.</button>
-    <button class="px-3 py-1 border border-slate-200 rounded hover:bg-white transition-colors cursor-not-allowed">Sig.</button>
-  </div>
 </div>
 </body>
 </html>

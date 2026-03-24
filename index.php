@@ -18,13 +18,13 @@ else if (isset($_SESSION['usuario'])) {
     // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
         $nomControlador = "Tutores";
-        $accion = "mostrarPanel"; 
+        $accion = "mostrarPanel"; // Este método en el controlador ahora cargará los alumnos
     } else if ($_SESSION['rol'] == 'admin') {
         $nomControlador = "Admin";
         $accion = "mostrarTutores";
     }
 
-    // Si viene una acción específica por POST (navegación interna)
+    // Si viene una acción específica por POST (ej. al pulsar un botón de filtro)
     if (isset($_POST['accion'])) {
         $accion = $_POST['accion'];
     }
@@ -35,9 +35,11 @@ else if (isset($_SESSION['usuario'])) {
     if (file_exists($rutaControlador)) {
         require_once $rutaControlador;
         $nombreClase = $nomControlador . "_Controlador";
+        
+        // Instanciamos el controlador (aquí se ejecuta el __construct que crea el Modelo Alumnos)
         $controlador = new $nombreClase();
         
-        // Ejecutamos la acción (ej. mostrarPanel() en Tutores)
+        // Ejecutamos la acción (ej. mostrarPanel() que busca los alumnos y carga la vista)
         if (method_exists($controlador, $accion)) {
             call_user_func(array($controlador, $accion));
         } else {
