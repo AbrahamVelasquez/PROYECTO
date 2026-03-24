@@ -21,50 +21,60 @@
   </div>
 </div>
 
-<div class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-  <div class="flex-1 relative">
+<form method="POST" action="index.php?controlador=Tutores&accion=mostrarPanel" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+  <div class="flex-1 relative w-full">
     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-    <input type="text" placeholder="BUSCAR POR APELLIDOS O DNI..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+    <input type="text" name="busqueda" value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>" placeholder="BUSCAR POR APELLIDOS O DNI..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
   </div>
-  <div class="flex items-center gap-3">
+  
+  <div class="flex items-center gap-3 w-full md:w-auto">
     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado:</span>
-    <select class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
+    <select name="estado" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
       <option value="">TODOS LOS ESTADOS</option>
-      <option value="sin-asignar">🔴 SIN ASIGNAR</option>
-      <option value="en-proceso">🟡 EN PROCESO</option>
-      <option value="completado">🟢 COMPLETADO</option>
+      <option value="SIN ASIGNAR" <?= ($_POST['estado'] ?? '') == 'SIN ASIGNAR' ? 'selected' : '' ?>>🔴 SIN ASIGNAR</option>
+      <option value="EN PROCESO" <?= ($_POST['estado'] ?? '') == 'EN PROCESO' ? 'selected' : '' ?>>🟡 EN PROCESO</option>
+      <option value="COMPLETADO" <?= ($_POST['estado'] ?? '') == 'COMPLETADO' ? 'selected' : '' ?>>🟢 COMPLETADO</option>
     </select>
   </div>
-</div>
+
+  <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
+    BUSCAR
+  </button>
+</form>
 
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-  <table class="w-full text-left table-tech border-collapse">
+  <table class="w-full text-left border-collapse bg-white">
     <thead>
-      <tr class="bg-slate-50 text-slate-600">
+      <tr class="bg-slate-50 text-slate-600 text-[10px] font-black uppercase">
+        <th class="p-4 w-12 text-center">EDITAR</th>
         <th class="p-4">APELLIDOS, NOMBRE ALUMNO</th>
-        <th class="w-10">SEXO</th>
-        <th class="w-24 border-section">DNI / NIE</th>
-        <th>NOMBRE EMPRESA</th>
-        <th class="w-16">Nº CONV.</th>
-        <th class="border-section">DIRECCIÓN CENTRO TRABAJO</th>
-        <th class="w-20">F. INICIO</th>
-        <th class="w-20">F. FINAL</th>
-        <th class="w-24">HORARIO</th>
-        <th class="w-12 border-section">H/DÍA</th>
-        <th class="w-24">ESTADO</th>
+        <th class="w-10 text-center">SEXO</th>
+        <th class="w-24 border-section text-center">DNI / NIE</th>
+        <th class="p-4">NOMBRE EMPRESA</th>
+        <th class="w-16 text-center">Nº CONV.</th>
+        <th class="border-section p-4">DIRECCIÓN CENTRO TRABAJO</th>
+        <th class="w-24 text-center">F. INICIO</th>
+        <th class="w-24 text-center">F. FINAL</th>
+        <th class="w-28 text-center">HORARIO</th>
+        <th class="w-14 border-section text-center text-[9px]">H/DÍA</th>
+        <th class="w-24 text-center p-4">ESTADO</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100 uppercase bg-white">
+    <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
       <?php if (empty($alumnos)): ?>
-        <tr>
-            <td colspan="11" class="py-10 text-center text-slate-400 italic text-xs">No hay alumnos matriculados en este ciclo.</td>
-        </tr>
+        <tr><td colspan="12" class="py-10 text-center text-slate-400 italic">No hay resultados.</td></tr>
       <?php else: ?>
         <?php foreach ($alumnos as $al): 
+            // VALIDACIÓN ROBUSTA DE DATOS
             $tieneEmpresa = !empty($al['id_convenio']);
             $tieneDireccion = !empty($al['direccion']);
-            $tieneFechas = !empty($al['fecha_inicio']) && !empty($al['fecha_final']);
-            $tieneHorario = !empty($al['horario']) && !empty($al['horas_dia']);
+            
+            // Fix para fechas 0000-00-00
+            $f_inicio = ($al['fecha_inicio'] && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
+            $f_final = ($al['fecha_final'] && $al['fecha_final'] !== '0000-00-00') ? $al['fecha_final'] : null;
+            $tieneFechas = ($f_inicio && $f_final);
+            
+            $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
 
             if (!$tieneEmpresa) {
                 $estado = "SIN ASIGNAR";
@@ -78,37 +88,45 @@
             }
         ?>
         <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="font-bold p-4"><?= htmlspecialchars($al['apellido1'] . " " . $al['apellido2'] . ", " . $al['nombre']) ?></td>
-            <td class="text-center"><?= htmlspecialchars($al['sexo'] ?? '-') ?></td>
-            <td class="text-center font-mono border-section"><?= htmlspecialchars($al['dni'] ?? '-') ?></td>
+            <td class="p-3 text-center">
+                <button class="group p-2 rounded-lg hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
+                    </svg>
+                </button>
+            </td>
+
+            <td class="font-bold p-4 text-slate-700"><?= htmlspecialchars($al['apellido1'] . " " . $al['apellido2'] . ", " . $al['nombre']) ?></td>
+            <td class="text-center text-slate-500"><?= $al['sexo'] ?? '-' ?></td>
+            <td class="text-center font-mono border-section text-slate-600"><?= $al['dni'] ?></td>
 
             <?php if (!$tieneEmpresa): ?>
-            <td colspan="7" class="text-center bg-red-50/30 text-red-600 border-section tracking-[0.2em] font-black italic py-4">
-                ⚠️ PENDIENTE DE ASIGNACIÓN DE PLAZA
-            </td>
-            <?php elseif (!$tieneDireccion || !$tieneFechas || !$tieneHorario): ?>
-            <td class="text-orange-600"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
-            <td class="text-center"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
-            <td colspan="5" class="text-center bg-orange-50/30 text-orange-600 border-section tracking-wider font-black italic py-4">
-                ⚠️ FALTA <?php 
-                $faltas = [];
-                if (!$tieneDireccion) $faltas[] = "DIRECCIÓN";
-                if (!$tieneFechas) $faltas[] = "FECHAS";
-                if (!$tieneHorario) $faltas[] = "HORARIO";
-                echo implode(", ", $faltas);
-                ?>
-            </td>
+                <td colspan="7" class="text-center bg-red-50/30 text-red-500 border-section tracking-[0.2em] font-black italic py-4">
+                    ⚠️ PENDIENTE DE ASIGNACIÓN
+                </td>
             <?php else: ?>
-            <td><?= htmlspecialchars($al['nombre_empresa']) ?></td>
-            <td class="text-center"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
-            <td class="border-section text-[9px] lowercase font-medium"><?= htmlspecialchars($al['direccion'] . ", " . $al['municipio']) ?></td>
-            <td class="text-center"><?= date("d/m/y", strtotime($al['fecha_inicio'])) ?></td>
-            <td class="text-center"><?= date("d/m/y", strtotime($al['fecha_final'])) ?></td>
-            <td class="text-center"><?= htmlspecialchars($al['horario']) ?></td>
-            <td class="text-center border-section"><?= number_format($al['horas_dia'] ?? 0, 0) ?></td>
+                <td class="p-4 text-slate-700"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
+                <td class="text-center text-slate-500"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
+
+                <td class="border-section p-4">
+                    <?= $tieneDireccion ? '<div class="text-[9px] lowercase leading-tight text-slate-600">'.htmlspecialchars($al['direccion']).'<br><span class="font-bold text-slate-400">'.htmlspecialchars($al['municipio']).'</span></div>' 
+                                      : '<span class="text-orange-500 font-black italic text-[8px]">⚠️ FALTA DIR.</span>' ?>
+                </td>
+
+                <td class="text-center"><?= $f_inicio ? date("d/m/y", strtotime($f_inicio)) : '<span class="text-orange-500 font-bold italic">--/--/--</span>' ?></td>
+                <td class="text-center"><?= $f_final ? date("d/m/y", strtotime($f_final)) : '<span class="text-orange-500 font-bold italic">--/--/--</span>' ?></td>
+
+                <td class="text-center">
+                    <?= $tieneHorario ? '<span class="text-slate-600">'.htmlspecialchars($al['horario']).'</span>' 
+                                     : '<span class="text-orange-500 font-black italic text-[8px]">⚠️ SIN HORARIO</span>' ?>
+                </td>
+
+                <td class="text-center border-section font-bold">
+                    <?= $tieneHorario ? number_format($al['horas_dia'], 0) : '-' ?>
+                </td>
             <?php endif; ?>
 
-            <td class="text-center">
+            <td class="text-center p-4">
               <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
                   <?= $estado ?>
               </span>
