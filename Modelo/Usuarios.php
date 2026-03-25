@@ -19,6 +19,7 @@ class Usuarios {
         $_SESSION['rol'] = $rol;
         $_SESSION['id_usuario'] = $id_usr;
         $_SESSION['id_tutor'] = $id_tutor; // <--- ESTO ES VITAL
+        $_SESSION['id_ciclo']= $datosUsuario['id_ciclo'];
     }
 
     public function validarDatos() {
