@@ -15,7 +15,8 @@
     <button class="bg-slate-50 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-xs border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer">
       📥 Cargar Alumnos
     </button>
-    <button class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md cursor-pointer">
+    <button onclick="document.getElementById('modalAgregarAlumno').style.display='flex'"
+            class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md cursor-pointer">
       + Agregar Alumno
     </button>
   </div>
@@ -136,6 +137,78 @@
       <?php endif; ?>
     </tbody>
   </table>
+</div>
+<div id="modalAgregarAlumno" style="display:none" 
+     class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+     onclick="if(event.target===this) this.style.display='none'">
+
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+    
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-600 text-white text-xs">👤</span>
+        NUEVO ALUMNO
+      </h3>
+      <button onclick="document.getElementById('modalAgregarAlumno').style.display='none'"
+              class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
+    </div>
+
+    <form method="POST" action="index.php">
+      <input type="hidden" name="accion" value="agregarAlumno">
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Primer Apellido <span class="text-red-500">*</span></label>
+        <input type="text" name="apellido1" required
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido</label>
+        <input type="text" name="apellido2"
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
+        <input type="text" name="nombre" required
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="flex gap-3 mb-4">
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE <span class="text-red-500">*</span></label>
+          <input type="text" name="dni" required maxlength="9"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+        <div class="w-28">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo <span class="text-red-500">*</span></label>
+          <select name="sexo" required
+                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+            <option value="">--</option>
+            <option value="H">H</option>
+            <option value="M">M</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico</label>
+        <input type="email" name="correo"
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" onclick="document.getElementById('modalAgregarAlumno').style.display='none'"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">
+          Cancelar
+        </button>
+        <button type="submit"
+                class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">
+          Guardar Alumno
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 </body>
 </html>
