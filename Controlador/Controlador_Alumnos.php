@@ -1,25 +1,22 @@
 <?php
 
-////////////////////////////////////////////////
-// Este fichero, por ahora, no se está usando //
-////////////////////////////////////////////////
-
-// Traemos el Modelo
 require_once './Modelo/Alumnos.php';
 
 class Alumnos_Controlador {
+    private $modeloAlumno;
 
-    private $alumno; 
-    // Este atributo será el objeto
-    // con el que accederé a los métodos
-    // de verificación e inicio.
-    // Por defecto es NULL
-
-    // El constructor para darle valor al atributo.
     public function __construct() {
-        $this -> alumno = new Alumnos();
+        $this->modeloAlumno = new Alumnos();
     }
 
+    public function mostrarListado($idCiclo) {
+        // 1. Obtenemos los datos del modelo
+        $alumnos = $this->modeloAlumno->listarAlumnosPorCiclo($idCiclo);
+
+        // 2. Cargamos la vista (el archivo HTML que tenías)
+        // Las variables creadas aquí estarán disponibles en la vista
+        require_once './Vista/tabla_alumnos.php';
+    }
 }
 
 ?>
