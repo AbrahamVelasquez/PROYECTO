@@ -11,7 +11,7 @@ class Alumnos_Controlador {
 
     public function mostrarListado($idCiclo) {
         // 1. Obtenemos los datos del modelo
-        $alumnos = $this->modeloAlumno->listarAlumnosPorCiclo($idCiclo);
+        $alumnos = $this->modeloAlumno->listarPorCiclo($idCiclo);
 
         // 2. Cargamos la vista (el archivo HTML que tenías)
         // Las variables creadas aquí estarán disponibles en la vista
