@@ -55,4 +55,23 @@ class Alumnos {
             return [];
         }
     }
+    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $idCiclo) {
+        $query = "INSERT INTO alumnos (nombre, apellido1, apellido2, dni, sexo, correo, id_ciclo) 
+                VALUES (:nombre, :apellido1, :apellido2, :dni, :sexo, :correo, :idCiclo)";
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute([
+                'nombre'    => $nombre,
+                'apellido1' => $apellido1,
+                'apellido2' => $apellido2,
+                'dni'       => $dni,
+                'sexo'      => $sexo,
+                'correo'    => $correo,
+                'idCiclo'   => $idCiclo
+            ]);
+            return true;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
