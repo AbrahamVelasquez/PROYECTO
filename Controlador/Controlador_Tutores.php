@@ -6,6 +6,8 @@ require_once 'Modelo/Alumnos.php';
 class Tutores_Controlador {
 
     public function mostrarPanel() {
+        // --- PESTAÑA ACTIVA ---
+        $pestanaActiva = $_GET['tab'] ?? 1;
         // --- GESTIÓN DE CONVENIOS ---
         $convControlador = new Convenios_Controlador();
         $data = $convControlador->gestionar();
