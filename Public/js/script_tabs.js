@@ -36,7 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    updateTabs("1");
+    // Recogemos el valor del tab de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabActiva = urlParams.get('tab') || "1"; // Si no hay nada, por defecto la "1"
+
+    // Inicializamos el tab con el valor de la URL
+    updateTabs(tabActiva);
 
     // --- NUEVA LÓGICA PARA EL MENÚ DESPLEGABLE ---
     const userBtn = document.getElementById('userMenuBtn');
