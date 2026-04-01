@@ -117,7 +117,7 @@
       <div class="p-10">
 
 
-        <div data-tab="1" class="<?= (isset($_GET['busqueda']) || !empty($misConvenios)) ? 'active' : '' ?>">
+        <div data-tab="1" class="<?= $pestanaActiva == 1 ? 'active' : '' ?>">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">🏢 Gestión de Convenios</h2>
                 <a href="Vista/Registro_Convenio.php" class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
@@ -221,7 +221,7 @@
             </div>
         </div>
 
-        <div data-tab="2">
+        <div data-tab="2"class="<?= $pestanaActiva == 2 ? 'active' : '' ?>">
           <?php include 'Vista/Tabla_Alumnos.php'; ?>
         </div>
 
