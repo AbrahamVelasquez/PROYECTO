@@ -208,11 +208,10 @@
 
       </div>
     </div> 
-
-    <footer class="mt-12 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
-        © <?= date('Y') ?> — Gestión FFE interna.
-    </footer>
   </main>
+  <footer class="mt-12 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+    © <?= date('Y') ?> — Gestión FFE interna.
+  </footer>
   <script src="Public/js/script_tabs.js"></script>
 </body>
 </html>
