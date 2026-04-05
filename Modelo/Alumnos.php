@@ -27,17 +27,31 @@ class Alumnos {
         // Filtro por Estado (Misma lógica que usas en la Vista)
         if ($estadoFiltro === 'SIN ASIGNAR') {
             $query .= " AND asig.id_asignacion IS NULL";
-        } elseif ($estadoFiltro === 'COMPLETADO') {
+        } 
+        elseif ($estadoFiltro === 'COMPLETADO') {
             $query .= " AND asig.id_asignacion IS NOT NULL 
-                        AND asig.fecha_inicio IS NOT NULL 
-                        AND asig.horario IS NOT NULL 
-                        AND conv.direccion IS NOT NULL";
-        } elseif ($estadoFiltro === 'EN PROCESO') {
+                        AND asig.fecha_inicio IS NOT NULL AND asig.fecha_inicio != '0000-00-00'
+                        AND asig.horario IS NOT NULL AND asig.horario != ''
+                        AND conv.direccion IS NOT NULL AND conv.direccion != ''";
+        } 
+        elseif ($estadoFiltro === 'EN PROCESO') {
             $query .= " AND asig.id_asignacion IS NOT NULL 
-                        AND (asig.fecha_inicio IS NULL OR asig.horario IS NULL OR conv.direccion IS NULL)";
+                        AND (
+                            asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' 
+                            OR asig.horario IS NULL OR asig.horario = '' 
+                            OR conv.direccion IS NULL OR conv.direccion = ''
+                        )";
         }
 
-        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+        $query .= " ORDER BY (
+            CASE 
+                WHEN asig.id_asignacion IS NULL THEN 1 
+                WHEN (asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' 
+                    OR asig.horario IS NULL OR asig.horario = '' 
+                    OR conv.direccion IS NULL OR conv.direccion = '') THEN 2 
+                ELSE 3 
+            END
+        ) ASC, a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
 
         try {
             $stmt = $this->conn->prepare($query);
