@@ -90,7 +90,7 @@
         ?>
         <tr class="hover:bg-slate-50/50 transition-colors">
             <td class="p-3 text-center">
-                <button class="group p-2 rounded-lg hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100">
+                <button onclick="abrirModalEditar(<?= $al['id_alumno'] ?>)" class="group p-2 rounded-lg hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
                       <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
                     </svg>
@@ -210,5 +210,153 @@
     </form>
   </div>
 </div>
+<!-- MODAL EDITAR ALUMNO -->
+<div id="modalEditarAlumno" style="display:none"
+     class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+     onclick="if(event.target===this) this.style.display='none'">
+
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 border border-slate-100 max-h-[90vh] overflow-y-auto">
+
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-600 text-white text-xs">✏️</span>
+        EDITAR ALUMNO
+      </h3>
+      <button onclick="document.getElementById('modalEditarAlumno').style.display='none'"
+              class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
+    </div>
+
+    <form method="POST" action="index.php" id="formEditarAlumno">
+      <input type="hidden" name="accion" value="editarAlumno">
+      <input type="hidden" name="id_alumno" id="edit_id_alumno">
+
+      <!-- Sección datos personales -->
+      <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Datos del Alumno</p>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Primer Apellido <span class="text-red-500">*</span></label>
+        <input type="text" name="apellido1" id="edit_apellido1" required
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido</label>
+        <input type="text" name="apellido2" id="edit_apellido2"
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
+        <input type="text" name="nombre" id="edit_nombre" required
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <div class="flex gap-3 mb-4">
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE <span class="text-red-500">*</span></label>
+          <input type="text" name="dni" id="edit_dni" required maxlength="9"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+        <div class="w-28">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo <span class="text-red-500">*</span></label>
+          <select name="sexo" id="edit_sexo" required
+                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+            <option value="">--</option>
+            <option value="H">H</option>
+            <option value="M">M</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico</label>
+        <input type="email" name="correo" id="edit_correo"
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+      </div>
+
+      <!-- Sección asignación -->
+      <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Asignación de Empresa</p>
+
+      <div class="mb-4">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Convenio / Empresa</label>
+        <select name="id_convenio" id="edit_id_convenio"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+          <option value="">-- Sin asignar --</option>
+          <?php foreach ($misConvenios as $conv): ?>
+            <option value="<?= $conv['id_convenio'] ?>">
+              <?= str_pad($conv['id_convenio'], 4, "0", STR_PAD_LEFT) ?> — <?= htmlspecialchars($conv['nombre_empresa']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div class="flex gap-3 mb-4">
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">F. Inicio</label>
+          <input type="date" name="fecha_inicio" id="edit_fecha_inicio"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">F. Final</label>
+          <input type="date" name="fecha_final" id="edit_fecha_final"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+      </div>
+
+      <div class="flex gap-3 mb-6">
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Horario</label>
+          <input type="text" name="horario" id="edit_horario" placeholder="08:00-15:00"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+        <div class="w-28">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">H/Día</label>
+          <input type="number" name="horas_dia" id="edit_horas_dia" min="1" max="24"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+        </div>
+      </div>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" onclick="document.getElementById('modalEditarAlumno').style.display='none'"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">
+          Cancelar
+        </button>
+        <button type="submit"
+                class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalEditar(idAlumno) {
+    // Petición AJAX para obtener los datos del alumno
+    fetch('index.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'accion=obtenerAlumno&id_alumno=' + idAlumno
+    })
+    .then(r => r.json())
+    .then(al => {
+        document.getElementById('edit_id_alumno').value   = al.id_alumno;
+        document.getElementById('edit_apellido1').value   = al.apellido1 ?? '';
+        document.getElementById('edit_apellido2').value   = al.apellido2 ?? '';
+        document.getElementById('edit_nombre').value      = al.nombre ?? '';
+        document.getElementById('edit_dni').value         = al.dni ?? '';
+        document.getElementById('edit_sexo').value        = al.sexo ?? '';
+        document.getElementById('edit_correo').value      = al.correo ?? '';
+        document.getElementById('edit_id_convenio').value = al.id_convenio ?? '';
+        document.getElementById('edit_fecha_inicio').value = al.fecha_inicio && al.fecha_inicio !== '0000-00-00' ? al.fecha_inicio : '';
+        document.getElementById('edit_fecha_final').value  = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
+        document.getElementById('edit_horario').value     = al.horario ?? '';
+        document.getElementById('edit_horas_dia').value   = al.horas_dia ?? '';
+
+        document.getElementById('modalEditarAlumno').style.display = 'flex';
+    })
+    .catch(e => alert('Error al cargar datos del alumno'));
+}
+</script>
 </body>
 </html>
