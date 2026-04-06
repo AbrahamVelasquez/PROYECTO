@@ -1,11 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto</title>
-</head>
-<body>
 <div class="flex justify-between items-center mb-8">
   <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white text-sm">👥</span>
@@ -358,5 +350,3 @@ function abrirModalEditar(idAlumno) {
     .catch(e => alert('Error al cargar datos del alumno'));
 }
 </script>
-</body>
-</html>
