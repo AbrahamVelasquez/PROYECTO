@@ -15,11 +15,11 @@
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 uppercase">Registro de <span class="text-orange-600">Convenio</span></h1>
         <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Introduzca los datos oficiales de la empresa</p>
       </div>
-      <a href="../index.php" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">← Cancelar</a>
+      <a href="/PROYECTO/index.php" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">← Cancelar</a>
     </header>
 
     <div class="rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden">
-      <form action="../index.php" method="POST" class="p-10 space-y-8">
+      <form action="/PROYECTO/index.php" method="POST" class="p-10 space-y-8">
         
         <input type="hidden" name="accion" value="guardarNuevoConvenio">
         <input type="hidden" name="id_tutor_registro" value="<?= $_SESSION['id_tutor'] ?? '' ?>">

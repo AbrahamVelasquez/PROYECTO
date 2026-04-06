@@ -51,6 +51,36 @@ class Tutores_Controlador {
         );
 
         // Recarga el panel con el listado actualizado
-        $this->mostrarPanel();
+        header('Location: index.php?tab=2');
+        exit();
     }
+public function obtenerAlumno() {
+    $idAlumno = $_POST['id_alumno'];
+    $alumnoModelo = new Alumnos();
+    $alumno = $alumnoModelo->obtenerPorId($idAlumno);
+    header('Content-Type: application/json');
+    echo json_encode($alumno);
+    exit();
+}
+
+public function editarAlumno() {
+    $alumnoModelo = new Alumnos();
+    $alumnoModelo->editarAlumno(
+        $_POST['id_alumno'],
+        trim($_POST['nombre']),
+        trim($_POST['apellido1']),
+        trim($_POST['apellido2'] ?? ''),
+        strtoupper(trim($_POST['dni'])),
+        $_POST['sexo'],
+        trim($_POST['correo'] ?? ''),
+        $_POST['id_convenio'] ?: null,
+        $_POST['fecha_inicio'] ?: null,
+        $_POST['fecha_final'] ?: null,
+        trim($_POST['horario'] ?? ''),
+        $_POST['horas_dia'] ?: null
+    );
+    header('Location: index.php?tab=2');
+    exit();
+}
+
 }
