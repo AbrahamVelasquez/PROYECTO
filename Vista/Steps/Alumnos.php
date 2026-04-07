@@ -20,6 +20,19 @@
     <input type="text" name="busqueda" value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>" placeholder="BUSCAR POR APELLIDOS O DNI..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
   </div>
   
+<div class="flex items-center gap-3 w-full md:w-auto">
+  <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Filtrar por:</span>
+    <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
+        <option value="">SIN ORDENAR</option>
+        <option value="nombre"         <?= ($_POST['ordenar'] ?? '') == 'nombre'          ? 'selected' : '' ?>>NOMBRE</option>
+        <option value="mis_convenios"  <?= ($_POST['ordenar'] ?? '') == 'mis_convenios'   ? 'selected' : '' ?>>MIS CONVENIOS PRIMERO</option>
+        <option value="estado"         <?= ($_POST['ordenar'] ?? '') == 'estado'           ? 'selected' : '' ?>>ESTADO</option>
+        <option value="empresa"        <?= ($_POST['ordenar'] ?? '') == 'empresa'          ? 'selected' : '' ?>>NOMBRE EMPRESA</option>
+        <option value="fecha_inicio"   <?= ($_POST['ordenar'] ?? '') == 'fecha_inicio'     ? 'selected' : '' ?>>FECHA INICIO</option>
+        <option value="fecha_final"    <?= ($_POST['ordenar'] ?? '') == 'fecha_final'      ? 'selected' : '' ?>>FECHA FINAL</option>
+    </select>
+</div>
+
   <div class="flex items-center gap-3 w-full md:w-auto">
     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado:</span>
     <select name="estado" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
