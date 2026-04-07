@@ -31,7 +31,9 @@ class Tutores_Controlador {
         // --- GESTIÓN DE ALUMNOS (CON FILTROS) ---
         $alumnoModelo = new Alumnos();
         // Pasamos las variables de filtro al método
-        $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro);
+        $ordenar = $_POST['ordenar'] ?? '';
+$misConveniosIds = array_column($misConvenios, 'id_convenio');
+$alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
 
         // --- CARGA DE VISTA ---
         require_once 'Vista/index_vista.php';
