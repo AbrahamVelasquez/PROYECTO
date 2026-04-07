@@ -43,7 +43,7 @@
     <?php unset($_SESSION['error_convenio']); ?>
     <?php endif; ?>
 
-    <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             
             <?php include 'Vista/Components/Header.php'; ?>

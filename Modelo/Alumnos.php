@@ -56,9 +56,11 @@ class Alumnos {
         }
         break;
     case 'estado':
-    $query .= " ORDER BY 
+
+    // En lo siguente, 0 significa sin asignar, 1 en proceso y 2 completado    
+    $query .= " ORDER BY
         CASE 
-            WHEN asig.id_convenio IS NULL THEN 2
+            WHEN asig.id_convenio IS NULL THEN 0
             WHEN (
                 asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' OR
                 asig.fecha_final  IS NULL OR asig.fecha_final  = '0000-00-00' OR
@@ -66,7 +68,7 @@ class Alumnos {
                 asig.horas_dia    IS NULL OR asig.horas_dia    = 0            OR
                 conv.direccion    IS NULL OR conv.direccion    = ''
             ) THEN 1
-            ELSE 0
+            ELSE 2
         END, a.apellido1";
     break;
     case 'empresa':
