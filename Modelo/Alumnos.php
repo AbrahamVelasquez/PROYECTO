@@ -8,7 +8,7 @@ class Alumnos {
         $this->conn = Conexion::getConexion();
     }
 
-    public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '') {
+    public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
         // Base de la consulta
         $query = "SELECT 
                     a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
@@ -43,15 +43,44 @@ class Alumnos {
                         )";
         }
 
-        $query .= " ORDER BY (
-            CASE 
-                WHEN asig.id_asignacion IS NULL THEN 1 
-                WHEN (asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' 
-                    OR asig.horario IS NULL OR asig.horario = '' 
-                    OR conv.direccion IS NULL OR conv.direccion = '') THEN 2 
-                ELSE 3 
-            END
-        ) ASC, a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
+    switch ($ordenar) {
+    case 'nombre':
+        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+        break;
+    case 'mis_convenios':
+        if (!empty($misConveniosIds)) {
+            $ids = implode(',', array_map('intval', $misConveniosIds));
+            $query .= " ORDER BY CASE WHEN asig.id_convenio IN ($ids) THEN 0 ELSE 1 END, a.apellido1";
+        } else {
+            $query .= " ORDER BY a.apellido1";
+        }
+        break;
+    case 'estado':
+    $query .= " ORDER BY 
+        CASE 
+            WHEN asig.id_convenio IS NULL THEN 2
+            WHEN (
+                asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' OR
+                asig.fecha_final  IS NULL OR asig.fecha_final  = '0000-00-00' OR
+                asig.horario      IS NULL OR asig.horario      = ''           OR
+                asig.horas_dia    IS NULL OR asig.horas_dia    = 0            OR
+                conv.direccion    IS NULL OR conv.direccion    = ''
+            ) THEN 1
+            ELSE 0
+        END, a.apellido1";
+    break;
+    case 'empresa':
+        $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
+        break;
+    case 'fecha_inicio':
+        $query .= " ORDER BY asig.fecha_inicio ASC, a.apellido1";
+        break;
+    case 'fecha_final':
+        $query .= " ORDER BY asig.fecha_final ASC, a.apellido1";
+        break;
+    default:
+        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+    }
 
         try {
             $stmt = $this->conn->prepare($query);
