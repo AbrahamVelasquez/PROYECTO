@@ -43,41 +43,46 @@ class Alumnos {
                         )";
         }
 
+    // En lo siguente, 0 significa sin asignar, 1 en proceso y 2 completado    
+    $estado = " ORDER BY
+        CASE 
+            WHEN asig.id_convenio IS NULL THEN 0
+            WHEN (
+                asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' OR
+                asig.fecha_final  IS NULL OR asig.fecha_final  = '0000-00-00' OR
+                asig.horario      IS NULL OR asig.horario      = ''           OR
+                asig.horas_dia    IS NULL OR asig.horas_dia    = 0            OR
+                conv.direccion    IS NULL OR conv.direccion    = ''
+            ) THEN 1
+            ELSE 2
+        END, a.apellido1";
+
     switch ($ordenar) {
     case 'nombre':
         $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
         break;
     case 'mis_convenios':
-            $query .= " ORDER BY 
-                    CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
-                    conv.nombre_empresa ASC, 
-                    a.apellido1 ASC, 
-                    a.nombre ASC";
-        break;
+        $query .= " ORDER BY 
+                CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
+                conv.nombre_empresa ASC, 
+                a.apellido1 ASC, 
+                a.nombre ASC";
+                break;
+    case 'estado':
+        $query .= $estado;
+    break;
     case 'empresa':
         $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
         break;
     case 'fecha_inicio':
-        $query .= " ORDER BY asig.fecha_inicio ASC, a.apellido1";
+        $query .= " ORDER BY asig.fecha_inicio DESC, a.apellido1";
         break;
     case 'fecha_final':
-        $query .= " ORDER BY asig.fecha_final ASC, a.apellido1";
+        $query .= " ORDER BY asig.fecha_final DESC, a.apellido1";
         break;
     case 'estado':
     default:
-        $query .= " ORDER BY 
-            CASE 
-                WHEN asig.id_convenio IS NULL THEN 2
-                WHEN (
-                    asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' OR
-                    asig.fecha_final  IS NULL OR asig.fecha_final  = '0000-00-00' OR
-                    asig.horario      IS NULL OR asig.horario      = ''           OR
-                    asig.horas_dia    IS NULL OR asig.horas_dia    = 0            OR
-                    conv.direccion    IS NULL OR conv.direccion    = ''
-                ) THEN 1
-                ELSE 0
-            END, conv.nombre_empresa, a.apellido1";
-        break;
+        $query .= $estado; // Orden por estado por defecto
     }
 
         try {
