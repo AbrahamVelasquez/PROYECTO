@@ -80,6 +80,7 @@ class Alumnos {
     case 'fecha_final':
         $query .= " ORDER BY asig.fecha_final DESC, a.apellido1";
         break;
+    case 'estado':
     default:
         $query .= $estado; // Orden por estado por defecto
     }
