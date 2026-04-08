@@ -28,9 +28,8 @@
     <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
         <option value="">SIN ORDENAR</option>
         <option value="nombre"          <?= ($_POST['ordenar'] ?? '') == 'nombre'           ? 'selected' : '' ?>>NOMBRE</option>
-        <option value="mis_convenios"  <?= ($_POST['ordenar'] ?? '') == 'mis_convenios'   ? 'selected' : '' ?>>MIS CONVENIOS PRIMERO</option>
+        <option value="mis_convenios"  <?= ($_POST['ordenar'] ?? '') == 'mis_convenios'   ? 'selected' : '' ?>>Nº CONVENIO</option>
         <option value="estado"          <?= ($_POST['ordenar'] ?? '') == 'estado'           ? 'selected' : '' ?>>ESTADO</option>
-        <option value="empresa"        <?= ($_POST['ordenar'] ?? '') == 'empresa'          ? 'selected' : '' ?>>NOMBRE EMPRESA</option>
         <option value="fecha_inicio"   <?= ($_POST['ordenar'] ?? '') == 'fecha_inicio'     ? 'selected' : '' ?>>FECHA INICIO</option>
         <option value="fecha_final"    <?= ($_POST['ordenar'] ?? '') == 'fecha_final'      ? 'selected' : '' ?>>FECHA FINAL</option>
     </select>
@@ -66,9 +65,8 @@
         <th class="w-24 text-center">F. FINAL</th>
         <th class="w-28 text-center">HORARIO</th>
         <th class="w-14 border-section text-center text-[9px]">H/DÍA</th>
-        <th class="w-16 text-center">ENVIADO</th>
+        <th class="w-24 text-center p-4">ESTADO</th> <th class="w-16 text-center">ENVIADO</th>
         <th class="w-16 border-section text-center">FIRMADO</th>
-        <th class="w-24 text-center p-4">ESTADO</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
@@ -107,6 +105,11 @@
                 <td colspan="7" class="text-center bg-red-50/30 text-red-500 border-section tracking-[0.2em] font-black italic py-4">
                     ⚠️ PENDIENTE DE ASIGNACIÓN
                 </td>
+                <td class="text-center p-4">
+                  <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
+                      <?= $estado ?>
+                  </span>
+                </td>
                 <td class="text-center">-</td>
                 <td class="text-center border-section">-</td>
             <?php else: ?>
@@ -126,11 +129,17 @@
                     <?= $tieneHorario ? number_format($al['horas_dia'], 0) : '-' ?>
                 </td>
 
+                <td class="text-center p-4">
+                  <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
+                      <?= $estado ?>
+                  </span>
+                </td>
+
                 <td class="text-center">
                     <?php if ($estado === "COMPLETADO"): ?>
                         <input type="checkbox" 
-                              class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer accent-orange-600" 
-                              <?= ($al['enviado'] ?? false) ? 'checked' : '' ?>>
+                               class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer accent-orange-600" 
+                               <?= ($al['enviado'] ?? false) ? 'checked' : '' ?>>
                     <?php else: ?>
                         <span class="text-slate-400">-</span>
                     <?php endif; ?>
@@ -139,20 +148,14 @@
                 <td class="text-center border-section">
                     <?php if ($estado === "COMPLETADO"): ?>
                         <input type="checkbox" 
-                              class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600" 
-                              <?= ($al['firmado'] ?? false) ? 'checked' : '' ?>
-                              onclick="solicitarConfirmacionFirma(<?= $al['id_alumno'] ?>, '<?= htmlspecialchars($al['apellido1'] . ' ' . $al['nombre']) ?>', this)">
+                               class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600" 
+                               <?= ($al['firmado'] ?? false) ? 'checked' : '' ?>
+                               onclick="solicitarConfirmacionFirma(<?= $al['id_alumno'] ?>, '<?= htmlspecialchars($al['apellido1'] . ' ' . $al['nombre']) ?>', this)">
                     <?php else: ?>
                         <span class="text-slate-400">-</span>
                     <?php endif; ?>
                 </td>
             <?php endif; ?>
-
-            <td class="text-center p-4">
-              <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
-                  <?= $estado ?>
-              </span>
-            </td>
         </tr>
         <?php endforeach; ?>
       <?php endif; ?>
@@ -275,7 +278,7 @@
         </div>
         <div class="w-28">
           <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">H/Día</label>
-          <input type="number" name="horas_dia" id="edit_horas_dia" min="1" max="24" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+          <input type="number" name="horas_dia" id="edit_horas_dia" min="0" max="24" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
         </div>
       </div>
       <div class="flex gap-3 justify-end">

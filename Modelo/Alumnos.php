@@ -43,22 +43,8 @@ class Alumnos {
                         )";
         }
 
-    switch ($ordenar) {
-    case 'nombre':
-        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
-        break;
-    case 'mis_convenios':
-        if (!empty($misConveniosIds)) {
-            $ids = implode(',', array_map('intval', $misConveniosIds));
-            $query .= " ORDER BY CASE WHEN asig.id_convenio IN ($ids) THEN 0 ELSE 1 END, a.apellido1";
-        } else {
-            $query .= " ORDER BY a.apellido1";
-        }
-        break;
-    case 'estado':
-
     // En lo siguente, 0 significa sin asignar, 1 en proceso y 2 completado    
-    $query .= " ORDER BY
+    $estado = " ORDER BY
         CASE 
             WHEN asig.id_convenio IS NULL THEN 0
             WHEN (
@@ -70,18 +56,32 @@ class Alumnos {
             ) THEN 1
             ELSE 2
         END, a.apellido1";
+
+    switch ($ordenar) {
+    case 'nombre':
+        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+        break;
+    case 'mis_convenios':
+        $query .= " ORDER BY 
+                CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
+                conv.nombre_empresa ASC, 
+                a.apellido1 ASC, 
+                a.nombre ASC";
+                break;
+    case 'estado':
+        $query .= $estado;
     break;
     case 'empresa':
         $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
         break;
     case 'fecha_inicio':
-        $query .= " ORDER BY asig.fecha_inicio ASC, a.apellido1";
+        $query .= " ORDER BY asig.fecha_inicio DESC, a.apellido1";
         break;
     case 'fecha_final':
-        $query .= " ORDER BY asig.fecha_final ASC, a.apellido1";
+        $query .= " ORDER BY asig.fecha_final DESC, a.apellido1";
         break;
     default:
-        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+        $query .= $estado; // Orden por estado por defecto
     }
 
         try {
