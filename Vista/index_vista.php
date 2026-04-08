@@ -68,13 +68,138 @@
 
             </div>
         </div> 
+
+        <!-- CONVENIOS EN PROCESO (visual) -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                    ⏳ Convenios en Proceso
+                </h3>
+                <span class="text-[9px] font-black text-amber-500 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full uppercase tracking-widest">
+                    Pendientes de confirmar
+                </span>
+            </div>
+            <div class="overflow-hidden rounded-2xl border-2 border-amber-100 bg-white">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-amber-500 text-white">
+                        <tr>
+                            <th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest">Empresa</th>
+                            <th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest">Estado del enlace</th>
+                            <th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-50">
+
+                        <!-- Fila de ejemplo 1 -->
+                        <tr class="hover:bg-amber-50/50 transition-colors">
+                            <td class="px-6 py-5">
+                                <div class="font-bold text-slate-900 uppercase text-sm">Innovatech S.L.</div>
+                                <div class="text-xs text-slate-400 font-bold">Leganés</div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                                    Formulario enviado · esperando respuesta
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <button onclick="aprobarConvenio(this, 'Innovatech S.L.')"
+                                        class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
+                                    <span class="text-[10px] font-black uppercase">Aprobar</span>
+                                    <span class="text-xs">✓</span>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Fila de ejemplo 2 -->
+                        <tr class="hover:bg-amber-50/50 transition-colors">
+                            <td class="px-6 py-5">
+                                <div class="font-bold text-slate-900 uppercase text-sm">DataSphere Corp.</div>
+                                <div class="text-xs text-slate-400 font-bold">Madrid</div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                                    Formulario enviado · esperando respuesta
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <button onclick="aprobarConvenio(this, 'DataSphere Corp.')"
+                                        class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
+                                    <span class="text-[10px] font-black uppercase">Aprobar</span>
+                                    <span class="text-xs">✓</span>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Fila de ejemplo 3 — ya rellenado -->
+                        <tr class="hover:bg-amber-50/50 transition-colors">
+                            <td class="px-6 py-5">
+                                <div class="font-bold text-slate-900 uppercase text-sm">CloudBase Systems</div>
+                                <div class="text-xs text-slate-400 font-bold">Alcorcón</div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                                    Formulario completado · listo para aprobar
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <button onclick="aprobarConvenio(this, 'CloudBase Systems')"
+                                        class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
+                                    <span class="text-[10px] font-black uppercase">Aprobar</span>
+                                    <span class="text-xs">✓</span>
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <footer class="mt-12 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
         © <?= date('Y') ?> — Gestión FFE interna.
     </footer>
 
-    <script src="Public/js/script_tabs.js"></script>
+    <script src="Public/js/script_tabs.js">
+        
+        function aprobarConvenio(btn, nombre) {
+            const fila = btn.closest('tr');
+
+            // Animación de aprobado
+            fila.style.transition = 'opacity 0.4s ease';
+            fila.style.opacity = '0.4';
+
+            setTimeout(() => {
+                fila.remove();
+
+                // Añadir a "Mi Listado Personal" visualmente
+                const tbody = document.querySelector('.divide-y.divide-orange-50');
+                const nuevaFila = document.createElement('tr');
+                nuevaFila.className = 'hover:bg-orange-50/50 transition-colors';
+                nuevaFila.innerHTML = `
+                    <td class="px-6 py-5">
+                        <div class="font-bold text-slate-900 uppercase text-sm">${nombre}</div>
+                        <div class="text-xs text-slate-400 font-bold">Añadido desde proceso</div>
+                    </td>
+                    <td class="px-6 py-5 text-center">
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                            ✓ Añadido
+                        </span>
+                    </td>
+                `;
+                // Quita el mensaje "listado vacío" si existe
+                const vacia = tbody.querySelector('td[colspan]');
+                if (vacia) vacia.closest('tr').remove();
+
+                tbody.appendChild(nuevaFila);
+            }, 400);
+        }
+
+
+    </script>
 
 </body>
 </html>
