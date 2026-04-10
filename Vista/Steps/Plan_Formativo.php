@@ -1,4 +1,4 @@
-<div id="contenedor-plan-formativo" class="p-4">
+<div id="contenedor-plan-formativo">
     <div id="vista-tabla">
         <?php include_once 'Vista/Components/PF_Tabla.php'; ?>
     </div>
