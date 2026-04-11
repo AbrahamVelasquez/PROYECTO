@@ -27,7 +27,9 @@ TFG/ (Raíz)
 │
 ├── 📁 Vista/ ────────────────┐ [Interfaz de Usuario]
 │   ├── 📁 Components/ ──────── [Fragmentos Reutilizables]
+│   │   ├── Header_Alumnos.php
 │   │   ├── Header.php
+│   │   ├── Modales_Alumnos.php
 │   │   ├── Modales_Feedback.php
 │   │   ├── PF_Edicion.php
 │   │   └── PF_Tabla.php

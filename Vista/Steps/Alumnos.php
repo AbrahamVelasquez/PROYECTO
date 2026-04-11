@@ -250,7 +250,6 @@ function cerrarModalFirma() {
 }
 
 function abrirModalEditar(idAlumno) {
-    console.log("Id Recibido", idAlumno); // Ver que id se pasa
     fetch('index.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -258,7 +257,6 @@ function abrirModalEditar(idAlumno) {
     })
     .then(r => r.json())
     .then(al => {
-        console.log("Datos recibidos:", al); // Ver por consola que devuelve
         document.getElementById('edit_id_alumno').value = al.id_alumno;
         document.getElementById('edit_apellido1').value = al.apellido1 ?? '';
         document.getElementById('edit_apellido2').value = al.apellido2 ?? '';
@@ -271,7 +269,7 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
-        
+
         // --- LÓGICA PARA EL BLOQUE ENVIADO ---
         const bloque = document.getElementById('bloque_enviado');
         const checkbox = document.getElementById('edit_enviado');
@@ -288,6 +286,7 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('modalEditarAlumno').style.display = 'flex';
     })
     .catch(e => alert('Error al cargar datos del alumno'));
+
 }
 
 function abrirConfirmacionFinal() {

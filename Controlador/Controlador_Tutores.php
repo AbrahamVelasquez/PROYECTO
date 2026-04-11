@@ -72,7 +72,6 @@ class Tutores_Controlador {
 public function obtenerAlumno() {
     $alumnoModelo = new Alumnos();
 
-    // 1. Caso Verificar Firma
     if (isset($_POST['verificar_firma'])) {
         $idAsig = (int)$_POST['id_asignacion'];
         $yaFirmado = $alumnoModelo->comprobarFirmaExistente($idAsig);
@@ -81,15 +80,14 @@ public function obtenerAlumno() {
         exit();
     }
 
-    // 2. Caso Modal Editar (el que te falla)
-    $idAlumno = $_POST['id_alumno'];
+    $idAlumno = isset($_POST['id_alumno']) ? (int)$_POST['id_alumno'] : 0;
     $alumno = $alumnoModelo->obtenerPorId($idAlumno);
 
     header('Content-Type: application/json');
     
-    // Si $alumno es null, forzamos el envío de un objeto vacío {} en lugar de []
     if (!$alumno) {
-        echo json_encode(new stdClass()); 
+        // Si el modelo devolvió false o null, enviamos un error claro en JSON
+        echo json_encode(['error' => 'Alumno no encontrado', 'id_recibido' => $idAlumno]);
     } else {
         echo json_encode($alumno);
     }

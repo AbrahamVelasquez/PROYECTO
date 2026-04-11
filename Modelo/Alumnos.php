@@ -10,13 +10,16 @@ class Alumnos {
 
     public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
         // Base de la consulta - Se añade asig.enviado
-        $query = "SELECT a.*, asig.*, conv.nombre_empresa, conv.municipio, conv.direccion,
-                (f.id_firmada IS NOT NULL) as firmado 
-                FROM alumnos a
-                LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
-                LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
-                WHERE a.id_ciclo = :idCiclo";
+        $query = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
+                            asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
+                            asig.horario, asig.horas_dia, asig.enviado,
+                            conv.nombre_empresa, conv.municipio, conv.direccion,
+                            (f.id_firmada IS NOT NULL) as firmado 
+                    FROM alumnos a
+                    LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
+                    LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
+                    LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+                    WHERE a.id_ciclo = :idCiclo";
 
         // Filtro por texto (Nombre, Apellidos o DNI)
         if (!empty($busqueda)) {
@@ -140,16 +143,20 @@ class Alumnos {
     }
 
 public function obtenerPorId($idAlumno) {
-    // Se añade asig.enviado
-    $query = "SELECT a.*, asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, 
-                     asig.fecha_final, asig.horario, asig.horas_dia, asig.enviado
+    $query = "SELECT a.*, 
+                     asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, 
+                     asig.fecha_final, asig.horario, asig.horas_dia, 
+                     IFNULL(asig.enviado, 0) as enviado 
               FROM alumnos a
               LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
               WHERE a.id_alumno = :idAlumno";
     try {
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(['idAlumno' => $idAlumno]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->execute(['idAlumno' => (int)$idAlumno]); // Forzamos entero
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Si resultado es false, es que ni siquiera encontró al alumno en la tabla 'alumnos'
+        return $resultado ?: null; 
     } catch (PDOException $e) {
         return null;
     }
