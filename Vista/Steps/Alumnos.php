@@ -3,6 +3,52 @@
 include __DIR__ . '/../Components/Header_Alumnos.php'; 
 ?>
 
+<style>
+    [data-tooltip] {
+        position: relative;
+    }
+
+    [data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        
+        /* Lo posicionamos a la izquierda del candado */
+        top: 50%;
+        right: 125%; 
+        transform: translateY(-50%);
+        
+        background: #1e293b; 
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: bold;
+        z-index: 9999;
+        
+        /* Caja más estable */
+        white-space: normal;
+        width: 160px;
+        text-align: center;
+        line-height: 1.4;
+        text-transform: none;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+    }
+
+    /* Flechita apuntando al candado (derecha) */
+    [data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 105%;
+        transform: translateY(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent transparent #1e293b;
+        z-index: 9999;
+    }
+</style>
+
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
   <table class="w-full text-left border-collapse bg-white">
     <thead>
@@ -59,12 +105,21 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                     ⚠️ PENDIENTE DE ASIGNACIÓN
                 </td>
                 <td class="text-center p-4">
-                  <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
-                      <?= $estado ?>
-                  </span>
+                    <span class="<?= $colorEstado ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
+                        <?= $estado ?>
+                    </span>
                 </td>
-                <td class="text-center">-</td>
-                <td class="text-center border-section">-</td>
+                
+                <td class="text-center">
+                    <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="Primero debe asignar un convenio al alumno">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                </td>
+                <td class="text-center border-section">
+                    <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="Primero debe asignar un convenio al alumno">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                </td>
             <?php else: ?>
                 <td class="p-4 text-slate-700"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
                 <td class="text-center text-slate-500"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
@@ -88,25 +143,39 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                   </span>
                 </td>
 
-                <td class="text-center">
-                    <?php if ($estado === "COMPLETADO"): ?>
+                <?php 
+                    $estaFirmado = $al['firmado']; 
+                    $estaEnviado = $al['enviado']; 
+                    $esCompletado = ($estado === "COMPLETADO");
+                    
+                    $mensajeBloqueo = ($estado === "SIN ASIGNAR") 
+                        ? "Primero debe asignar un convenio al alumno" 
+                        : "Primero debe completar todos los datos (fechas, horario, dirección...)";
+                ?>
+
+                <td class="px-4 py-3 text-center">
+                    <?php if ($esCompletado): ?>
                         <input type="checkbox" 
-                            class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-default" 
-                            <?= ($al['enviado'] == 1) ? 'checked' : '' ?>
+                            class="w-4 h-4 rounded border-slate-500 text-orange-600 focus:ring-orange-500 accent-orange-600 <?= $estaEnviado ? 'opacity-50' : 'cursor-default' ?>" 
+                            <?= $estaEnviado ? 'checked disabled' : '' ?>
                             onclick="return false;"> 
                     <?php else: ?>
-                        <span class="text-slate-400">-</span>
+                        <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="<?= $mensajeBloqueo ?>">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
                     <?php endif; ?>
                 </td>
 
-                <td class="text-center border-section">
-                    <?php if ($estado === "COMPLETADO"): ?>
+                <td class="px-4 py-3 text-center border-section">
+                    <?php if ($esCompletado): ?>
                         <input type="checkbox" 
-                               class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600" 
-                               <?= ($al['firmado'] ?? false) ? 'checked' : '' ?>
-                               onclick="solicitarConfirmacionFirma(<?= $al['id_alumno'] ?>, '<?= htmlspecialchars($al['apellido1'] . ' ' . $al['nombre']) ?>', this)">
+                            <?= $estaFirmado ? 'checked disabled' : '' ?> 
+                            onclick="prepararFirma(<?= $al['id_asignacion'] ?>, <?= $estaEnviado ?>, '<?= $al['nombre'] ?>', this)"
+                            class="w-4 h-4 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500 <?= $estaFirmado ? 'opacity-50' : 'cursor-pointer' ?>">
                     <?php else: ?>
-                        <span class="text-slate-400">-</span>
+                        <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="<?= $mensajeBloqueo ?>">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
                     <?php endif; ?>
                 </td>
             <?php endif; ?>
@@ -117,7 +186,6 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
   </table>
 </div>
 
-
 <?php 
 // Incluimos todos los Modales
 include __DIR__ . '/../Components/Modales_Alumnos.php'; 
@@ -126,21 +194,58 @@ include __DIR__ . '/../Components/Modales_Alumnos.php';
 <script>
 let checkboxPendiente = null;
 
-function solicitarConfirmacionFirma(idAlumno, nombreCompleto, checkbox) {
-    if (!checkbox.checked) return;
-    checkbox.checked = false;
-    checkboxPendiente = checkbox;
-    document.getElementById('modalFirmaNombre').textContent = nombreCompleto;
-    document.getElementById('modalConfirmarFirma').style.display = 'flex';
-    document.getElementById('btnConfirmarFirmaAccion').onclick = function() {
-        if (checkboxPendiente) { checkboxPendiente.checked = true; }
-        cerrarModalFirma();
-    };
+function prepararFirma(idAsig, enviado, nombre, elemento) {
+    if (enviado == 0) {
+        if (elemento) elemento.checked = false;
+        document.getElementById('nombreAlumnoError').innerText = nombre;
+        document.getElementById('modalErrorFirma').style.display = 'flex';
+        return false;
+    }
+
+    // Consultamos al controlador si ya existe en asignaciones_firmadas
+    fetch('index.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `accion=obtenerAlumno&id_asignacion=${idAsig}&verificar_firma=true`
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.yaFirmado) {
+            // Caso 1: Ya está firmado en la DB
+            if (elemento) {
+                elemento.checked = true;
+                elemento.disabled = true;
+            }
+            document.getElementById('nombreAlumnoFirmado').innerText = nombre;
+            document.getElementById('modalYaFirmado').style.display = 'flex';
+        } else {
+            // Caso 2: No está firmado, procedemos al modal naranja
+            document.getElementById('modalFirmaNombre').innerText = nombre;
+            document.getElementById('modalConfirmarFirma').style.display = 'flex';
+            window.checkboxActual = elemento; 
+
+            const btnConfirmar = document.getElementById('btnConfirmarFirmaAccion');
+            btnConfirmar.onclick = function() {
+                const f = document.createElement('form');
+                f.method = 'POST';
+                f.action = 'index.php';
+                f.innerHTML = `
+                    <input type="hidden" name="accion" value="firmarAlumno">
+                    <input type="hidden" name="id_asignacion" value="${idAsig}">
+                    <input type="hidden" name="enviado_estado" value="${enviado}">
+                `;
+                document.body.appendChild(f);
+                f.submit();
+            };
+        }
+    })
+    .catch(e => console.error("Error en validación de firma:", e));
 }
 
+// Función para cerrar y limpiar si cancelan
 function cerrarModalFirma() {
     document.getElementById('modalConfirmarFirma').style.display = 'none';
-    checkboxPendiente = null;
+    if (window.checkboxActual) window.checkboxActual.checked = false;
 }
 
 function abrirModalEditar(idAlumno) {

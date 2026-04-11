@@ -10,15 +10,13 @@ class Alumnos {
 
     public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
         // Base de la consulta - Se añade asig.enviado
-        $query = "SELECT 
-                    a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
-                    asig.id_asignacion, asig.fecha_inicio, asig.fecha_final, asig.horario, asig.horas_dia,
-                    asig.enviado,
-                    conv.nombre_empresa, conv.id_convenio, conv.direccion, conv.municipio
-                  FROM alumnos a
-                  LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
-                  LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
-                  WHERE a.id_ciclo = :idCiclo";
+        $query = "SELECT a.*, asig.*, conv.nombre_empresa, conv.municipio, conv.direccion,
+                (f.id_firmada IS NOT NULL) as firmado 
+                FROM alumnos a
+                LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
+                LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
+                LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+                WHERE a.id_ciclo = :idCiclo";
 
         // Filtro por texto (Nombre, Apellidos o DNI)
         if (!empty($busqueda)) {
@@ -45,7 +43,11 @@ class Alumnos {
         }
 
     // En lo siguente, 0 significa sin asignar, 1 en proceso y 2 completado    
+    // Lógica de ordenación mejorada:
+    // 1. Prioridad por Estado (Sin asignar > En proceso > Completado)
+    // 2. Dentro de Completados: (No enviado/No firmado > Enviado/No firmado > Todo firmado)
     $estado = " ORDER BY
+        /* Primero: Estado general */
         CASE 
             WHEN asig.id_convenio IS NULL THEN 0
             WHEN (
@@ -56,34 +58,49 @@ class Alumnos {
                 conv.direccion    IS NULL OR conv.direccion    = ''
             ) THEN 1
             ELSE 2
-        END, a.apellido1";
+        END ASC,
+        
+        /* Segundo: Prioridad de gestión de firmas (Solo afecta a los del bloque 2) */
+        CASE
+            WHEN (asig.enviado = 0 AND (f.id_firmada IS NULL)) THEN 0  -- Pendiente total
+            WHEN (asig.enviado = 1 AND (f.id_firmada IS NULL)) THEN 1  -- Solo enviado
+            ELSE 2                                                     -- Todo firmado (al final)
+        END ASC,
+
+        /* Tercero: Alfabético para desempatar */
+        a.apellido1 ASC, a.apellido2 ASC";
 
     switch ($ordenar) {
-    case 'nombre':
-        $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
-        break;
-    case 'mis_convenios':
-        $query .= " ORDER BY 
-                CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
-                conv.nombre_empresa ASC, 
-                a.apellido1 ASC, 
-                a.nombre ASC";
-                break;
-    case 'estado':
-        $query .= $estado;
-    break;
-    case 'empresa':
-        $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
-        break;
-    case 'fecha_inicio':
-        $query .= " ORDER BY asig.fecha_inicio DESC, a.apellido1";
-        break;
-    case 'fecha_final':
-        $query .= " ORDER BY asig.fecha_final DESC, a.apellido1";
-        break;
-    case 'estado':
-    default:
-        $query .= $estado; // Orden por estado por defecto
+        case 'nombre':
+            $query .= " ORDER BY a.apellido1, a.apellido2, a.nombre";
+            break;
+
+        case 'mis_convenios':
+            $query .= " ORDER BY 
+                        CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
+                        conv.nombre_empresa ASC, 
+                        a.apellido1 ASC, 
+                        a.nombre ASC";
+            break;
+
+        case 'empresa':
+            $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
+            break;
+
+        case 'fecha_inicio':
+            $query .= " ORDER BY asig.fecha_inicio DESC, a.apellido1";
+            break;
+
+        case 'fecha_final':
+            $query .= " ORDER BY asig.fecha_final DESC, a.apellido1";
+            break;
+
+        case 'estado':
+        default:
+            // Al ponerlos así juntos, tanto si pides 'estado' como si no pides nada (default),
+            // se aplicará la variable $estado que definiste arriba.
+            $query .= $estado; 
+            break;
     }
 
         try {
@@ -202,4 +219,36 @@ public function marcarComoEnviado($idAlumno) {
         return false;
     }
 }
+
+public function firmarAsignacion($idAsignacion) {
+    try {
+        // Usamos INSERT IGNORE: si el id_asignacion ya existe, 
+        // simplemente no hace nada y no devuelve error.
+        $sql = "INSERT IGNORE INTO asignaciones_firmadas (id_asignacion) VALUES (:id)";
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        // Ejecutamos pasando el ID. 
+        // Si todo va bien, devuelve true.
+        return $stmt->execute(['id' => $idAsignacion]);
+
+    } catch (PDOException $e) {
+        // En caso de error de base de datos, podrías registrar el error:
+        // error_log($e->getMessage()); 
+        return false;
+    }
+}
+
+public function comprobarFirmaExistente($idAsig) {
+    try {
+        $sql = "SELECT COUNT(*) as total FROM asignaciones_firmadas WHERE id_asignacion = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $idAsig]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $res['total'] > 0;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
 }

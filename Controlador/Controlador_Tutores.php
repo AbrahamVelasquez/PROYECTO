@@ -25,15 +25,15 @@ class Tutores_Controlador {
         $_SESSION['id_ciclo'] = $idCicloTutor;
 
         // --- NUEVO: CAPTURA DE FILTROS PARA ALUMNOS ---
-        $busqueda = $_POST['busqueda'] ?? '';
-        $estadoFiltro = $_POST['estado'] ?? '';
+        $busqueda = $_REQUEST['busqueda'] ?? '';
+        $estadoFiltro = $_REQUEST['estado'] ?? '';
 
         // --- GESTIÓN DE ALUMNOS (CON FILTROS) ---
         $alumnoModelo = new Alumnos();
         // Pasamos las variables de filtro al método
         $ordenar = $_POST['ordenar'] ?? '';
-$misConveniosIds = array_column($misConvenios, 'id_convenio');
-$alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
+        $misConveniosIds = array_column($misConvenios, 'id_convenio');
+        $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
 
         // --- CARGA DE VISTA ---
         require_once 'Vista/index_vista.php';
@@ -67,9 +67,22 @@ $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro
             die("Error al insertar en la base de datos. Revisa si el DNI está duplicado.");
         }
     }
-public function obtenerAlumno() {
-    $idAlumno = $_POST['id_alumno'];
+
+    
+    public function obtenerAlumno() {
     $alumnoModelo = new Alumnos();
+
+    // Si detectamos que la petición es para verificar firma
+    if (isset($_POST['verificar_firma'])) {
+        $idAsig = (int)$_POST['id_asignacion'];
+        $yaFirmado = $alumnoModelo->comprobarFirmaExistente($idAsig);
+        header('Content-Type: application/json');
+        echo json_encode(['yaFirmado' => $yaFirmado]);
+        exit();
+    }
+
+    // Código original para el Modal de Editar
+    $idAlumno = $_POST['id_alumno'];
     $alumno = $alumnoModelo->obtenerPorId($idAlumno);
     header('Content-Type: application/json');
     echo json_encode($alumno);
@@ -120,6 +133,30 @@ public function exportarAlumnos() {
         header('Location: index.php?tab=2&status=error');
     }
     exit();
+}
+
+public function firmarAlumno() {
+    // Validamos que vengan los datos necesarios
+    if (isset($_POST['id_asignacion']) && isset($_POST['enviado_estado'])) {
+        $idAsig = (int)$_POST['id_asignacion'];
+        $enviado = (int)$_POST['enviado_estado'];
+
+        // Doble check de seguridad
+        if ($enviado === 1) {
+            // No necesitas require_once de nuevo porque ya está arriba en el fichero
+            $alumnoModelo = new Alumnos(); 
+            $resultado = $alumnoModelo->firmarAsignacion($idAsig);
+            
+            if ($resultado) {
+                header("Location: index.php?tab=2&res=firmado_ok");
+            } else {
+                header("Location: index.php?tab=2&res=error_db");
+            }
+        } else {
+            header("Location: index.php?tab=2&res=error_no_enviado");
+        }
+        exit();
+    }
 }
 
 }
