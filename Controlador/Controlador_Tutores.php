@@ -86,9 +86,11 @@ public function obtenerAlumno() {
     header('Content-Type: application/json');
     
     if (!$alumno) {
-        // Si el modelo devolvió false o null, enviamos un error claro en JSON
         echo json_encode(['error' => 'Alumno no encontrado', 'id_recibido' => $idAlumno]);
     } else {
+        // --- Verificar si ya está firmado ---
+        $alumno['yaFirmado'] = $alumnoModelo->comprobarFirmaExistente($alumno['id_asignacion'] ?? 0);
+        // -------------------------------------------------------
         echo json_encode($alumno);
     }
     exit();
@@ -97,24 +99,47 @@ public function obtenerAlumno() {
 public function editarAlumno() {
     $alumnoModelo = new Alumnos();
 
-    // Capturamos el checkbox 'enviado'. 
-    // Si está marcado, llega como '1'. Si no, no existe en $_POST, así que le asignamos '0'.
+    $idAlumno = $_POST['id_alumno'];
+    $idConvenio = $_POST['id_convenio']; // Capturamos el convenio para validar
     $enviado = isset($_POST['enviado']) ? 1 : 0;
 
+    // --- LÓGICA DE DESASIGNACIÓN (EXCENTRICIDAD) ---
+    // Si el id_convenio está vacío, eliminamos cualquier asignación previa
+    if (empty($idConvenio)) {
+        // 1. Eliminamos la fila en la tabla 'asignaciones'
+        $alumnoModelo->eliminarAsignacion($idAlumno);
+
+        // 2. Actualizamos los datos personales por si el tutor corrigió algo (nombre, dni...)
+        $alumnoModelo->actualizarDatosBasicos(
+            $idAlumno,
+            trim($_POST['nombre']),
+            trim($_POST['apellido1']),
+            trim($_POST['apellido2'] ?? ''),
+            strtoupper(trim($_POST['dni'])),
+            $_POST['sexo'],
+            trim($_POST['correo'] ?? '')
+        );
+
+        header('Location: index.php?tab=2&res=limpiado');
+        exit();
+    }
+
+    // --- LÓGICA NORMAL ---
+    // Si hay un convenio seleccionado, procedemos con la edición habitual
     $alumnoModelo->editarAlumno(
-        $_POST['id_alumno'],
+        $idAlumno,
         trim($_POST['nombre']),
         trim($_POST['apellido1']),
         trim($_POST['apellido2'] ?? ''),
         strtoupper(trim($_POST['dni'])),
         $_POST['sexo'],
         trim($_POST['correo'] ?? ''),
-        $_POST['id_convenio'] ?: null,
+        $idConvenio,
         $_POST['fecha_inicio'] ?: null,
         $_POST['fecha_final'] ?: null,
         trim($_POST['horario'] ?? ''),
         $_POST['horas_dia'] ?: null,
-        $enviado // <--- PASAMOS EL NUEVO PARÁMETRO AL MODELO
+        $enviado
     );
     
     header('Location: index.php?tab=2');

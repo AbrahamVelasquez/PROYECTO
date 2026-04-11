@@ -258,4 +258,24 @@ public function comprobarFirmaExistente($idAsig) {
     }
 }
 
+// eliminarAsignacion: Para borrar el registro de la tabla de la derecha.
+// actualizarDatosBasicos: Para que si el tutor cambia el nombre y a la 
+// vez quita el convenio, el nombre se guarde de todos modos.
+
+public function eliminarAsignacion($idAlumno) {
+    $sql = "DELETE FROM asignaciones WHERE id_alumno = :id";
+    return $this->conn->prepare($sql)->execute(['id' => $idAlumno]);
+}
+
+public function actualizarDatosBasicos($id, $nom, $ap1, $ap2, $dni, $sex, $mail) {
+    $sql = "UPDATE alumnos SET 
+            nombre = :nom, apellido1 = :ap1, apellido2 = :ap2, 
+            dni = :dni, sexo = :sex, correo = :mail 
+            WHERE id_alumno = :id";
+    return $this->conn->prepare($sql)->execute([
+        'nom' => $nom, 'ap1' => $ap1, 'ap2' => $ap2, 
+        'dni' => $dni, 'sex' => $sex, 'mail' => $mail, 'id' => $id
+    ]);
+}
+
 }

@@ -249,6 +249,9 @@ function cerrarModalFirma() {
     if (window.checkboxActual) window.checkboxActual.checked = false;
 }
 
+// Variable global para controlar el estado de firma del alumno abierto en el modal
+let global_alumnoYaFirmado = false;
+
 function abrirModalEditar(idAlumno) {
     fetch('index.php', {
         method: 'POST',
@@ -257,6 +260,13 @@ function abrirModalEditar(idAlumno) {
     })
     .then(r => r.json())
     .then(al => {
+        // Sincronizar nombre para el modal de advertencia
+        document.getElementById('nombreAlumnoFirmado').innerText = (al.nombre || '') + ' ' + (al.apellido1 || '');
+        
+        // --- ADICIÓN QUIRÚRGICA: Guardar estado de firma ---
+        global_alumnoYaFirmado = al.yaFirmado ?? false;
+        // --------------------------------------------------
+
         document.getElementById('edit_id_alumno').value = al.id_alumno;
         document.getElementById('edit_apellido1').value = al.apellido1 ?? '';
         document.getElementById('edit_apellido2').value = al.apellido2 ?? '';
@@ -270,24 +280,31 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
 
-        // --- LÓGICA PARA EL BLOQUE ENVIADO ---
         const bloque = document.getElementById('bloque_enviado');
         const checkbox = document.getElementById('edit_enviado');
 
         if (al.enviado == 1) {
-            bloque.style.display = 'flex'; // Se muestra el bloque
-            checkbox.checked = true;       // Se marca el checkbox
+            bloque.style.display = 'flex';
+            checkbox.checked = true;
         } else {
-            bloque.style.display = 'none';  // Se oculta el bloque completo
-            checkbox.checked = false;      // Se desmarca por seguridad
+            bloque.style.display = 'none';
+            checkbox.checked = false;
         }
-        // -------------------------------------
 
         document.getElementById('modalEditarAlumno').style.display = 'flex';
     })
     .catch(e => alert('Error al cargar datos del alumno'));
-
 }
+
+// --- Listener para bloquear el desmarcado si ya está firmado ---
+document.getElementById('edit_enviado').addEventListener('click', function(e) {
+    if (global_alumnoYaFirmado && !this.checked) {
+        // Impedir que se desmarque
+        this.checked = true; 
+        // Mostrar tu modal de aviso 🔒
+        document.getElementById('modalYaFirmado').style.display = 'flex';
+    }
+});
 
 function abrirConfirmacionFinal() {
     const seleccionados = document.querySelectorAll('input[name="exportar_ids[]"]:checked');
