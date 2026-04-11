@@ -39,10 +39,16 @@ $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro
         require_once 'Vista/index_vista.php';
     }
     public function agregarAlumno() {
-        $idCiclo = $_SESSION['id_ciclo'];
+        // 1. Verificar que el ID de ciclo existe en la sesión
+        if (!isset($_SESSION['id_ciclo'])) {
+            die("Error: No se ha detectado el ciclo formativo en la sesión.");
+        }
 
+        $idCiclo = $_SESSION['id_ciclo'];
         $alumnoModelo = new Alumnos();
-        $alumnoModelo->agregarAlumno(
+
+        // 2. Ejecutar inserción
+        $resultado = $alumnoModelo->agregarAlumno(
             trim($_POST['nombre']),
             trim($_POST['apellido1']),
             trim($_POST['apellido2'] ?? ''),
@@ -52,9 +58,14 @@ $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro
             $idCiclo
         );
 
-        // Recarga el panel con el listado actualizado
-        header('Location: index.php?tab=2');
-        exit();
+        if ($resultado) {
+            // Éxito: Redirigir
+            header('Location: index.php?tab=2');
+            exit();
+        } else {
+            // ERROR: Si llegas aquí, el modelo devolvió 'false'
+            die("Error al insertar en la base de datos. Revisa si el DNI está duplicado.");
+        }
     }
 public function obtenerAlumno() {
     $idAlumno = $_POST['id_alumno'];
