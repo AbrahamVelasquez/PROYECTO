@@ -200,7 +200,7 @@
                 </div>
 
                 <button type="submit" class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition-all shadow-md uppercase tracking-widest cursor-pointer">
-                    GENERAR Y EXPORTAR PDF 📄
+                    GENERAR Y EXPORTAR EXCEL 📄
                 </button>
             </div>
         </div>

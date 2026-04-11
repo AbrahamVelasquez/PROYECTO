@@ -64,7 +64,8 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
         <th class="w-24 text-center">F. FINAL</th>
         <th class="w-28 text-center">HORARIO</th>
         <th class="w-14 border-section text-center text-[9px]">H/DÍA</th>
-        <th class="w-24 text-center p-4">ESTADO</th> <th class="w-16 text-center">ENVIADO</th>
+        <th class="w-24 text-center p-4">ESTADO</th> 
+        <th class="w-16 text-center">ENVIADO</th>
         <th class="w-16 border-section text-center">FIRMADO</th>
       </tr>
     </thead>
@@ -150,7 +151,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                     
                     $mensajeBloqueo = ($estado === "SIN ASIGNAR") 
                         ? "Primero debe asignar un convenio al alumno" 
-                        : "Primero debe completar todos los datos (fechas, horario, dirección...)";
+                        : "Primero debe completar todos los datos (fechas, horario, horas...)";
                 ?>
 
                 <td class="px-4 py-3 text-center">
@@ -249,6 +250,7 @@ function cerrarModalFirma() {
 }
 
 function abrirModalEditar(idAlumno) {
+    console.log("Id Recibido", idAlumno); // Ver que id se pasa
     fetch('index.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -256,6 +258,7 @@ function abrirModalEditar(idAlumno) {
     })
     .then(r => r.json())
     .then(al => {
+        console.log("Datos recibidos:", al); // Ver por consola que devuelve
         document.getElementById('edit_id_alumno').value = al.id_alumno;
         document.getElementById('edit_apellido1').value = al.apellido1 ?? '';
         document.getElementById('edit_apellido2').value = al.apellido2 ?? '';

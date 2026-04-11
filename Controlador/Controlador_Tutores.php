@@ -69,10 +69,10 @@ class Tutores_Controlador {
     }
 
     
-    public function obtenerAlumno() {
+public function obtenerAlumno() {
     $alumnoModelo = new Alumnos();
 
-    // Si detectamos que la petición es para verificar firma
+    // 1. Caso Verificar Firma
     if (isset($_POST['verificar_firma'])) {
         $idAsig = (int)$_POST['id_asignacion'];
         $yaFirmado = $alumnoModelo->comprobarFirmaExistente($idAsig);
@@ -81,11 +81,18 @@ class Tutores_Controlador {
         exit();
     }
 
-    // Código original para el Modal de Editar
+    // 2. Caso Modal Editar (el que te falla)
     $idAlumno = $_POST['id_alumno'];
     $alumno = $alumnoModelo->obtenerPorId($idAlumno);
+
     header('Content-Type: application/json');
-    echo json_encode($alumno);
+    
+    // Si $alumno es null, forzamos el envío de un objeto vacío {} en lugar de []
+    if (!$alumno) {
+        echo json_encode(new stdClass()); 
+    } else {
+        echo json_encode($alumno);
+    }
     exit();
 }
 

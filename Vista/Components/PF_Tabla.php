@@ -1,4 +1,4 @@
-<div class="flex justify-between items-center mb-8">
+<div class="flex justify-between items-center mb-6 mt-2"> 
     <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
         <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white text-sm">📋</span>
         Gestión de Planes de Formación
