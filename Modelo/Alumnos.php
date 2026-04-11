@@ -9,10 +9,11 @@ class Alumnos {
     }
 
     public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
-        // Base de la consulta
+        // Base de la consulta - Se añade asig.enviado
         $query = "SELECT 
                     a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
                     asig.id_asignacion, asig.fecha_inicio, asig.fecha_final, asig.horario, asig.horas_dia,
+                    asig.enviado,
                     conv.nombre_empresa, conv.id_convenio, conv.direccion, conv.municipio
                   FROM alumnos a
                   LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
@@ -122,8 +123,9 @@ class Alumnos {
     }
 
 public function obtenerPorId($idAlumno) {
+    // Se añade asig.enviado
     $query = "SELECT a.*, asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, 
-                     asig.fecha_final, asig.horario, asig.horas_dia
+                     asig.fecha_final, asig.horario, asig.horas_dia, asig.enviado
               FROM alumnos a
               LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
               WHERE a.id_alumno = :idAlumno";
@@ -136,43 +138,66 @@ public function obtenerPorId($idAlumno) {
     }
 }
 
-public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo,
-                              $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia) {
-    try {
-        // 1. Actualizar datos del alumno
-        $q1 = "UPDATE alumnos SET nombre=:nombre, apellido1=:apellido1, apellido2=:apellido2,
-                dni=:dni, sexo=:sexo, correo=:correo WHERE id_alumno=:idAlumno";
-        $stmt = $this->conn->prepare($q1);
-        $stmt->execute([
-            'nombre' => $nombre, 'apellido1' => $apellido1, 'apellido2' => $apellido2,
-            'dni' => $dni, 'sexo' => $sexo, 'correo' => $correo, 'idAlumno' => $idAlumno
-        ]);
+    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo,
+                                $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $enviado = 0) {
+        try {
+            // 1. Actualizar datos básicos del alumno
+            $q1 = "UPDATE alumnos SET nombre=:nombre, apellido1=:apellido1, apellido2=:apellido2,
+                    dni=:dni, sexo=:sexo, correo=:correo WHERE id_alumno=:idAlumno";
+            $stmt = $this->conn->prepare($q1);
+            $stmt->execute([
+                'nombre'    => $nombre, 
+                'apellido1' => $apellido1, 
+                'apellido2' => $apellido2,
+                'dni'       => $dni, 
+                'sexo'      => $sexo, 
+                'correo'    => $correo, 
+                'idAlumno'  => $idAlumno
+            ]);
 
-        // 2. ¿Tiene ya asignación?
-        $qCheck = "SELECT id_asignacion FROM asignaciones WHERE id_alumno = :idAlumno";
-        $stmtCheck = $this->conn->prepare($qCheck);
-        $stmtCheck->execute(['idAlumno' => $idAlumno]);
-        $asignacion = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            // 2. ¿Tiene ya asignación?
+            $qCheck = "SELECT id_asignacion FROM asignaciones WHERE id_alumno = :idAlumno";
+            $stmtCheck = $this->conn->prepare($qCheck);
+            $stmtCheck->execute(['idAlumno' => $idAlumno]);
+            $asignacion = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-        if ($asignacion) {
-            // UPDATE asignación existente
-            $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
-                   fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia
-                   WHERE id_alumno=:idAlumno";
-        } else {
-            // INSERT nueva asignación
-            $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia)
-                   VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia)";
+            if ($asignacion) {
+                // UPDATE asignación existente (incluyendo el campo enviado)
+                $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
+                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, enviado=:enviado
+                        WHERE id_alumno=:idAlumno";
+            } else {
+                // INSERT nueva asignación (incluyendo el campo enviado)
+                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, enviado)
+                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :enviado)";
+            }
+
+            $stmt2 = $this->conn->prepare($q2);
+            $stmt2->execute([
+                'idAlumno'    => $idAlumno, 
+                'idConvenio'  => $idConvenio ?: null,
+                'fechaInicio' => $fechaInicio ?: null, 
+                'fechaFinal'  => $fechaFinal ?: null,
+                'horario'     => $horario ?: null, 
+                'horasDia'    => $horasDia ?: null,
+                'enviado'     => $enviado // <--- Nuevo valor capturado
+            ]);
+
+            return true;
+        } catch (PDOException $e) {
+            return false;
         }
-
-        $stmt2 = $this->conn->prepare($q2);
-        $stmt2->execute([
-            'idAlumno' => $idAlumno, 'idConvenio' => $idConvenio ?: null,
-            'fechaInicio' => $fechaInicio ?: null, 'fechaFinal' => $fechaFinal ?: null,
-            'horario' => $horario ?: null, 'horasDia' => $horasDia ?: null
-        ]);
-
-        return true;
+    }
+        
+public function marcarComoEnviado($idAlumno) {
+    try {
+        // Usamos id_alumno porque es tu clave foránea en la tabla asignaciones
+        $sql = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno = :id";
+        $stmt = $this->conn->prepare($sql);
+        $resultado = $stmt->execute(['id' => (int)$idAlumno]);
+        
+        // Debug opcional: Si no funciona, podrías verificar si el rowCount es > 0
+        return $resultado;
     } catch (PDOException $e) {
         return false;
     }

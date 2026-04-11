@@ -3,7 +3,6 @@
 include __DIR__ . '/../Components/Header_Alumnos.php'; 
 ?>
 
-<form id="formExportar" method="POST" action="index.php?controlador=Tutores&accion=exportarAlumnos">
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
   <table class="w-full text-left border-collapse bg-white">
     <thead>
@@ -91,9 +90,10 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
 
                 <td class="text-center">
                     <?php if ($estado === "COMPLETADO"): ?>
-                        <input type="checkbox" name="exportar_id[]" value="<?= $al['id_alumno'] ?>"
-                               class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer accent-orange-600" 
-                               <?= ($al['enviado'] ?? false) ? 'checked' : '' ?>>
+                        <input type="checkbox" 
+                            class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-default" 
+                            <?= ($al['enviado'] == 1) ? 'checked' : '' ?>
+                            onclick="return false;"> 
                     <?php else: ?>
                         <span class="text-slate-400">-</span>
                     <?php endif; ?>
@@ -116,7 +116,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
     </tbody>
   </table>
 </div>
-</form>
+
 
 <?php 
 // Incluimos todos los Modales
@@ -163,8 +163,36 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
+        
+        // --- LÓGICA PARA EL BLOQUE ENVIADO ---
+        const bloque = document.getElementById('bloque_enviado');
+        const checkbox = document.getElementById('edit_enviado');
+
+        if (al.enviado == 1) {
+            bloque.style.display = 'flex'; // Se muestra el bloque
+            checkbox.checked = true;       // Se marca el checkbox
+        } else {
+            bloque.style.display = 'none';  // Se oculta el bloque completo
+            checkbox.checked = false;      // Se desmarca por seguridad
+        }
+        // -------------------------------------
+
         document.getElementById('modalEditarAlumno').style.display = 'flex';
     })
     .catch(e => alert('Error al cargar datos del alumno'));
 }
+
+function abrirConfirmacionFinal() {
+    const seleccionados = document.querySelectorAll('input[name="exportar_ids[]"]:checked');
+    
+    if (seleccionados.length === 0) {
+        alert("Por favor, selecciona al menos un alumno.");
+        return;
+    }
+
+    // Cerramos el selector y abrimos la confirmación
+    document.getElementById('modalSeleccionarExportar').style.display = 'none';
+    document.getElementById('modalConfirmarExportar').style.display = 'flex';
+}
+
 </script>

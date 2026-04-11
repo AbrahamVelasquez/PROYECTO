@@ -7,8 +7,9 @@
     <button class="bg-slate-50 text-slate-600 px-5 py-2.5 rounded-xl font-bold text-xs border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer">
       📥 Cargar Alumnos
     </button>
-    <button onclick="document.getElementById('modalConfirmarExportar').style.display='flex'" class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md cursor-pointer">
-      📤 Exportar Alumnos
+    <button onclick="document.getElementById('modalSeleccionarExportar').style.display='flex'" 
+            class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md cursor-pointer">
+        📤 Exportar Alumnos
     </button>
     <button onclick="document.getElementById('modalAgregarAlumno').style.display='flex'"
             class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md cursor-pointer">

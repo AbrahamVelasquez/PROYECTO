@@ -78,6 +78,11 @@ public function obtenerAlumno() {
 
 public function editarAlumno() {
     $alumnoModelo = new Alumnos();
+
+    // Capturamos el checkbox 'enviado'. 
+    // Si está marcado, llega como '1'. Si no, no existe en $_POST, así que le asignamos '0'.
+    $enviado = isset($_POST['enviado']) ? 1 : 0;
+
     $alumnoModelo->editarAlumno(
         $_POST['id_alumno'],
         trim($_POST['nombre']),
@@ -90,9 +95,30 @@ public function editarAlumno() {
         $_POST['fecha_inicio'] ?: null,
         $_POST['fecha_final'] ?: null,
         trim($_POST['horario'] ?? ''),
-        $_POST['horas_dia'] ?: null
+        $_POST['horas_dia'] ?: null,
+        $enviado // <--- PASAMOS EL NUEVO PARÁMETRO AL MODELO
     );
+    
     header('Location: index.php?tab=2');
+    exit();
+}
+
+public function exportarAlumnos() {
+    // Verificamos si llegan IDs por POST
+    if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
+        $alumnoModelo = new Alumnos();
+        
+        foreach ($_POST['exportar_ids'] as $idAlumno) {
+            // Importante: castear a int para seguridad
+            $alumnoModelo->marcarComoEnviado((int)$idAlumno);
+        }
+        
+        // Redirigimos para ver los cambios
+        header('Location: index.php?tab=2&status=success');
+    } else {
+        // Si no llega nada, redirigimos igual para no quedar en blanco
+        header('Location: index.php?tab=2&status=error');
+    }
     exit();
 }
 
