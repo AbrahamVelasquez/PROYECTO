@@ -283,20 +283,24 @@ public function actualizarDatosBasicos($id, $nom, $ap1, $ap2, $dni, $sex, $mail,
 
 public function listarAlumnosFirmados($idCiclo) {
     $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
-                   conv.nombre_empresa, 
-                   asig.id_asignacion
+                   conv.nombre_empresa, conv.cif AS nif_empresa, 
+                   conv.mail AS email_empresa, conv.telefono AS telefono_empresa,
+                   ci.id_ciclo, 
+                   ci.nombre_ciclo, 
+                   cu.id_curso
             FROM alumnos a
             INNER JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
             INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
             LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+            INNER JOIN ciclos ci ON a.id_ciclo = ci.id_ciclo
+            INNER JOIN cursos cu ON ci.id_curso = cu.id_curso
             WHERE a.id_ciclo = :idCiclo
-            ORDER BY a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
+            ORDER BY a.apellido1 ASC";
     
     $stmt = $this->conn->prepare($sql);
     $stmt->execute(['idCiclo' => $idCiclo]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
 public function devolverAlumnoAEnvio($idAlumno) {
     try {
         $this->conn->beginTransaction();

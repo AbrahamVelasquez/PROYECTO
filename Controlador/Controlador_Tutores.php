@@ -19,6 +19,8 @@ class Tutores_Controlador {
         $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
 
         $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
+        $correoTutor = $perfil['email'] ?? ''; // Nuevo
+        $telTutor = $perfil['telefono'] ?? ''; // Nuevo
         $cicloTutor = $perfil['nombre_ciclo'] ?? 'Sin Ciclo';
         $cursoTutor = $perfil['nombre_curso'] ?? 'Sin Curso';
         $idCicloTutor = $perfil['id_ciclo'] ?? 0;
