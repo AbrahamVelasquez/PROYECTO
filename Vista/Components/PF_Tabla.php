@@ -47,90 +47,114 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]" id="tablaCuerpo">
-            <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="p-3 text-center">
-                    <button onclick="mostrarEdicion({id: 1, nombre: 'Zaragoza, Alberto'})" 
-                        class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
-                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
-                        </svg>
-                    </button>
+            <?php 
+            $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($_SESSION['id_ciclo']); 
+            
+            if (empty($alumnosFirmados)): ?>
+                <tr>
+                <td colspan="4" class="p-12 text-center">
+                    <div class="flex flex-col items-center justify-center gap-4">
+                    <!-- No lo voy a usar por ahora pero lo guardaré el simbolo de cero con la raya -->
+                    <!-- <span class="text-5xl text-slate-300">∅</span> -->
+                    
+                    <p class="text-slate-600 font-black tracking-widest uppercase text-sm">
+                        No hay alumnos con asignaciones firmadas actualmente
+                    </p>
+                    <p class="text-slate-400 font-bold normal-case text-xs">
+                        Los alumnos aparecerán aquí una vez que se complete el proceso de asignación.
+                    </p>
+                    </div>
                 </td>
-                <td class="p-4 font-bold text-slate-700">Zaragoza, Alberto</td>
-                <td class="p-4 text-slate-600 text-[9px]">Inditex S.A.</td>
-                <td class="p-4 text-center">
-                    <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-emerald-100 text-emerald-700 border-emerald-200">EXPORTADO</span>
-                </td>
-            </tr>
-            <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="p-3 text-center">
-                    <button onclick="mostrarEdicion({id: 2, nombre: 'Alonso, Beatriz'})" 
-                        class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
-                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
-                        </svg>
-                    </button>
-                </td>
-                <td class="p-4 font-bold text-slate-700">Alonso, Beatriz</td>
-                <td class="p-4 text-slate-600 text-[9px]">Sistemas Globales</td>
-                <td class="p-4 text-center">
-                    <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-red-100 text-red-700 border-red-200">NO EXPORTADO</span>
-                </td>
-            </tr>
+                </tr>
+            <?php else: 
+                foreach ($alumnosFirmados as $al): 
+                    $nombreFull = $al['apellido1'] . ( $al['apellido2'] ? " {$al['apellido2']}" : "" ) . ", " . $al['nombre'];
+                ?>
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="p-3 text-center">
+                        <button type="button" 
+                                onclick="window.mostrarEdicion(<?= $al['id_alumno'] ?>, '<?= addslashes($nombreFull) ?>', '<?= addslashes($al['correo']) ?>', '<?= addslashes($al['nombre_empresa']) ?>', '<?= $al['telefono'] ?>')"
+                                class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
+                            </svg>
+                        </button>
+                    </td>
+                    <td class="p-4 font-bold text-slate-700"><?= $nombreFull ?></td>
+                    <td class="p-4 text-slate-600 text-[9px]"><?= $al['nombre_empresa'] ?></td>
+                    <td class="p-4 text-center">
+                        <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-emerald-100 text-emerald-700 border-emerald-200 uppercase">FIRMADO</span>
+                    </td>
+                </tr>
+                <?php endforeach; 
+            endif; ?>
         </tbody>
     </table>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const btnBuscar = document.querySelector('#btnBuscar');
-        const selectOrdenar = document.querySelector('#ordenar');
-        const tablaCuerpo = document.querySelector('#tablaCuerpo');
+   document.addEventListener('DOMContentLoaded', () => {
+    const inputBusqueda = document.querySelector('#busqueda');
+    const btnBuscar = document.querySelector('#btnBuscar');
+    const selectOrdenar = document.querySelector('#ordenar');
+    const tablaCuerpo = document.querySelector('#tablaCuerpo');
 
-        const realizarBusqueda = () => {
-            const texto = document.querySelector('#busqueda').value.toLowerCase();
-            const estadoFiltro = document.querySelector('#filtroEstado').value.toLowerCase();
-            const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
+    // --- FUNCIÓN BUSCAR ---
+    const realizarBusqueda = () => {
+        const texto = inputBusqueda.value.toLowerCase().trim();
+        const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
 
-            filas.forEach(fila => {
-                const nombre = fila.children[1].textContent.toLowerCase();
-                const empresa = fila.children[2].textContent.toLowerCase();
-                const estado = fila.children[3].textContent.toLowerCase();
+        filas.forEach(fila => {
+            // Obtenemos el texto de las celdas de Alumno (col 1) y Empresa (col 2)
+            const nombreAlumno = fila.children[1].textContent.toLowerCase();
+            const nombreEmpresa = fila.children[2].textContent.toLowerCase();
 
-                const coincideTexto = nombre.includes(texto) || empresa.includes(texto);
-                const coincideEstado = estadoFiltro === 'todos' || estado.includes(estadoFiltro);
-
-                fila.style.display = (coincideTexto && coincideEstado) ? "" : "none";
-            });
-        };
-
-        const ordenarTabla = () => {
-            const criterio = selectOrdenar.value;
-            const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
-            
-            const indice = {
-                'alumno': 1,
-                'empresa': 2,
-                'estado': 3
-            }[criterio];
-
-            filas.sort((a, b) => {
-                const valA = a.children[indice].textContent.trim();
-                const valB = b.children[indice].textContent.trim();
-                return valA.localeCompare(valB);
-            });
-
-            filas.forEach(fila => tablaCuerpo.appendChild(fila));
-        };
-
-        btnBuscar.addEventListener('click', realizarBusqueda);
-        selectOrdenar.addEventListener('change', ordenarTabla);
-        
-        document.querySelector('#busqueda').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                realizarBusqueda();
+            // Si el texto está vacío o coincide con alguna columna, mostramos
+            if (texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto)) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
             }
         });
+    };
+
+    // --- FUNCIÓN ORDENAR ---
+    const ordenarTabla = () => {
+        const criterio = selectOrdenar.value;
+        const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
+        
+        // Mapeo de columna según el select
+        const indiceColumna = {
+            'alumno': 1,
+            'empresa': 2
+        }[criterio] || 1; // Por defecto Alumno
+
+        filas.sort((a, b) => {
+            const valA = a.children[indiceColumna].textContent.trim();
+            const valB = b.children[indiceColumna].textContent.trim();
+            
+            // localeCompare es vital para que "Álvarez" vaya con la "A" y no al final
+            return valA.localeCompare(valB, 'es', { sensitivity: 'base' });
+        });
+
+        // Reinyectar las filas ordenadas
+        filas.forEach(fila => tablaCuerpo.appendChild(fila));
+    };
+
+    // Eventos
+    btnBuscar.addEventListener('click', realizarBusqueda);
+    
+    // Búsqueda en tiempo real mientras escribes (opcional, pero muy cómodo)
+    inputBusqueda.addEventListener('input', realizarBusqueda);
+
+    selectOrdenar.addEventListener('change', ordenarTabla);
+    
+    // Evitar que el Enter recargue la página si el input está en un form
+    inputBusqueda.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            realizarBusqueda();
+        }
     });
+});
 </script>

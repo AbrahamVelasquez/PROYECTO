@@ -55,6 +55,7 @@ class Tutores_Controlador {
             strtoupper(trim($_POST['dni'])),
             $_POST['sexo'],
             trim($_POST['correo'] ?? ''),
+            trim($_POST['telefono'] ?? ''), // <--- ESTA ES LA LÍNEA QUE FALTA
             $idCiclo
         );
 
@@ -100,16 +101,11 @@ public function editarAlumno() {
     $alumnoModelo = new Alumnos();
 
     $idAlumno = $_POST['id_alumno'];
-    $idConvenio = $_POST['id_convenio']; // Capturamos el convenio para validar
+    $idConvenio = $_POST['id_convenio'];
     $enviado = isset($_POST['enviado']) ? 1 : 0;
 
-    // --- LÓGICA DE DESASIGNACIÓN (EXCENTRICIDAD) ---
-    // Si el id_convenio está vacío, eliminamos cualquier asignación previa
     if (empty($idConvenio)) {
-        // 1. Eliminamos la fila en la tabla 'asignaciones'
         $alumnoModelo->eliminarAsignacion($idAlumno);
-
-        // 2. Actualizamos los datos personales por si el tutor corrigió algo (nombre, dni...)
         $alumnoModelo->actualizarDatosBasicos(
             $idAlumno,
             trim($_POST['nombre']),
@@ -117,15 +113,14 @@ public function editarAlumno() {
             trim($_POST['apellido2'] ?? ''),
             strtoupper(trim($_POST['dni'])),
             $_POST['sexo'],
-            trim($_POST['correo'] ?? '')
+            trim($_POST['correo'] ?? ''),
+            trim($_POST['telefono'] ?? '') // <-- AÑADE ESTO SI TU MODELO LO PIDE
         );
-
         header('Location: index.php?tab=2&res=limpiado');
         exit();
     }
 
-    // --- LÓGICA NORMAL ---
-    // Si hay un convenio seleccionado, procedemos con la edición habitual
+    // Lógica normal de edición
     $alumnoModelo->editarAlumno(
         $idAlumno,
         trim($_POST['nombre']),
@@ -134,6 +129,7 @@ public function editarAlumno() {
         strtoupper(trim($_POST['dni'])),
         $_POST['sexo'],
         trim($_POST['correo'] ?? ''),
+        trim($_POST['telefono'] ?? ''), // <-- AQUÍ VA EL 8º ARGUMENTO (TELÉFONO)
         $idConvenio,
         $_POST['fecha_inicio'] ?: null,
         $_POST['fecha_final'] ?: null,
@@ -188,5 +184,25 @@ public function firmarAlumno() {
         exit();
     }
 }
+
+public function devolverAlumnoAEnvio() {
+    // Cambiamos $_POST por $_REQUEST para que acepte tanto POST como GET
+    $idAlumno = $_REQUEST['id_alumno'] ?? null;
+
+    if ($idAlumno) {
+        $modelo = new Alumnos();
+        $resultado = $modelo->devolverAlumnoAEnvio($idAlumno);
+
+        if ($resultado) {
+            header("Location: index.php?controlador=Tutores&accion=mostrarPanel&tab=3&res=devuelto_ok");
+        } else {
+            header("Location: index.php?controlador=Tutores&accion=mostrarPanel&tab=3&res=error_bd");
+        }
+    } else {
+        header("Location: index.php?controlador=Tutores&accion=mostrarPanel&tab=3");
+    }
+    exit();
+}
+
 
 }

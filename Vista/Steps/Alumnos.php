@@ -69,7 +69,8 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
         <th class="w-16 border-section text-center">FIRMADO</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
+    <!-- id="tablaAlumnosBody" eso se colocó para funcionalidades de javascript que se usan en el header, para búsqueda -->
+    <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
       <?php if (empty($alumnos)): ?>
         <tr><td colspan="14" class="py-10 text-center text-slate-400 italic">No hay resultados.</td></tr>
       <?php else: ?>
@@ -274,6 +275,7 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_dni').value = al.dni ?? '';
         document.getElementById('edit_sexo').value = al.sexo ?? '';
         document.getElementById('edit_correo').value = al.correo ?? '';
+        document.getElementById('edit_telefono').value = al.telefono || '';
         document.getElementById('edit_id_convenio').value = al.id_convenio ?? '';
         document.getElementById('edit_fecha_inicio').value = al.fecha_inicio && al.fecha_inicio !== '0000-00-00' ? al.fecha_inicio : '';
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';

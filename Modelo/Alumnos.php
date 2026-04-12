@@ -86,10 +86,6 @@ class Alumnos {
                         a.nombre ASC";
             break;
 
-        case 'empresa':
-            $query .= " ORDER BY conv.nombre_empresa ASC, a.apellido1";
-            break;
-
         case 'fecha_inicio':
             $query .= " ORDER BY asig.fecha_inicio DESC, a.apellido1";
             break;
@@ -122,25 +118,6 @@ class Alumnos {
             return [];
         }
     }
-    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $idCiclo) {
-        $query = "INSERT INTO alumnos (nombre, apellido1, apellido2, dni, sexo, correo, id_ciclo) 
-                VALUES (:nombre, :apellido1, :apellido2, :dni, :sexo, :correo, :idCiclo)";
-        try {
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute([
-                'nombre'    => $nombre,
-                'apellido1' => $apellido1,
-                'apellido2' => $apellido2,
-                'dni'       => $dni,
-                'sexo'      => $sexo,
-                'correo'    => $correo,
-                'idCiclo'   => $idCiclo
-            ]);
-            return true;
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
 
 public function obtenerPorId($idAlumno) {
     $query = "SELECT a.*, 
@@ -162,56 +139,82 @@ public function obtenerPorId($idAlumno) {
     }
 }
 
-    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo,
-                                $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $enviado = 0) {
-        try {
-            // 1. Actualizar datos básicos del alumno
-            $q1 = "UPDATE alumnos SET nombre=:nombre, apellido1=:apellido1, apellido2=:apellido2,
-                    dni=:dni, sexo=:sexo, correo=:correo WHERE id_alumno=:idAlumno";
-            $stmt = $this->conn->prepare($q1);
-            $stmt->execute([
-                'nombre'    => $nombre, 
-                'apellido1' => $apellido1, 
-                'apellido2' => $apellido2,
-                'dni'       => $dni, 
-                'sexo'      => $sexo, 
-                'correo'    => $correo, 
-                'idAlumno'  => $idAlumno
-            ]);
+public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono, $idCiclo) {
+    // Añadimos telefono a la inserción
+    $query = "INSERT INTO alumnos (nombre, apellido1, apellido2, dni, sexo, correo, telefono, id_ciclo) 
+              VALUES (:nombre, :apellido1, :apellido2, :dni, :sexo, :correo, :telefono, :idCiclo)";
+    try {
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([
+            'nombre'    => $nombre,
+            'apellido1' => $apellido1,
+            'apellido2' => $apellido2,
+            'dni'       => $dni,
+            'sexo'      => $sexo,
+            'correo'    => $correo,
+            'telefono'  => $telefono,
+            'idCiclo'   => $idCiclo
+        ]);
+        return true;
+    } catch (PDOException $e) { return false; }
+}
 
-            // 2. ¿Tiene ya asignación?
-            $qCheck = "SELECT id_asignacion FROM asignaciones WHERE id_alumno = :idAlumno";
-            $stmtCheck = $this->conn->prepare($qCheck);
-            $stmtCheck->execute(['idAlumno' => $idAlumno]);
-            $asignacion = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono,
+                             $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $enviado = 0) {
+    try {
+        $this->conn->beginTransaction(); // Iniciamos transacción por seguridad
 
-            if ($asignacion) {
-                // UPDATE asignación existente (incluyendo el campo enviado)
-                $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
-                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, enviado=:enviado
-                        WHERE id_alumno=:idAlumno";
-            } else {
-                // INSERT nueva asignación (incluyendo el campo enviado)
-                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, enviado)
-                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :enviado)";
-            }
+        // 1. Actualizar datos personales
+        $q1 = "UPDATE alumnos SET nombre=:nombre, apellido1=:apellido1, apellido2=:apellido2,
+                dni=:dni, sexo=:sexo, correo=:correo, telefono=:telefono WHERE id_alumno=:idAlumno";
+        $stmt = $this->conn->prepare($q1);
+        $stmt->execute([
+            'nombre'    => $nombre, 
+            'apellido1' => $apellido1, 
+            'apellido2' => $apellido2,
+            'dni'       => $dni, 
+            'sexo'      => $sexo, 
+            'correo'    => $correo, 
+            'telefono'  => $telefono, 
+            'idAlumno'  => $idAlumno
+        ]);
 
-            $stmt2 = $this->conn->prepare($q2);
-            $stmt2->execute([
-                'idAlumno'    => $idAlumno, 
-                'idConvenio'  => $idConvenio ?: null,
-                'fechaInicio' => $fechaInicio ?: null, 
-                'fechaFinal'  => $fechaFinal ?: null,
-                'horario'     => $horario ?: null, 
-                'horasDia'    => $horasDia ?: null,
-                'enviado'     => $enviado // <--- Nuevo valor capturado
-            ]);
+        // 2. ¿Tiene ya asignación?
+        $qCheck = "SELECT id_asignacion FROM asignaciones WHERE id_alumno = :idAlumno";
+        $stmtCheck = $this->conn->prepare($qCheck);
+        $stmtCheck->execute(['idAlumno' => $idAlumno]);
+        $asignacion = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-            return true;
-        } catch (PDOException $e) {
-            return false;
+        if ($asignacion) {
+            // UPDATE asignación existente
+            $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
+                    fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, enviado=:enviado
+                    WHERE id_alumno=:idAlumno";
+        } else {
+            // INSERT nueva asignación
+            $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, enviado)
+                    VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :enviado)";
         }
+
+        $stmt2 = $this->conn->prepare($q2);
+        $stmt2->execute([
+            'idAlumno'    => $idAlumno, 
+            'idConvenio'  => $idConvenio ?: null,
+            'fechaInicio' => $fechaInicio ?: null, 
+            'fechaFinal'  => $fechaFinal ?: null,
+            'horario'     => $horario ?: null, 
+            'horasDia'    => $horasDia ?: null,
+            'enviado'     => $enviado
+        ]);
+
+        $this->conn->commit(); // Si todo salió bien, guardamos cambios
+        return true;
+
+    } catch (PDOException $e) { 
+        $this->conn->rollBack(); // Si algo falla, deshacemos todo
+        return false; 
     }
+}
         
 public function marcarComoEnviado($idAlumno) {
     try {
@@ -267,15 +270,55 @@ public function eliminarAsignacion($idAlumno) {
     return $this->conn->prepare($sql)->execute(['id' => $idAlumno]);
 }
 
-public function actualizarDatosBasicos($id, $nom, $ap1, $ap2, $dni, $sex, $mail) {
-    $sql = "UPDATE alumnos SET 
-            nombre = :nom, apellido1 = :ap1, apellido2 = :ap2, 
-            dni = :dni, sexo = :sex, correo = :mail 
-            WHERE id_alumno = :id";
-    return $this->conn->prepare($sql)->execute([
-        'nom' => $nom, 'ap1' => $ap1, 'ap2' => $ap2, 
-        'dni' => $dni, 'sex' => $sex, 'mail' => $mail, 'id' => $id
+public function actualizarDatosBasicos($id, $nom, $ap1, $ap2, $dni, $sex, $mail, $tel) {
+    $sql = "UPDATE alumnos SET nombre=:nom, apellido1=:ap1, apellido2=:ap2, 
+                   dni=:dni, sexo=:sex, correo=:mail, telefono=:tel 
+            WHERE id_alumno=:id";
+    $stmt = $this->conn->prepare($sql);
+    return $stmt->execute([
+        'nom'=>$nom, 'ap1'=>$ap1, 'ap2'=>$ap2, 'dni'=>$dni, 
+        'sex'=>$sex, 'mail'=>$mail, 'tel'=>$tel, 'id'=>$id
     ]);
+}
+
+public function listarAlumnosFirmados($idCiclo) {
+    $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
+                   conv.nombre_empresa, 
+                   asig.id_asignacion
+            FROM alumnos a
+            INNER JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
+            INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
+            LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+            WHERE a.id_ciclo = :idCiclo
+            ORDER BY a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
+    
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute(['idCiclo' => $idCiclo]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function devolverAlumnoAEnvio($idAlumno) {
+    try {
+        $this->conn->beginTransaction();
+
+        // 1. Borrar de firmadas (Relación 1:1 con asignaciones)
+        $sqlDel = "DELETE FROM asignaciones_firmadas WHERE id_asignacion = (
+                    SELECT id_asignacion FROM asignaciones WHERE id_alumno = :id LIMIT 1
+                   )";
+        $stmtDel = $this->conn->prepare($sqlDel);
+        $stmtDel->execute(['id' => $idAlumno]);
+
+        // 2. Resetear el estado de envío
+        $sqlUpd = "UPDATE asignaciones SET enviado = 0 WHERE id_alumno = :id";
+        $stmtUpd = $this->conn->prepare($sqlUpd);
+        $stmtUpd->execute(['id' => $idAlumno]);
+        
+        $this->conn->commit();
+        return true;
+    } catch (Exception $e) {
+        if ($this->conn->inTransaction()) $this->conn->rollBack();
+        return false;
+    }
 }
 
 }

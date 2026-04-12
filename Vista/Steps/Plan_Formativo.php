@@ -9,25 +9,37 @@
 </div>
 
 <script>
-    function mostrarEdicion(alumnoData) {
-        // 1. Cambiar visibilidad
-        document.getElementById('vista-tabla').classList.add('hidden');
-        document.getElementById('vista-edicion').classList.remove('hidden');
+// Definimos la función en el objeto window para que sea accesible desde la tabla
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono) {
+    const vistaTabla = document.getElementById('vista-tabla');
+    const vistaEdicion = document.getElementById('vista-edicion');
+
+    if (vistaTabla && vistaEdicion) {
+        vistaTabla.classList.add('hidden');
+        vistaEdicion.classList.remove('hidden');
         
-        // 2. Actualizar el botón de "Devolver Alumno" en la vista de edición
-        // Buscamos el botón dentro del contenedor de edición
-        const btnDevolver = document.querySelector('#vista-edicion button[onclick^="abrirModalDevolver"]');
+        // Rellenamos los campos del formulario en PF_Edicion
+        if(document.getElementById('edit_nombre_completo')) document.getElementById('edit_nombre_completo').value = nombre;
+        if(document.getElementById('edit_email_alumno')) document.getElementById('edit_email_alumno').value = email;
+        if(document.getElementById('edit_tel_alumno')) document.getElementById('edit_tel_alumno').value = telefono;
         
+        // Actualizamos el botón de Devolver para el modal
+        const btnDevolver = document.getElementById('btn-devolver-alumno');
         if (btnDevolver) {
-            // Actualizamos el onclick dinámicamente con los datos recibidos
-            btnDevolver.setAttribute('onclick', `abrirModalDevolver(${alumnoData.id}, '${alumnoData.nombre}')`);
+            btnDevolver.setAttribute('onclick', `abrirModalDevolver(${id}, '${nombre}')`);
         }
-
-        console.log("Editando a:", alumnoData);
     }
+};
 
-    function volverALista() {
-        document.getElementById('vista-edicion').classList.add('hidden');
-        document.getElementById('vista-tabla').classList.remove('hidden');
-    }
+window.volverALista = function() {
+    // 1. Intercambiamos las vistas
+    document.getElementById('vista-tabla').classList.remove('hidden');
+    document.getElementById('vista-edicion').classList.add('hidden');
+    
+    // 2. Opcional: Limpiar los campos para que no se queden datos viejos
+    const camposALimpiar = ['edit_nombre_completo', 'edit_email_alumno', 'edit_tel_alumno'];
+    camposALimpiar.forEach(id => {
+        if(document.getElementById(id)) document.getElementById(id).value = '';
+    });
+};
 </script>

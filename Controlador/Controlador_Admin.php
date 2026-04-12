@@ -16,7 +16,7 @@ class Admin_Controlador {
         $this -> admin = new Admin();
     }
 
-    public function mostrarTutores() {
+    public function mostrarPanel() {
         $tutores = $this->admin->obtenerTutores();
         
         // Cuando tiene los datos, llama a la Vista: "Muéstralos así"

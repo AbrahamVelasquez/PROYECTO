@@ -27,10 +27,9 @@
   <div class="flex items-center gap-3 w-full md:w-auto">
     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ordenar por:</span>
     <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-        <option value="">SIN ORDENAR</option>
-        <option value="nombre"          <?= ($_POST['ordenar'] ?? '') == 'nombre'           ? 'selected' : '' ?>>NOMBRE</option>
-        <option value="mis_convenios"  <?= ($_POST['ordenar'] ?? '') == 'mis_convenios'   ? 'selected' : '' ?>>CONVENIO</option>
         <option value="estado"          <?= ($_POST['ordenar'] ?? '') == 'estado'           ? 'selected' : '' ?>>ESTADO</option>
+        <option value="nombre"          <?= ($_POST['ordenar'] ?? '') == 'nombre'           ? 'selected' : '' ?>>ALUMNO</option>
+        <option value="mis_convenios"  <?= ($_POST['ordenar'] ?? '') == 'mis_convenios'   ? 'selected' : '' ?>>CONVENIO</option>
         <option value="fecha_inicio"   <?= ($_POST['ordenar'] ?? '') == 'fecha_inicio'     ? 'selected' : '' ?>>FECHA INICIO</option>
         <option value="fecha_final"    <?= ($_POST['ordenar'] ?? '') == 'fecha_final'      ? 'selected' : '' ?>>FECHA FINAL</option>
     </select>
@@ -50,3 +49,95 @@
     BUSCAR
   </button>
 </form>
+
+
+<script>
+
+// Este script funciona para no tener que estar dandole a buscar todo el rato
+// lo hace automático. Pero hay detalles por pulir, y el de arriba de debe cambiar,
+// no basta sólo con descomentar lo de abajo.
+
+/*
+
+document.addEventListener('DOMContentLoaded', () => {
+    const busqueda = document.getElementById('busquedaAlumnos');
+    const estado = document.getElementById('estadoAlumnos');
+    const ordenar = document.getElementById('ordenarAlumnos');
+    const tabla = document.getElementById('tablaAlumnosBody');
+
+    if (!tabla) return;
+
+    // --- FILTRADO ---
+    const filtrar = () => {
+        const txt = busqueda.value.toLowerCase().trim();
+        const est = estado.value.toLowerCase().trim();
+        const filas = Array.from(tabla.querySelectorAll('tr'));
+
+        filas.forEach(f => {
+            const contenido = f.textContent.toLowerCase();
+            const coincideTxt = txt === '' || contenido.includes(txt);
+            const coincideEst = est === '' || contenido.includes(est);
+            f.style.display = (coincideTxt && coincideEst) ? "" : "none";
+        });
+    };
+
+    // --- ORDENACIÓN ---
+    const reordenar = () => {
+        const crit = ordenar.value;
+        const filas = Array.from(tabla.querySelectorAll('tr'));
+        
+        // Mapeo de columnas: Si notas que ordena la que no es, cambia el número aquí.
+        const cols = { 
+            'estado': 0, 
+            'nombre': 1, 
+            'mis_convenios': 2, 
+            'fecha_inicio': 3, 
+            'fecha_final': 4 
+        };
+        
+        const idx = cols[crit] !== undefined ? cols[crit] : 1;
+
+        filas.sort((a, b) => {
+            let tA = a.children[idx]?.innerText.trim() || "";
+            let tB = b.children[idx]?.innerText.trim() || "";
+
+            // Limpieza extra para fechas (elimina cualquier carácter que no sea número o /)
+            if (crit === 'fecha_inicio' || crit === 'fecha_final') {
+                const limpiarFecha = (s) => s.replace(/[^0-9/]/g, '').split('/').reverse().join('');
+                const fA = limpiarFecha(tA);
+                const fB = limpiarFecha(tB);
+                return fA.localeCompare(fB);
+            }
+
+            // Para Estado y Nombre, comparamos normal
+            return tA.localeCompare(tB, 'es', { sensitivity: 'base', numeric: true });
+        });
+
+        // Reinsertar de forma atómica para que el navegador "despierte"
+        filas.forEach(f => tabla.appendChild(f));
+    };
+
+    // --- EVENTOS ---
+    busqueda.addEventListener('input', filtrar);
+    estado.addEventListener('change', filtrar);
+    
+    ordenar.addEventListener('change', () => {
+        reordenar();
+        filtrar(); 
+    });
+
+    // Forzar una ordenación inicial para que "Estado" funcione desde el primer clic
+    reordenar();
+
+    const form = document.getElementById('formAlumnos');
+    if (form) {
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            filtrar();
+        };
+    }
+});
+
+*/
+
+</script>

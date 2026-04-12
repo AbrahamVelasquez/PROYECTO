@@ -21,16 +21,15 @@ else if (isset($_SESSION['usuario'])) {
     // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
         $nomControlador = "Tutores";
-        $accion = "mostrarPanel";
     } else if ($_SESSION['rol'] == 'admin') {
         $nomControlador = "Admin";
-        $accion = "mostrarTutores";
     }
 
-    // Si viene una acción específica por POST
-    if (isset($_POST['accion'])) {
-        $accion = $_POST['accion'];
-    }
+    // Si no viene acción, definimos una por defecto para que no explote
+    $accionDefault = "mostrarPanel";
+
+    // Capturamos la acción real (Prioridad a lo que venga por el formulario)
+    $accion = $_REQUEST['accion'] ?? $accionDefault;
 
     // Carga dinámica del controlador
     $rutaControlador = 'Controlador/Controlador_' . $nomControlador . ".php";

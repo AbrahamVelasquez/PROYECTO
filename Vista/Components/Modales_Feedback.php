@@ -28,21 +28,28 @@
     </div>
 </div>
 
+
 <script>
-    function abrirModalDevolver(idAlumno, nombre) {
-        // 1. Insertar el nombre en el modal
-        document.getElementById('nombreAlumnoDevolver').textContent = nombre;
-        
-        // 2. Mostrar el modal
-        document.getElementById('modalConfirmarDevolver').style.display = 'flex';
-        
-        // 3. Configurar la acción del botón "Sí, devolver"
-        document.getElementById('btnEjecutarDevolucion').onclick = function() {
-            console.log("Procesando devolución del alumno ID:", idAlumno);
-            
-            // Aquí puedes hacer el submit de un formulario o un fetch
-            // Ejemplo: enviar a un controlador de PHP
-            window.location.href = `/PlanFormativo/devolver/${idAlumno}`;
+function abrirModalDevolver(idAlumno, nombre) {
+    const elNombre = document.getElementById('nombreAlumnoDevolver');
+    if (elNombre) elNombre.textContent = nombre;
+    
+    const modal = document.getElementById('modalConfirmarDevolver');
+    if (modal) modal.style.display = 'flex';
+    
+    // CORRECCIÓN: Usamos la variable correcta para evitar el ReferenceError
+    const botonEjecutar = document.getElementById('btnEjecutarDevolucion');
+    
+    if (botonEjecutar) {
+        botonEjecutar.onclick = function() {
+            // Enviamos los parámetros de forma que el index.php no se pierda
+            const url = "index.php?controlador=Tutores&accion=devolverAlumnoAEnvio&id_alumno=" + idAlumno;
+            window.location.href = url;
         };
     }
+}
+
+function cerrarModalDevolver() {
+    document.getElementById('modalConfirmarDevolver').style.display = 'none';
+}
 </script>
