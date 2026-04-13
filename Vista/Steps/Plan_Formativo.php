@@ -1,5 +1,5 @@
 <div id="contenedor-plan-formativo">
-    <?php include_once 'Vista/Components/Modales_Feedback.php'; ?>
+    <?php include_once 'Vista/Components/Modales_PF.php'; ?>
 
     <div id="vista-tabla">
         <?php include_once 'Vista/Components/PF_Tabla.php'; ?>

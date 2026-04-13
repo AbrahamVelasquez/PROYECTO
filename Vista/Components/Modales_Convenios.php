@@ -1,0 +1,77 @@
+<div id="modalConvenioEnUso" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500 text-white text-xs">⚠️</span>
+                CONVENIO EN USO
+            </h3>
+            <button onclick="document.getElementById('modalConvenioEnUso').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <p id="modalConvenioMensaje" class="text-xs font-bold text-slate-600 mb-6 text-center"></p>
+        <div class="flex justify-center">
+            <button onclick="document.getElementById('modalConvenioEnUso').style.display='none'" class="px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 cursor-pointer">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirmarEliminar" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500 text-white text-xs">🗑️</span>
+                ELIMINAR
+            </h3>
+            <button onclick="document.getElementById('modalConfirmarEliminar').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Quitar de tu lista?</p>
+        <p id="modalConfirmarNombre" class="text-sm font-black text-slate-900 mb-6 text-center uppercase"></p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalConfirmarEliminar').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">Cancelar</button>
+            <button id="btnConfirmarEliminarFav" class="px-5 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 cursor-pointer">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirConfirmarEliminar(idConvenio, nombre) {
+        document.getElementById('modalConfirmarNombre').textContent = nombre;
+        document.getElementById('modalConfirmarEliminar').style.display = 'flex';
+        document.getElementById('btnConfirmarEliminarFav').onclick = function() {
+            document.querySelectorAll('input[name="id_convenio_eliminar"]').forEach(function(input) {
+                if (input.value == idConvenio) {
+                    var btn = document.createElement('input');
+                    btn.type = 'hidden'; btn.name = 'btnEliminarFav'; btn.value = '1';
+                    input.closest('form').appendChild(btn);
+                    input.closest('form').submit();
+                }
+            });
+        };
+    }
+
+    function aprobarConvenio(btn, nombre) {
+        const fila = btn.closest('tr');
+        fila.style.transition = 'opacity 0.4s ease';
+        fila.style.opacity = '0.4';
+
+        setTimeout(() => {
+            fila.remove();
+            const tbody = document.querySelector('.divide-y.divide-orange-50');
+            const nuevaFila = document.createElement('tr');
+            nuevaFila.className = 'hover:bg-orange-50/50 transition-colors';
+            nuevaFila.innerHTML = `
+                <td class="px-6 py-5">
+                    <div class="font-bold text-slate-900 uppercase text-sm">${nombre}</div>
+                    <div class="text-xs text-slate-400 font-bold">Añadido desde proceso</div>
+                </td>
+                <td class="px-6 py-5 text-center">
+                    <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                        ✓ Añadido
+                    </span>
+                </td>
+            `;
+            const vacia = tbody.querySelector('td[colspan]');
+            if (vacia) vacia.closest('tr').remove();
+            tbody.appendChild(nuevaFila);
+        }, 400);
+    }
+</script>
