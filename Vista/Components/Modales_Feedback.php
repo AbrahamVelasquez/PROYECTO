@@ -28,7 +28,6 @@
     </div>
 </div>
 
-
 <script>
 function abrirModalDevolver(idAlumno, nombre) {
     const elNombre = document.getElementById('nombreAlumnoDevolver');

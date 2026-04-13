@@ -76,29 +76,40 @@
                             onclick="window.mostrarEdicion(
                                 <?= $al['id_alumno'] ?>, 
                                 '<?= addslashes($nombreFull) ?>', 
-                                '<?= addslashes($al['correo']) ?>', 
-                                '<?= addslashes($al['nombre_empresa']) ?>', 
-                                '<?= $al['telefono'] ?>',
-                                '<?= $al['nif_empresa'] ?>',
-                                '<?= $al['email_empresa'] ?>',
-                                '<?= $al['telefono_empresa'] ?>',
-                                '<?= addslashes($al['nombre_ciclo']) ?>',
+                                '<?= addslashes($al['correo'] ?? '') ?>', 
+                                '<?= addslashes($al['nombre_empresa'] ?? '') ?>', 
+                                '<?= addslashes($al['telefono'] ?? '') ?>',
+                                '<?= addslashes($al['nif_empresa'] ?? '') ?>',
+                                '<?= addslashes($al['email_empresa'] ?? '') ?>',
+                                '<?= addslashes($al['telefono_empresa'] ?? '') ?>',
+                                '<?= addslashes($al['nombre_ciclo'] ?? '') ?>',
                                 '<?= $al['id_curso'] ?>',
                                 '<?= $al['id_ciclo'] ?>',
-                                '<?= addslashes($nombreTutor) ?>',  // Nueva variable
-                                '<?= $correoTutor ?>',              // Nueva variable
-                                '<?= $telTutor ?>'                  // Nueva variable
+                                '<?= addslashes($nombreTutor ?? 'Tutor No Definido') ?>',
+                                '<?= addslashes($correoTutor ?? '') ?>',
+                                '<?= addslashes($telTutor ?? '') ?>',
+                                '<?= $al['anio_inicio'] ?? '' ?>', 
+                                '<?= $al['anio_fin'] ?? '' ?>',
+                                <?= intval($al['id_asignacion']) ?>
                             )"
-                                class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
+                            class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
                                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
                             </svg>
                         </button>
                     </td>
-                    <td class="p-4 font-bold text-slate-700"><?= $nombreFull ?></td>
-                    <td class="p-4 text-slate-600 text-[9px]"><?= $al['nombre_empresa'] ?></td>
+                    <td class="p-4 font-bold text-slate-700"><?= htmlspecialchars($nombreFull) ?></td>
+                    <td class="p-4 text-slate-600 text-[9px]"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
                     <td class="p-4 text-center">
-                        <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-emerald-100 text-emerald-700 border-emerald-200 uppercase">FIRMADO</span>
+                        <?php if (isset($al['exportado']) && $al['exportado'] == 1): ?>
+                            <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-emerald-100 text-emerald-700 border-emerald-200 uppercase status-tag" data-estado="exportado">
+                                🟢 EXPORTADO
+                            </span>
+                        <?php else: ?>
+                            <span class="px-3 py-1 rounded-full text-[8px] border font-black bg-rose-100 text-rose-700 border-rose-200 uppercase status-tag" data-estado="no exportado">
+                                🔴 NO EXPORTADO
+                            </span>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; 
@@ -108,24 +119,35 @@
 </div>
 
 <script>
-   document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const inputBusqueda = document.querySelector('#busqueda');
     const btnBuscar = document.querySelector('#btnBuscar');
     const selectOrdenar = document.querySelector('#ordenar');
+    const selectEstado = document.querySelector('#filtroEstado'); // Selector de estado añadido
     const tablaCuerpo = document.querySelector('#tablaCuerpo');
 
-    // --- FUNCIÓN BUSCAR ---
+    // --- FUNCIÓN BUSCAR Y FILTRAR ---
     const realizarBusqueda = () => {
         const texto = inputBusqueda.value.toLowerCase().trim();
+        const estadoFiltro = selectEstado.value; // Obtener el valor del filtro (todos, exportado, no exportado)
         const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
 
         filas.forEach(fila => {
-            // Obtenemos el texto de las celdas de Alumno (col 1) y Empresa (col 2)
+            // Saltamos la fila si es la de "No hay alumnos" (que suele tener un colspan)
+            if (fila.cells.length < 4) return;
+
             const nombreAlumno = fila.children[1].textContent.toLowerCase();
             const nombreEmpresa = fila.children[2].textContent.toLowerCase();
+            
+            // Localizamos el span del estado y extraemos el valor del data-attribute
+            const statusSpan = fila.querySelector('.status-tag');
+            const estadoActual = statusSpan ? statusSpan.getAttribute('data-estado') : '';
 
-            // Si el texto está vacío o coincide con alguna columna, mostramos
-            if (texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto)) {
+            // Lógica combinada: debe coincidir el texto Y el estado
+            const coincideTexto = texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto);
+            const coincideEstado = estadoFiltro === 'todos' || estadoActual === estadoFiltro;
+
+            if (coincideTexto && coincideEstado) {
                 fila.style.display = "";
             } else {
                 fila.style.display = "none";
@@ -136,19 +158,20 @@
     // --- FUNCIÓN ORDENAR ---
     const ordenarTabla = () => {
         const criterio = selectOrdenar.value;
-        const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
+        const filas = Array.from(tablaCuerpo.querySelectorAll('tr:not(.no-data)')); // Evitar ordenar fila de vacíos
         
+        if (filas.length === 0) return;
+
         // Mapeo de columna según el select
         const indiceColumna = {
             'alumno': 1,
-            'empresa': 2
-        }[criterio] || 1; // Por defecto Alumno
+            'empresa': 2,
+            'estado': 3
+        }[criterio] || 1;
 
         filas.sort((a, b) => {
             const valA = a.children[indiceColumna].textContent.trim();
             const valB = b.children[indiceColumna].textContent.trim();
-            
-            // localeCompare es vital para que "Álvarez" vaya con la "A" y no al final
             return valA.localeCompare(valB, 'es', { sensitivity: 'base' });
         });
 
@@ -156,15 +179,21 @@
         filas.forEach(fila => tablaCuerpo.appendChild(fila));
     };
 
-    // Eventos
+    // --- EVENTOS ---
+    
+    // Botón Buscar
     btnBuscar.addEventListener('click', realizarBusqueda);
     
-    // Búsqueda en tiempo real mientras escribes (opcional, pero muy cómodo)
+    // Búsqueda en tiempo real
     inputBusqueda.addEventListener('input', realizarBusqueda);
 
+    // Cambio de Filtro de Estado
+    selectEstado.addEventListener('change', realizarBusqueda);
+
+    // Cambio de Orden
     selectOrdenar.addEventListener('change', ordenarTabla);
     
-    // Evitar que el Enter recargue la página si el input está en un form
+    // Manejo de tecla Enter
     inputBusqueda.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();

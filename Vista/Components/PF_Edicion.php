@@ -192,10 +192,9 @@
             </div>
         </div>
 
+        <input type="hidden" id="edit_id_asignacion" name="id_asignacion" value="<?= $_GET['editar'] ?? '' ?>">
+        
         <?php include 'Buttons_PF_Edicion.php'; ?>
         
     </form>
 </div>
-
-
-<?php include_once 'Vista/Components/Modales_Feedback.php'; ?>

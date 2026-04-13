@@ -37,39 +37,44 @@ class Tutores_Controlador {
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
         $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
 
+        // --- GESTIÓN DE ALUMNOS FIRMADOS (PARA TAB 3) ---
+        $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+
         // --- CARGA DE VISTA ---
         require_once 'Vista/index_vista.php';
     }
+    
     public function agregarAlumno() {
-        // 1. Verificar que el ID de ciclo existe en la sesión
-        if (!isset($_SESSION['id_ciclo'])) {
-            die("Error: No se ha detectado el ciclo formativo en la sesión.");
-        }
-
-        $idCiclo = $_SESSION['id_ciclo'];
-        $alumnoModelo = new Alumnos();
-
-        // 2. Ejecutar inserción
-        $resultado = $alumnoModelo->agregarAlumno(
-            trim($_POST['nombre']),
-            trim($_POST['apellido1']),
-            trim($_POST['apellido2'] ?? ''),
-            strtoupper(trim($_POST['dni'])),
-            $_POST['sexo'],
-            trim($_POST['correo'] ?? ''),
-            trim($_POST['telefono'] ?? ''), // <--- ESTA ES LA LÍNEA QUE FALTA
-            $idCiclo
-        );
-
-        if ($resultado) {
-            // Éxito: Redirigir
-            header('Location: index.php?tab=2');
-            exit();
-        } else {
-            // ERROR: Si llegas aquí, el modelo devolvió 'false'
-            die("Error al insertar en la base de datos. Revisa si el DNI está duplicado.");
-        }
+    if (!isset($_SESSION['id_ciclo'])) {
+        die("Error: No se ha detectado el ciclo formativo en la sesión.");
     }
+
+    $idCiclo = $_SESSION['id_ciclo'];
+    $alumnoModelo = new Alumnos();
+
+    // Capturamos años si vinieran del formulario, si no, el modelo pondrá los actuales
+    $anioInicio = $_POST['anio_inicio'] ?? date('Y');
+    $anioFin = $_POST['anio_fin'] ?? (date('Y') + 1);
+
+    $resultado = $alumnoModelo->agregarAlumno(
+        trim($_POST['nombre']),
+        trim($_POST['apellido1']),
+        trim($_POST['apellido2'] ?? ''),
+        strtoupper(trim($_POST['dni'])),
+        $_POST['sexo'],
+        trim($_POST['correo'] ?? ''),
+        trim($_POST['telefono'] ?? ''),
+        $idCiclo
+        // Aquí podrías pasar $anioInicio y $anioFin si actualizaste la firma del método en el modelo
+    );
+
+    if ($resultado) {
+        header('Location: index.php?tab=2');
+        exit();
+    } else {
+        die("Error al insertar en la base de datos. Revisa si el DNI está duplicado.");
+    }
+}
 
     
 public function obtenerAlumno() {
@@ -206,5 +211,34 @@ public function devolverAlumnoAEnvio() {
     exit();
 }
 
+public function marcarComoExportado() {
+    if (ob_get_length()) ob_clean();
+    header('Content-Type: application/json');
+
+    $id = $_POST['id_asignacion'] ?? 'NO_LLEGÓ_ID';
+    $response = ['success' => false, 'id_recibido' => $id];
+
+    if ($id !== 'NO_LLEGÓ_ID') {
+        try {
+            require_once __DIR__ . '/../Modelo/Alumnos.php';
+            $modelo = new Alumnos(); 
+            
+            $resultado = $modelo->actualizarEstadoExportacion($id, 1);
+            
+            if ($resultado === true) {
+                $response['success'] = true;
+            } else if (is_array($resultado)) {
+                $response['error_sql'] = $resultado['error'];
+            } else {
+                $response['error'] = "No se encontró la fila o el valor ya era 1";
+            }
+        } catch (Exception $e) {
+            $response['error_excepcion'] = $e->getMessage();
+        }
+    }
+
+    echo json_encode($response);
+    exit;
+}
 
 }

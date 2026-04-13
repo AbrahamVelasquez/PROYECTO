@@ -1,4 +1,6 @@
 <div id="contenedor-plan-formativo">
+    <?php include_once 'Vista/Components/Modales_Feedback.php'; ?>
+
     <div id="vista-tabla">
         <?php include_once 'Vista/Components/PF_Tabla.php'; ?>
     </div>
@@ -9,31 +11,20 @@
 </div>
 
 <script>
-window.prepararCamposAutomaticos = function() {
+window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
     const ahora = new Date();
     
-    // --- 1. LÓGICA DE CURSO ACADÉMICO ---
-    const mesActual = ahora.getMonth() + 1;
-    const anioActualFull = ahora.getFullYear();
-    let anioInicio, anioFin;
-
-    if (mesActual >= 9) { // Septiembre a Diciembre
-        anioInicio = anioActualFull;
-        anioFin = anioActualFull + 1;
-    } else { // Enero a Agosto
-        anioInicio = anioActualFull - 1;
-        anioFin = anioActualFull;
+    // --- 1. LÓGICA DE CURSO ACADÉMICO (Usando datos de BD) ---
+    // Si recibimos los años de la BD, sacamos los últimos 2 dígitos
+    if (anioInicioDB && anioFinDB) {
+        document.getElementById('edit_anio_inicio').value = String(anioInicioDB).slice(-2);
+        document.getElementById('edit_anio_fin').value = String(anioFinDB).slice(-2);
     }
 
-    document.getElementById('edit_anio_inicio').value = String(anioInicio).slice(-2);
-    document.getElementById('edit_anio_fin').value = String(anioFin).slice(-2);
-
     // --- 2. LÓGICA DE FECHA DE EMISIÓN (Hoy) ---
-    // Formato YYYY-MM-DD necesario para input type="date"
     const dia = String(ahora.getDate()).padStart(2, '0');
     const mes = String(ahora.getMonth() + 1).padStart(2, '0');
     const anio = ahora.getFullYear();
-    
     const fechaHoy = `${anio}-${mes}-${dia}`;
     
     if(document.getElementById('edit_fecha_plan')) {
@@ -42,19 +33,23 @@ window.prepararCamposAutomaticos = function() {
 };
 
 // Definimos la función en el objeto window para que sea accesible desde la tabla
-window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual) {
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal) {
     const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
 
     if (vistaTabla && vistaEdicion) {
         vistaTabla.classList.add('hidden');
         vistaEdicion.classList.remove('hidden');
-                
-        // --- AUTO-CÁLCULO DEL CURSO Y FECHA ---
-        // Esta función ahora pone la fecha de HOY y el CURSO 25-26 automáticamente
-        window.prepararCamposAutomaticos();
+        
+        // Usamos el nuevo idAsignacionReal para el input de exportación
+        if(document.getElementById('edit_id_asignacion')) {
+            document.getElementById('edit_id_asignacion').value = idAsignacionReal;
+        }
 
-        // --- 1. IDENTIFICACIÓN ACADÉMICA (Lo nuevo) ---
+        // Pasamos los años de la BD a la función de autocompletado
+        window.prepararCamposAutomaticos(anioInicio, anioFin);
+
+        // --- 1. IDENTIFICACIÓN ACADÉMICA ---
         if(document.getElementById('edit_nombre_ciclo')) document.getElementById('edit_nombre_ciclo').value = nombreCiclo;
         if(document.getElementById('edit_codigo_ciclo')) document.getElementById('edit_codigo_ciclo').value = idCicloOriginal;
         
@@ -67,13 +62,10 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         if(document.getElementById('edit_tel_alumno')) document.getElementById('edit_tel_alumno').value = telefono;
         
         // --- 3. DATOS DEL CENTRO Y TUTOR ---
-
-        // 1. Datos estáticos del IES Ciudad Escolar (Por ser el Centro)
         document.getElementById('edit_centro_nombre').value = "IES CIUDAD ESCOLAR";
         document.getElementById('edit_centro_correo').value = "ies.ciudadescolar@educa.madrid.org";
         document.getElementById('edit_centro_tel').value = "917341244";
 
-        // 2. Datos del Tutor (El que ha iniciado sesión)
         document.getElementById('edit_tutor_centro_nombre').value = nombreTutorActual;
         document.getElementById('edit_tutor_centro_correo').value = correoTutorActual;
         document.getElementById('edit_tutor_centro_tel').value = telTutorActual;
@@ -84,7 +76,7 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         if(document.getElementById('edit_email_empresa')) document.getElementById('edit_email_empresa').value = emailEmpresa;
         if(document.getElementById('edit_tel_empresa')) document.getElementById('edit_tel_empresa').value = telEmpresa;
         
-        // Botón devolver
+        // Botón devolver (sigue usando el ID de alumno original si es necesario)
         const btnDevolver = document.getElementById('btn-devolver-alumno');
         if (btnDevolver) btnDevolver.setAttribute('onclick', `abrirModalDevolver(${id}, '${nombre}')`);
     }
@@ -101,4 +93,41 @@ window.volverALista = function() {
         if(document.getElementById(id)) document.getElementById(id).value = '';
     });
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Lógica para habilitar/deshabilitar campos de texto según Radio Buttons
+    const setupRadioToggle = (radioName) => {
+        const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                // Buscamos el input de texto que está en el mismo contenedor padre
+                const contenedor = e.target.closest('.space-y-4');
+                const inputTexto = contenedor.querySelector('input[type="text"]');
+                
+                if (e.target.value === 'SI') {
+                    inputTexto.disabled = false;
+                    inputTexto.classList.remove('bg-slate-50', 'cursor-not-allowed');
+                    inputTexto.focus();
+                } else {
+                    inputTexto.disabled = true;
+                    inputTexto.value = ''; // Limpiamos el texto si marca NO
+                    inputTexto.classList.add('bg-slate-50', 'cursor-not-allowed');
+                }
+            });
+        });
+    };
+
+    // Inicializamos para Discapacidad y Autorización
+    setupRadioToggle('discapacidad');
+    setupRadioToggle('autorizacion');
+    
+    // Dejar los campos deshabilitados por defecto al cargar (ya que el HTML tiene "NO" checked)
+    document.querySelectorAll('input[name="discapacidad"], input[name="autorizacion"]').forEach(r => {
+        if(r.checked && r.value === 'NO') {
+            const input = r.closest('.space-y-4').querySelector('input[type="text"]');
+            input.disabled = true;
+            input.classList.add('bg-slate-50', 'cursor-not-allowed');
+        }
+    });
+});
 </script>

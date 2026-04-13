@@ -11,15 +11,16 @@ class Alumnos {
     public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
         // Base de la consulta - Se añade asig.enviado
         $query = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
-                            asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
-                            asig.horario, asig.horas_dia, asig.enviado,
-                            conv.nombre_empresa, conv.municipio, conv.direccion,
-                            (f.id_firmada IS NOT NULL) as firmado 
-                    FROM alumnos a
-                    LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
-                    LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                    LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
-                    WHERE a.id_ciclo = :idCiclo";
+                                asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
+                                asig.horario, asig.horas_dia, asig.enviado,
+                                conv.nombre_empresa, conv.municipio, conv.direccion,
+                                (f.id_firmada IS NOT NULL) as firmado 
+                        FROM alumnos a
+                        INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
+                        LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
+                        LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
+                        LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+                        WHERE ca.id_ciclo = :idCiclo";
 
         // Filtro por texto (Nombre, Apellidos o DNI)
         if (!empty($busqueda)) {
@@ -140,23 +141,43 @@ public function obtenerPorId($idAlumno) {
 }
 
 public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono, $idCiclo) {
-    // Añadimos telefono a la inserción
-    $query = "INSERT INTO alumnos (nombre, apellido1, apellido2, dni, sexo, correo, telefono, id_ciclo) 
-              VALUES (:nombre, :apellido1, :apellido2, :dni, :sexo, :correo, :telefono, :idCiclo)";
     try {
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute([
+        $this->conn->beginTransaction();
+
+        // 1. Insertar en alumnos (sin id_ciclo)
+        $query1 = "INSERT INTO alumnos (nombre, apellido1, apellido2, dni, sexo, correo, telefono) 
+                   VALUES (:nombre, :apellido1, :apellido2, :dni, :sexo, :correo, :telefono)";
+        $stmt1 = $this->conn->prepare($query1);
+        $stmt1->execute([
             'nombre'    => $nombre,
             'apellido1' => $apellido1,
             'apellido2' => $apellido2,
             'dni'       => $dni,
             'sexo'      => $sexo,
             'correo'    => $correo,
-            'telefono'  => $telefono,
-            'idCiclo'   => $idCiclo
+            'telefono'  => $telefono
         ]);
+
+        $lastId = $this->conn->lastInsertId();
+
+        // 2. Insertar en curso_academico (Aquí definimos el ciclo y años por defecto o actuales)
+        $anioActual = (int)date('Y');
+        $query2 = "INSERT INTO curso_academico (id_alumno, id_ciclo, anio_inicio, anio_fin) 
+                   VALUES (:idAlumno, :idCiclo, :inicio, :fin)";
+        $stmt2 = $this->conn->prepare($query2);
+        $stmt2->execute([
+            'idAlumno' => $lastId,
+            'idCiclo'  => $idCiclo,
+            'inicio'   => $anioActual,
+            'fin'      => $anioActual + 1
+        ]);
+
+        $this->conn->commit();
         return true;
-    } catch (PDOException $e) { return false; }
+    } catch (PDOException $e) { 
+        $this->conn->rollBack();
+        return false; 
+    }
 }
 
 public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono,
@@ -283,24 +304,30 @@ public function actualizarDatosBasicos($id, $nom, $ap1, $ap2, $dni, $sex, $mail,
 
 public function listarAlumnosFirmados($idCiclo) {
     $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
-                   conv.nombre_empresa, conv.cif AS nif_empresa, 
-                   conv.mail AS email_empresa, conv.telefono AS telefono_empresa,
-                   ci.id_ciclo, 
-                   ci.nombre_ciclo, 
-                   cu.id_curso
+                    f.id_asignacion, 
+                    conv.nombre_empresa, conv.cif AS nif_empresa, 
+                    conv.mail AS email_empresa, conv.telefono AS telefono_empresa,
+                    ci.id_ciclo, 
+                    ci.nombre_ciclo, 
+                    cu.id_curso,
+                    f.exportado,
+                    ca.anio_inicio,
+                    ca.anio_fin
             FROM alumnos a
+            INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
             INNER JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
             INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
             LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
-            INNER JOIN ciclos ci ON a.id_ciclo = ci.id_ciclo
+            INNER JOIN ciclos ci ON ca.id_ciclo = ci.id_ciclo
             INNER JOIN cursos cu ON ci.id_curso = cu.id_curso
-            WHERE a.id_ciclo = :idCiclo
+            WHERE ca.id_ciclo = :idCiclo
             ORDER BY a.apellido1 ASC";
     
     $stmt = $this->conn->prepare($sql);
     $stmt->execute(['idCiclo' => $idCiclo]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 public function devolverAlumnoAEnvio($idAlumno) {
     try {
         $this->conn->beginTransaction();
@@ -322,6 +349,20 @@ public function devolverAlumnoAEnvio($idAlumno) {
     } catch (Exception $e) {
         if ($this->conn->inTransaction()) $this->conn->rollBack();
         return false;
+    }
+}
+
+public function actualizarEstadoExportacion($idAsignacion, $estado) {
+    try {
+        $sql = "UPDATE asignaciones_firmadas SET exportado = ? WHERE id_asignacion = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$estado, $idAsignacion]);
+        
+        // Esto nos dirá si realmente encontró el ID y cambió algo
+        return $stmt->rowCount() > 0; 
+    } catch (Exception $e) {
+        // Si hay un error de SQL (columna inexistente, etc), lo capturamos aquí
+        return ["error" => $e->getMessage()];
     }
 }
 

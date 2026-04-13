@@ -151,7 +151,9 @@
                 <select name="id_convenio" id="edit_id_convenio" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
                     <option value="">-- Sin asignar --</option>
                     <?php foreach ($misConvenios as $conv): ?>
-                        <option value="<?= $conv['id_convenio'] ?>"><?= str_pad($conv['id_convenio'], 4, "0", STR_PAD_LEFT) ?> — <?= htmlspecialchars($conv['nombre_empresa']) ?></option>
+                       <option value="<?= $conv['id_convenio'] ?>">
+                            <?= str_pad($conv['id_convenio'], 4, "0", STR_PAD_LEFT) ?> — <?= htmlspecialchars($conv['nombre_empresa']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -266,6 +268,27 @@
         </div>
         <div class="flex justify-center">
             <button onclick="document.getElementById('modalErrorFirma').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors cursor-pointer">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalErrorExportar" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white text-xs">⚠️</span>
+                ACCIÓN BLOQUEADA
+            </h3>
+            <button onclick="document.getElementById('modalErrorExportar').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <div class="flex flex-col items-center mb-6">
+            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Exportación pendiente</p>
+            <p class="text-xs font-bold text-slate-600 text-center leading-relaxed">
+                No se puede marcar manualmente como enviado a <span id="nombreAlumnoExportError" class="text-slate-900"></span>. Para realizar esta acción, debe ir al apartado de <span class="text-orange-600">EXPORTAR ALUMNOS</span>.
+            </p>
+        </div>
+        <div class="flex justify-center">
+            <button onclick="document.getElementById('modalErrorExportar').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors cursor-pointer">Entendido</button>
         </div>
     </div>
 </div>

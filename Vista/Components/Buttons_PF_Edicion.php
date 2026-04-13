@@ -21,7 +21,9 @@
             </div>
         </div>
 
-        <button type="submit" class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition-all shadow-md uppercase tracking-widest cursor-pointer">
+        <button type="button" 
+                onclick="abrirModalExportar()" 
+                class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition-all shadow-md uppercase tracking-widest cursor-pointer">
             GENERAR Y EXPORTAR EXCEL 📄
         </button>
     </div>
@@ -31,4 +33,39 @@
 function volverALista() {
     window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
 }
+
+window.exportarYMarcar = async function(idAsignacion) {
+    const idDefinitivo = idAsignacion || document.getElementById('edit_id_asignacion')?.value;
+
+    if (!idDefinitivo) {
+        alert("Error: No se encuentra el ID de la asignación.");
+        return;
+    }
+
+    try {
+        const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id_asignacion=${encodeURIComponent(idDefinitivo)}`
+        });
+
+        const textoBruto = await res.text();
+        // Buscamos el JSON dentro del texto por si PHP soltó algún warning invisible
+        const inicioJson = textoBruto.indexOf('{');
+        const finJson = textoBruto.lastIndexOf('}') + 1;
+        const jsonLimpio = textoBruto.substring(inicioJson, finJson);
+
+        const data = JSON.parse(jsonLimpio);
+
+        if (data.success) {
+            // ÉXITO: Redirigimos al panel con la pestaña 3 activa
+            window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
+        } else {
+            alert("No se pudo actualizar la base de datos. Verifica si el ID " + idDefinitivo + " existe.");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Error de comunicación. Revisa la consola.");
+    }
+};
 </script>

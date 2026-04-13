@@ -158,9 +158,9 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                 <td class="px-4 py-3 text-center">
                     <?php if ($esCompletado): ?>
                         <input type="checkbox" 
-                            class="w-4 h-4 rounded border-slate-500 text-orange-600 focus:ring-orange-500 accent-orange-600 <?= $estaEnviado ? 'opacity-50' : 'cursor-default' ?>" 
+                            class="w-4 h-4 rounded border-slate-500 text-orange-600 focus:ring-orange-500 accent-orange-600 <?= $estaEnviado ? 'opacity-50' : 'cursor-pointer' ?>" 
                             <?= $estaEnviado ? 'checked disabled' : '' ?>
-                            onclick="return false;"> 
+                            onclick="mostrarErrorExportar('<?= addslashes($al['nombre']) ?>', this);"> 
                     <?php else: ?>
                         <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="<?= $mensajeBloqueo ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-60"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -172,7 +172,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                     <?php if ($esCompletado): ?>
                         <input type="checkbox" 
                             <?= $estaFirmado ? 'checked disabled' : '' ?> 
-                            onclick="prepararFirma(<?= $al['id_asignacion'] ?>, <?= $estaEnviado ?>, '<?= $al['nombre'] ?>', this)"
+                            onclick="prepararFirma(<?= $al['id_asignacion'] ?>, <?= $estaEnviado ? 'true' : 'false' ?>, '<?= addslashes($al['nombre']) ?>', this)"
                             class="w-4 h-4 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500 <?= $estaFirmado ? 'opacity-50' : 'cursor-pointer' ?>">
                     <?php else: ?>
                         <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="<?= $mensajeBloqueo ?>">
@@ -319,6 +319,23 @@ function abrirConfirmacionFinal() {
     // Cerramos el selector y abrimos la confirmación
     document.getElementById('modalSeleccionarExportar').style.display = 'none';
     document.getElementById('modalConfirmarExportar').style.display = 'flex';
+}
+
+function mostrarErrorExportar(nombreAlumno, checkbox) {
+    // Si el checkbox no está deshabilitado (es decir, no ha sido enviado realmente aún)
+    if (!checkbox.disabled) {
+        // Forzamos que se mantenga desmarcado
+        checkbox.checked = false;
+        
+        // Inyectamos el nombre en el modal de exportación
+        const spanNombre = document.getElementById('nombreAlumnoExportError');
+        if (spanNombre) spanNombre.innerText = nombreAlumno;
+        
+        // Mostramos el modal
+        const modal = document.getElementById('modalErrorExportar');
+        if (modal) modal.style.display = 'flex';
+    }
+    return false;
 }
 
 </script>
