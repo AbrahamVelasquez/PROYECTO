@@ -42,10 +42,20 @@ class Convenios {
         return $stmt->execute([$id_tutor, $id_convenio]);
     }
 
-    public function estaEnUso($id_convenio) {
-        $query = "SELECT COUNT(*) FROM asignaciones WHERE id_convenio = :id_convenio";
+    public function estaEnUso($id_convenio, $id_ciclo) {
+        // Relacionamos las asignaciones con curso_academico a través del id_alumno
+        $query = "SELECT COUNT(*) 
+                FROM asignaciones a
+                INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
+                WHERE a.id_convenio = :id_convenio 
+                AND ca.id_ciclo = :id_ciclo";
+                
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(['id_convenio' => $id_convenio]);
+        $stmt->execute([
+            'id_convenio' => $id_convenio,
+            'id_ciclo'    => $id_ciclo
+        ]);
+        
         return $stmt->fetchColumn() > 0;
     }
 

@@ -10,15 +10,22 @@
 <body class="min-h-svh bg-slate-50 text-slate-900 antialiased font-sans">
   <main class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
     
-    <header class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm mb-8 flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 uppercase">Registro de <span class="text-orange-600">Convenio</span></h1>
-        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Introduzca los datos oficiales de la empresa</p>
-      </div>
-      <a href="../index.php" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">← Cancelar</a>
-    </header>
-
     <div class="rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+      
+      <div class="p-8 flex justify-between items-center bg-white border-b border-slate-100">
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
+            Registro de <span class="text-orange-600">Convenio</span>
+          </h1>
+          <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+            Introduzca los datos oficiales de la empresa
+          </p>
+        </div>
+        <a href="../index.php" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all">
+          ← Cancelar
+        </a>
+      </div>
+
       <form action="../index.php" method="POST" class="p-10 space-y-8">
         
         <input type="hidden" name="accion" value="guardarNuevoConvenio">

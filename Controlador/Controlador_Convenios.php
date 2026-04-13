@@ -29,10 +29,13 @@ class Convenios_Controlador {
         // LÓGICA PARA ELIMINAR DE FAVORITOS
         if (isset($_POST['btnEliminarFav'])) {
             $idConvenio = $_POST['id_convenio_eliminar'];
+            $id_ciclo_actual = $_SESSION['id_ciclo']; // <--- Importante tener esto aquí
+            
             $url = "index.php?tab=1" . (!empty($_GET['busqueda']) ? "&busqueda=" . urlencode($_GET['busqueda']) : "");
 
-            if ($this->convenio->estaEnUso($idConvenio)) {
-                $_SESSION['error_convenio'] = 'No se puede eliminar este convenio porque tiene alumnos asignados.';
+            // Ahora pasamos ambos parámetros
+            if ($this->convenio->estaEnUso($idConvenio, $id_ciclo_actual)) {
+                $_SESSION['error_convenio'] = 'No puedes quitarlo de favoritos porque tienes alumnos de tu ciclo asignados a él.';
             } else {
                 $this->convenio->eliminarDeFavoritos($id_tutor_actual, $idConvenio);
             }
