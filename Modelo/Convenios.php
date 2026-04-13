@@ -19,7 +19,6 @@ class Convenios {
     }
 
     public function añadirAFavoritos($id_tutor, $id_convenio) {
-        // CAMBIADO: id_usuario -> id_tutor (según tu esquema)
         $sql = "INSERT INTO mi_listado (id_tutor, id_convenio) VALUES (:id_t, :id_conv)";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':id_t', $id_tutor);
@@ -28,7 +27,6 @@ class Convenios {
     }
 
     public function obtenerFavoritos($id_tutor) {
-        // CAMBIADO: m.id_usuario -> m.id_tutor (según tu esquema)
         $sql = "SELECT c.* FROM convenios c
                 INNER JOIN mi_listado m ON c.id_convenio = m.id_convenio
                 WHERE m.id_tutor = :id_tutor";
@@ -45,38 +43,50 @@ class Convenios {
     }
 
     public function estaEnUso($id_convenio) {
-    $query = "SELECT COUNT(*) FROM asignaciones WHERE id_convenio = :id_convenio";
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute(['id_convenio' => $id_convenio]);
-    return $stmt->fetchColumn() > 0;
-}
-
-public function guardarNuevoConvenio($datos) {
-    $query = "INSERT INTO convenios 
-                (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, 
-                 nombre_representante, dni_representante, cargo)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    try {
+        $query = "SELECT COUNT(*) FROM asignaciones WHERE id_convenio = :id_convenio";
         $stmt = $this->conn->prepare($query);
-        $stmt->execute([
-            $datos['nombre_empresa'],
-            $datos['cif'],
-            $datos['direccion'],
-            $datos['municipio'],
-            $datos['cp'],
-            $datos['pais'],
-            $datos['telefono'],
-            $datos['fax'],
-            $datos['mail'],
-            $datos['nombre_representante'],
-            $datos['dni_representante'],
-            $datos['cargo']
-        ]);
-        return $this->conn->lastInsertId();
-    } catch (PDOException $e) {
-        die("ERROR SQL: " . $e->getMessage());
+        $stmt->execute(['id_convenio' => $id_convenio]);
+        return $stmt->fetchColumn() > 0;
     }
-}
 
+    /**
+     * NUEVA FUNCIÓN: Guarda en la tabla convenios_nuevos (pendientes)
+     * Incluye el id_ciclo capturado del formulario
+     */
+        // En Modelo/Convenios.php
+        public function guardarNuevoConvenioPendiente($datos) {
+            $query = "INSERT INTO convenios_nuevos 
+                        (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, 
+                        nombre_representante, dni_representante, cargo, id_ciclo)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    
+            $stmt = $this->conn->prepare($query);
+            return $stmt->execute([
+                $datos['nombre_empresa'],      // Coincide con columna nombre_empresa
+                $datos['cif'],                 // Coincide con columna cif
+                $datos['direccion'],           // Coincide con columna direccion
+                $datos['municipio'],           // Coincide con columna municipio
+                $datos['cp'],                  // Coincide con columna cp
+                $datos['pais'],                // Coincide con columna pais
+                $datos['telefono'],            // Coincide con columna telefono
+                $datos['fax'],                 // Coincide con columna fax
+                $datos['mail'],                // Coincide con columna mail (Viene de $datos['mail'])
+                $datos['nombre_representante'],// Coincide con columna nombre_representante
+                $datos['dni_representante'],   // Coincide con columna dni_representante
+                $datos['cargo'],               // Coincide con columna cargo
+                $datos['id_ciclo']             // Esta es la columna extra que añadimos a convenios_nuevos
+            ]);
+        }
+
+    /**
+     * NUEVA FUNCIÓN: Obtiene los convenios en proceso para un ciclo específico
+     * Se usa para rellenar la tabla naranja/ámbar de la vista
+     */
+    public function obtenerConveniosEnProceso($id_ciclo) {
+        $query = "SELECT * FROM convenios_nuevos WHERE id_ciclo = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$id_ciclo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

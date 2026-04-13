@@ -106,7 +106,7 @@
             Pendientes de confirmar
         </span>
     </div>
-    <div class="overflow-hidden rounded-2xl border-2 border-amber-100 bg-white">
+    <div class="overflow-hidden rounded-2xl border-2 border-amber-100 bg-white shadow-sm">
         <table class="w-full text-left border-collapse">
             <thead class="bg-amber-500 text-white">
                 <tr>
@@ -116,63 +116,44 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-amber-50">
-                <tr class="hover:bg-amber-50/50 transition-colors">
-                    <td class="px-6 py-5">
-                        <div class="font-bold text-slate-900 uppercase text-sm">Innovatech S.L.</div>
-                        <div class="text-xs text-slate-400 font-bold">Leganés</div>
-                    </td>
-                    <td class="px-6 py-5">
-                        <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
-                            Formulario enviado · esperando respuesta
-                        </span>
-                    </td>
-                    <td class="px-6 py-5 text-center">
-                        <button onclick="aprobarConvenio(this, 'Innovatech S.L.')"
-                                class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
-                            <span class="text-[10px] font-black uppercase">Aprobar</span>
-                            <span class="text-xs">✓</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-amber-50/50 transition-colors">
-                    <td class="px-6 py-5">
-                        <div class="font-bold text-slate-900 uppercase text-sm">DataSphere Corp.</div>
-                        <div class="text-xs text-slate-400 font-bold">Madrid</div>
-                    </td>
-                    <td class="px-6 py-5">
-                        <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
-                            Formulario enviado · esperando respuesta
-                        </span>
-                    </td>
-                    <td class="px-6 py-5 text-center">
-                        <button onclick="aprobarConvenio(this, 'DataSphere Corp.')"
-                                class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
-                            <span class="text-[10px] font-black uppercase">Aprobar</span>
-                            <span class="text-xs">✓</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-amber-50/50 transition-colors">
-                    <td class="px-6 py-5">
-                        <div class="font-bold text-slate-900 uppercase text-sm">CloudBase Systems</div>
-                        <div class="text-xs text-slate-400 font-bold">Alcorcón</div>
-                    </td>
-                    <td class="px-6 py-5">
-                        <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                            Formulario completado · listo para aprobar
-                        </span>
-                    </td>
-                    <td class="px-6 py-5 text-center">
-                        <button onclick="aprobarConvenio(this, 'CloudBase Systems')"
-                                class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
-                            <span class="text-[10px] font-black uppercase">Aprobar</span>
-                            <span class="text-xs">✓</span>
-                        </button>
-                    </td>
-                </tr>
+                <?php if (!empty($conveniosProceso)): ?>
+                    <?php foreach ($conveniosProceso as $convP): ?>
+                        <tr class="hover:bg-amber-50/50 transition-colors">
+                            <td class="px-6 py-5">
+                                <div class="font-bold text-slate-900 uppercase text-sm">
+                                    <?= htmlspecialchars($convP['nombre_empresa']) ?>
+                                </div>
+                                <div class="text-xs text-slate-400 font-bold">
+                                    <?= htmlspecialchars($convP['municipio']) ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                                    Esperando validación de dirección
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <button onclick="aprobarConvenio(this, '<?= addslashes($convP['nombre_empresa']) ?>')"
+                                        class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
+                                    <span class="text-[10px] font-black uppercase">Aprobar</span>
+                                    <span class="text-xs">✓</span>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="px-6 py-12 text-center">
+                            <div class="text-slate-300 mb-2">
+                                <svg class="w-10 h-10 mx-auto opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">No hay convenios pendientes para tu ciclo</p>
+                        </td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

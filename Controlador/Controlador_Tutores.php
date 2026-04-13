@@ -8,39 +8,39 @@ class Tutores_Controlador {
     public function mostrarPanel() {
         // --- PESTAÑA ACTIVA ---
         $pestanaActiva = $_GET['tab'] ?? 1;
+
         // --- GESTIÓN DE CONVENIOS ---
         $convControlador = new Convenios_Controlador();
         $data = $convControlador->gestionar();
+        
         $convenios = $data['busqueda'];
         $misConvenios = $data['favoritos'];
+        $conveniosProceso = $data['proceso']; // <--- NUEVO: Capturamos los pendientes de aprobación
 
         // --- GESTIÓN DE PERFIL DEL TUTOR ---
         $tutorModelo = new Tutores();
         $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
 
         $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
-        $correoTutor = $perfil['email'] ?? ''; // Nuevo
-        $telTutor = $perfil['telefono'] ?? ''; // Nuevo
+        $correoTutor = $perfil['email'] ?? '';
+        $telTutor = $perfil['telefono'] ?? '';
         $cicloTutor = $perfil['nombre_ciclo'] ?? 'Sin Ciclo';
         $cursoTutor = $perfil['nombre_curso'] ?? 'Sin Curso';
         $idCicloTutor = $perfil['id_ciclo'] ?? 0;
-        $_SESSION['id_ciclo'] = $idCicloTutor;
+        $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
 
-        // --- NUEVO: CAPTURA DE FILTROS PARA ALUMNOS ---
+        // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
         $busqueda = $_REQUEST['busqueda'] ?? '';
         $estadoFiltro = $_REQUEST['estado'] ?? '';
 
-        // --- GESTIÓN DE ALUMNOS (CON FILTROS) ---
         $alumnoModelo = new Alumnos();
-        // Pasamos las variables de filtro al método
         $ordenar = $_POST['ordenar'] ?? '';
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
         $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
-
-        // --- GESTIÓN DE ALUMNOS FIRMADOS (PARA TAB 3) ---
         $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
 
         // --- CARGA DE VISTA ---
+        // Ahora pasamos también $conveniosProceso a la vista
         require_once 'Vista/index_vista.php';
     }
     
@@ -241,6 +241,12 @@ public function marcarComoExportado() {
 
     echo json_encode($response);
     exit;
+}
+
+public function guardarNuevoConvenio() {
+    $convControlador = new Convenios_Controlador();
+    // Llamamos al método que creamos en el controlador de convenios
+    $convControlador->guardarNuevoConvenioPendiente();
 }
 
 }

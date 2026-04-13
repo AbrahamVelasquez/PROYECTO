@@ -10,26 +10,17 @@ if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
 // 2. SESIÓN ACTIVA
 else if (isset($_SESSION['usuario'])) {
 
-    // GUARDAR NUEVO CONVENIO (viene de Registro_Convenio.php)
-    if (isset($_POST['accion']) && $_POST['accion'] === 'guardarNuevoConvenio') {
-        require_once 'Controlador/Controlador_Convenios.php';
-        $ctrlConv = new Convenios_Controlador();
-        $ctrlConv->guardarNuevoConvenio();
-        exit();
-    }
-
     // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
         $nomControlador = "Tutores";
     } else if ($_SESSION['rol'] == 'admin') {
         $nomControlador = "Admin";
+    } else {
+        die("Error: Rol no reconocido.");
     }
 
-    // Si no viene acción, definimos una por defecto para que no explote
-    $accionDefault = "mostrarPanel";
-
-    // Capturamos la acción real (Prioridad a lo que venga por el formulario)
-    $accion = $_REQUEST['accion'] ?? $accionDefault;
+    // Capturamos la acción (por defecto mostrarPanel)
+    $accion = $_REQUEST['accion'] ?? "mostrarPanel";
 
     // Carga dinámica del controlador
     $rutaControlador = 'Controlador/Controlador_' . $nomControlador . ".php";
@@ -39,8 +30,9 @@ else if (isset($_SESSION['usuario'])) {
         $nombreClase = $nomControlador . "_Controlador";
         $controlador = new $nombreClase();
 
+        // Verificamos si la acción existe en el controlador (sea mostrarPanel o guardarNuevoConvenio)
         if (method_exists($controlador, $accion)) {
-            call_user_func(array($controlador, $accion));
+            $controlador->$accion(); // Ejecución más limpia
         } else {
             die("Error: La acción [{$accion}] no existe en el controlador [{$nombreClase}].");
         }
