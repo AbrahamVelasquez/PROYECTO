@@ -22,9 +22,9 @@
         </div>
 
         <button type="button" 
-                onclick="abrirModalExportar()" 
-                class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition-all shadow-md uppercase tracking-widest cursor-pointer">
-            GENERAR Y EXPORTAR EXCEL 📄
+                onclick="abrirModalExportarPF(document.getElementById('edit_id_asignacion')?.value)" 
+                class="bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
+            <span>📤</span> GENERAR Y EXPORTAR EXCEL
         </button>
     </div>
 </div>

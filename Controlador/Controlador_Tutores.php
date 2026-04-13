@@ -212,13 +212,14 @@ public function devolverAlumnoAEnvio() {
 }
 
 public function marcarComoExportado() {
-    if (ob_get_length()) ob_clean();
+    // Limpiamos cualquier salida previa para asegurar un JSON puro
+    if (ob_get_level()) ob_end_clean(); 
     header('Content-Type: application/json');
 
-    $id = $_POST['id_asignacion'] ?? 'NO_LLEGÓ_ID';
-    $response = ['success' => false, 'id_recibido' => $id];
+    $id = filter_input(INPUT_POST, 'id_asignacion', FILTER_VALIDATE_INT);
+    $response = ['success' => false];
 
-    if ($id !== 'NO_LLEGÓ_ID') {
+    if ($id) {
         try {
             require_once __DIR__ . '/../Modelo/Alumnos.php';
             $modelo = new Alumnos(); 
@@ -227,14 +228,15 @@ public function marcarComoExportado() {
             
             if ($resultado === true) {
                 $response['success'] = true;
-            } else if (is_array($resultado)) {
-                $response['error_sql'] = $resultado['error'];
             } else {
-                $response['error'] = "No se encontró la fila o el valor ya era 1";
+                // Si el modelo devuelve un array con error, lo capturamos
+                $response['error'] = is_array($resultado) ? $resultado['error'] : "No se encontró el registro o ya está exportado";
             }
         } catch (Exception $e) {
-            $response['error_excepcion'] = $e->getMessage();
+            $response['error'] = "Excepción: " . $e->getMessage();
         }
+    } else {
+        $response['error'] = "ID de asignación no válido o ausente";
     }
 
     echo json_encode($response);

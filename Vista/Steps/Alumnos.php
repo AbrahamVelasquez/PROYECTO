@@ -172,7 +172,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                     <?php if ($esCompletado): ?>
                         <input type="checkbox" 
                             <?= $estaFirmado ? 'checked disabled' : '' ?> 
-                            onclick="prepararFirma(<?= $al['id_asignacion'] ?>, <?= $estaEnviado ? 'true' : 'false' ?>, '<?= addslashes($al['nombre']) ?>', this)"
+                            onclick="prepararFirma(<?= $al['id_asignacion'] ?>, <?= $estaEnviado ?>, '<?= addslashes($al['nombre']) ?>', this)"
                             class="w-4 h-4 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500 <?= $estaFirmado ? 'opacity-50' : 'cursor-pointer' ?>">
                     <?php else: ?>
                         <span class="text-slate-500 inline-flex items-center justify-center cursor-help" data-tooltip="<?= $mensajeBloqueo ?>">
