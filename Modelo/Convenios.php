@@ -49,44 +49,52 @@ class Convenios {
         return $stmt->fetchColumn() > 0;
     }
 
-    /**
-     * NUEVA FUNCIÓN: Guarda en la tabla convenios_nuevos (pendientes)
-     * Incluye el id_ciclo capturado del formulario
-     */
-        // En Modelo/Convenios.php
-        public function guardarNuevoConvenioPendiente($datos) {
-            $query = "INSERT INTO convenios_nuevos 
-                        (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, 
-                        nombre_representante, dni_representante, cargo, id_ciclo)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public function guardarNuevoConvenioPendiente($datos) {
+        $query = "INSERT INTO convenios_nuevos 
+                    (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, 
+                    nombre_representante, dni_representante, cargo, id_ciclo)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     
-            $stmt = $this->conn->prepare($query);
-            return $stmt->execute([
-                $datos['nombre_empresa'],      // Coincide con columna nombre_empresa
-                $datos['cif'],                 // Coincide con columna cif
-                $datos['direccion'],           // Coincide con columna direccion
-                $datos['municipio'],           // Coincide con columna municipio
-                $datos['cp'],                  // Coincide con columna cp
-                $datos['pais'],                // Coincide con columna pais
-                $datos['telefono'],            // Coincide con columna telefono
-                $datos['fax'],                 // Coincide con columna fax
-                $datos['mail'],                // Coincide con columna mail (Viene de $datos['mail'])
-                $datos['nombre_representante'],// Coincide con columna nombre_representante
-                $datos['dni_representante'],   // Coincide con columna dni_representante
-                $datos['cargo'],               // Coincide con columna cargo
-                $datos['id_ciclo']             // Esta es la columna extra que añadimos a convenios_nuevos
-            ]);
-        }
+        $stmt = $this->conn->prepare($query);
+        return $stmt->execute([
+            $datos['nombre_empresa'],
+            $datos['cif'],
+            $datos['direccion'],
+            $datos['municipio'],
+            $datos['cp'],
+            $datos['pais'],
+            $datos['telefono'],
+            $datos['fax'],
+            $datos['mail'],
+            $datos['nombre_representante'],
+            $datos['dni_representante'],
+            $datos['cargo'],
+            $datos['id_ciclo']
+        ]);
+    }
 
     /**
-     * NUEVA FUNCIÓN: Obtiene los convenios en proceso para un ciclo específico
-     * Se usa para rellenar la tabla naranja/ámbar de la vista
+     * Obtiene solo los convenios nuevos que NO han sido aprobados aún.
+     * Al usar el LEFT JOIN, si no hay registro en convenios_aprobados, ca.id_convenio_nuevo será NULL.
      */
-    public function obtenerConveniosEnProceso($id_ciclo) {
-        $query = "SELECT * FROM convenios_nuevos WHERE id_ciclo = ?";
-        $stmt = $this->conn->prepare($query);
+    public function listarPendientesDeAprobacion($id_ciclo) {
+        $sql = "SELECT cn.* FROM convenios_nuevos cn
+                LEFT JOIN convenios_aprobados ca ON cn.id_convenio_nuevo = ca.id_convenio_nuevo
+                WHERE cn.id_ciclo = ? AND ca.id_convenio_nuevo IS NULL";
+                
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute([$id_ciclo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Inserta un registro en la tabla de aprobados para que el convenio 
+     * deje de listarse como "pendiente".
+     */
+    public function registrarAprobacion($id_convenio_nuevo) {
+        $sql = "INSERT INTO convenios_aprobados (id_convenio_nuevo) VALUES (?)";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([$id_convenio_nuevo]);
     }
 }
 ?>

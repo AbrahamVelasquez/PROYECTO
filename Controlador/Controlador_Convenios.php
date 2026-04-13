@@ -15,11 +15,11 @@ class Convenios_Controlador {
         }
         
         $id_tutor_actual = $_SESSION['id_tutor']; 
-        $id_ciclo_actual = $_SESSION['id_ciclo'] ?? null; // Obtenemos el ciclo de la sesión
+        $id_ciclo_actual = $_SESSION['id_ciclo'] ?? null; 
         
         $resultadosBusqueda = [];
 
-        // Lógica para AÑADIR A FAVORITOS (Convenios oficiales)
+        // Lógica para AÑADIR A FAVORITOS
         if (isset($_POST['btnFavorito'])) {
             $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
             header("Location: index.php?tab=1&busqueda=" . urlencode($_GET['busqueda'] ?? ''));
@@ -45,28 +45,23 @@ class Convenios_Controlador {
             $resultadosBusqueda = $this->convenio->buscar($_GET['busqueda']);
         }
 
-        // OBTENER FAVORITOS (MIS CONVENIOS)
+        // OBTENER FAVORITOS
         $misFavoritos = $this->convenio->obtenerFavoritos($id_tutor_actual) ?: [];
 
-        // NUEVO: OBTENER CONVENIOS EN PROCESO (TABLA NARANJA)
-        // Solo para el ciclo del tutor actual
+        // OBTENER CONVENIOS EN PROCESO (Filtrados por los que NO están aprobados)
         $conveniosProceso = [];
         if ($id_ciclo_actual) {
-            $conveniosProceso = $this->convenio->obtenerConveniosEnProceso($id_ciclo_actual);
+            $conveniosProceso = $this->convenio->listarPendientesDeAprobacion($id_ciclo_actual);
         }
 
         return [
             'busqueda' => $resultadosBusqueda, 
             'favoritos' => $misFavoritos,
-            'proceso'   => $conveniosProceso // Se pasa a la vista
+            'proceso'   => $conveniosProceso 
         ];
     }
 
-    /**
-     * Procesa el formulario de Registro_Convenio.php
-     */
     public function guardarNuevoConvenioPendiente() {
-        // Mapeo de datos asegurando mayúsculas y limpieza
         $datos = [
             'nombre_empresa'      => strtoupper(trim($_POST['nombre_empresa'])),
             'cif'                 => strtoupper(trim($_POST['cif'])),
@@ -76,14 +71,13 @@ class Convenios_Controlador {
             'pais'                => strtoupper(trim($_POST['pais'])),
             'telefono'            => trim($_POST['telefono']),
             'fax'                 => trim($_POST['fax']),
-            'mail'                => trim($_POST['email']),             // Del input 'email'
-            'nombre_representante'=> strtoupper(trim($_POST['nombre_rep_legal'])), // Del input 'nombre_rep_legal'
-            'dni_representante'   => strtoupper(trim($_POST['dni_rep_legal'])),    // Del input 'dni_rep_legal'
-            'cargo'               => strtoupper(trim($_POST['cargo_rep_legal'])),  // Del input 'cargo_rep_legal'
+            'mail'                => trim($_POST['email']),
+            'nombre_representante'=> strtoupper(trim($_POST['nombre_rep_legal'])),
+            'dni_representante'   => strtoupper(trim($_POST['dni_rep_legal'])),
+            'cargo'               => strtoupper(trim($_POST['cargo_rep_legal'])),
             'id_ciclo'            => $_POST['id_ciclo']
         ];
 
-        // Guardamos en la tabla convenios_nuevos
         $exito = $this->convenio->guardarNuevoConvenioPendiente($datos);
 
         if ($exito) {
@@ -92,8 +86,23 @@ class Convenios_Controlador {
             $_SESSION['error_convenio'] = "Hubo un error al registrar la solicitud.";
         }
 
-        // Redirigir siempre a la pestaña de convenios (tab 1)
         header('Location: index.php?tab=1');
         exit();
     }
+
+    public function aprobarNuevo() {
+        if (isset($_POST['id_convenio_nuevo'])) {
+            $id = $_POST['id_convenio_nuevo'];
+            $exito = $this->convenio->registrarAprobacion($id);
+            
+            if ($exito) {
+                $_SESSION['mensaje_exito'] = "Convenio marcado como aprobado.";
+            } else {
+                $_SESSION['error_convenio'] = "No se pudo procesar la aprobación.";
+            }
+        }
+        header("Location: index.php?tab=1");
+        exit();
+    }
 }
+?>

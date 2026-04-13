@@ -134,11 +134,14 @@
                                 </span>
                             </td>
                             <td class="px-6 py-5 text-center">
-                                <button onclick="aprobarConvenio(this, '<?= addslashes($convP['nombre_empresa']) ?>')"
-                                        class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
-                                    <span class="text-[10px] font-black uppercase">Aprobar</span>
-                                    <span class="text-xs">✓</span>
-                                </button>
+                                <form action="index.php" method="POST">
+                                    <input type="hidden" name="accion" value="aprobarNuevo">
+                                    <input type="hidden" name="id_convenio_nuevo" value="<?= $convP['id_convenio_nuevo'] ?>">
+                                    <button type="submit" class="group flex items-center gap-2 mx-auto bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-4 py-2 rounded-lg transition-all border border-emerald-100 cursor-pointer">
+                                        <span class="text-[10px] font-black uppercase">Aprobar</span>
+                                        <span class="text-xs">✓</span>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>

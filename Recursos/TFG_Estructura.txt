@@ -31,7 +31,8 @@ TFG/ (Raíz)
 │   │   ├── Header_Alumnos.php
 │   │   ├── Header.php
 │   │   ├── Modales_Alumnos.php
-│   │   ├── Modales_Feedback.php
+│   │   ├── Modales_Convenios.php
+│   │   ├── Modales_PF.php
 │   │   ├── PF_Edicion.php
 │   │   └── PF_Tabla.php
 │   ├── 📁 Steps/ ───────────── [Vistas de Proceso]

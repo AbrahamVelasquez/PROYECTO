@@ -5,17 +5,9 @@ require_once 'Modelo/Alumnos.php';
 
 class Tutores_Controlador {
 
-    public function mostrarPanel() {
+public function mostrarPanel() {
         // --- PESTAÑA ACTIVA ---
         $pestanaActiva = $_GET['tab'] ?? 1;
-
-        // --- GESTIÓN DE CONVENIOS ---
-        $convControlador = new Convenios_Controlador();
-        $data = $convControlador->gestionar();
-        
-        $convenios = $data['busqueda'];
-        $misConvenios = $data['favoritos'];
-        $conveniosProceso = $data['proceso']; // <--- NUEVO: Capturamos los pendientes de aprobación
 
         // --- GESTIÓN DE PERFIL DEL TUTOR ---
         $tutorModelo = new Tutores();
@@ -29,6 +21,17 @@ class Tutores_Controlador {
         $idCicloTutor = $perfil['id_ciclo'] ?? 0;
         $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
 
+        // --- GESTIÓN DE CONVENIOS ---
+        $convControlador = new Convenios_Controlador();
+        $data = $convControlador->gestionar();
+        
+        $convenios = $data['busqueda'];
+        $misConvenios = $data['favoritos'];
+        
+        // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
+        $convModelo = new Convenios();
+        $conveniosProceso = $convModelo->listarPendientesDeAprobacion($idCicloTutor);
+
         // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
         $busqueda = $_REQUEST['busqueda'] ?? '';
         $estadoFiltro = $_REQUEST['estado'] ?? '';
@@ -40,7 +43,6 @@ class Tutores_Controlador {
         $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
 
         // --- CARGA DE VISTA ---
-        // Ahora pasamos también $conveniosProceso a la vista
         require_once 'Vista/index_vista.php';
     }
     
@@ -247,6 +249,11 @@ public function guardarNuevoConvenio() {
     $convControlador = new Convenios_Controlador();
     // Llamamos al método que creamos en el controlador de convenios
     $convControlador->guardarNuevoConvenioPendiente();
+}
+
+public function aprobarNuevo() {
+    $convControlador = new Convenios_Controlador();
+    $convControlador->aprobarNuevo();
 }
 
 }
