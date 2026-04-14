@@ -107,5 +107,43 @@ class Convenios_Controlador {
         header("Location: index.php?tab=1");
         exit();
     }
+
+    public function editarConvenioNuevo() {
+    // Verificamos que venga el ID, si no, no podemos editar
+    if (!isset($_POST['id_convenio_nuevo'])) {
+        header('Location: index.php?tab=1');
+        exit();
+    }
+
+    $id = $_POST['id_convenio_nuevo'];
+
+    $datos = [
+        'nombre_empresa'    => strtoupper(trim($_POST['nombre_empresa'])),
+        'cif'               => strtoupper(trim($_POST['cif'])),
+        'direccion'         => strtoupper(trim($_POST['direccion'])),
+        'municipio'         => strtoupper(trim($_POST['municipio'])),
+        'cp'                => trim($_POST['cp']),
+        'pais'              => strtoupper(trim($_POST['pais'])),
+        'telefono'          => trim($_POST['telefono']),
+        'fax'               => trim($_POST['fax']),
+        'mail'             => trim($_POST['email']), // Ojo: en tu otra función pusiste 'mail', asegúrate que en el Modelo coincida
+        'nombre_representante'  => strtoupper(trim($_POST['nombre_rep_legal'])),
+        'dni_representante'     => strtoupper(trim($_POST['dni_rep_legal'])),
+        'cargo'   => strtoupper(trim($_POST['cargo_rep_legal']))
+    ];
+
+    // Llamamos a la función de actualizar del modelo que creamos antes
+    $exito = $this->convenio->actualizarConvenioNuevo($id, $datos);
+
+    if ($exito) {
+        $_SESSION['mensaje_exito'] = "Convenio actualizado correctamente.";
+    } else {
+        $_SESSION['error_convenio'] = "Error al actualizar los datos del convenio.";
+    }
+
+    header('Location: index.php?tab=1');
+    exit();
+}
+
 }
 ?>

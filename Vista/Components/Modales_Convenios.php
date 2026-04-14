@@ -60,7 +60,116 @@
     </div>
 </div>
 
+<div id="modalEditarConvenioNuevo" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 border border-amber-100 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-white text-xs">✏️</span>
+                EDITAR CONVENIO EN PROCESO
+            </h3>
+            <button onclick="document.getElementById('modalEditarConvenioNuevo').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <form method="POST" action="index.php" id="formEditarConvenioNuevo">
+            <input type="hidden" name="accion" value="editarConvenioNuevo">
+            <input type="hidden" name="id_convenio_nuevo" id="edit_conv_id">
+
+            <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-4 border-b border-amber-50 pb-2">Información de la Empresa</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre Empresa <span class="text-red-500">*</span></label>
+                    <input type="text" name="nombre_empresa" id="edit_conv_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CIF <span class="text-red-500">*</span></label>
+                    <input type="text" name="cif" id="edit_conv_cif" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-4">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Dirección <span class="text-red-500">*</span></label>
+                    <input type="text" name="direccion" id="edit_conv_direccion" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Municipio <span class="text-red-500">*</span></label>
+                    <input type="text" name="municipio" id="edit_conv_municipio" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CP <span class="text-red-500">*</span></label>
+                    <input type="text" name="cp" id="edit_conv_cp" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">País</label>
+                    <input type="text" name="pais" id="edit_conv_pais" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tfno</label>
+                    <input type="text" name="telefono" id="edit_conv_telefono" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">FAX</label>
+                    <input type="text" name="fax" id="edit_conv_fax" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Email</label>
+                    <input type="email" name="email" id="edit_conv_email" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+            </div>
+
+            <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-4 border-b border-amber-50 pb-2">Representante Legal</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre y Apellidos</label>
+                    <input type="text" name="nombre_rep_legal" id="edit_conv_rep_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI</label>
+                    <input type="text" name="dni_rep_legal" id="edit_conv_rep_dni" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cargo</label>
+                    <input type="text" name="cargo_rep_legal" id="edit_conv_rep_cargo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="document.getElementById('modalEditarConvenioNuevo').style.display='none'" 
+                        class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-all shadow-md cursor-pointer">
+                    Actualizar Datos
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+
+    function abrirEditarConvenioNuevo(datos) {
+        // ID
+        document.getElementById('edit_conv_id').value = datos.id_convenio_nuevo;
+        
+        // Empresa
+        document.getElementById('edit_conv_nombre').value = datos.nombre_empresa;
+        document.getElementById('edit_conv_cif').value = datos.cif;
+        document.getElementById('edit_conv_direccion').value = datos.direccion;
+        document.getElementById('edit_conv_municipio').value = datos.municipio;
+        document.getElementById('edit_conv_cp').value = datos.cp;
+        document.getElementById('edit_conv_pais').value = datos.pais || 'ESPAÑA';
+        document.getElementById('edit_conv_telefono').value = datos.telefono || '';
+        document.getElementById('edit_conv_fax').value = datos.fax || '';
+        document.getElementById('edit_conv_email').value = datos.mail;
+        
+        // Representante
+        document.getElementById('edit_conv_rep_nombre').value = datos.nombre_representante || '';
+        document.getElementById('edit_conv_rep_dni').value = datos.dni_representante || '';
+        document.getElementById('edit_conv_rep_cargo').value = datos.cargo || '';
+
+        document.getElementById('modalEditarConvenioNuevo').style.display = 'flex';
+    }
 
     function abrirConfirmarEliminar(idConvenio, nombre) {
         document.getElementById('modalConfirmarNombre').textContent = nombre;

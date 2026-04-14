@@ -256,4 +256,10 @@ public function aprobarNuevo() {
     $convControlador->aprobarNuevo();
 }
 
+public function editarConvenioNuevo() {
+    $convControlador = new Convenios_Controlador();
+    // Llamamos al método que procesa la edición en el controlador de convenios
+    $convControlador->editarConvenioNuevo();
+}
+
 }

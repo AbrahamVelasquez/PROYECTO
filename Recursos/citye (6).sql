@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 14-04-2026 a las 01:21:30
+-- Tiempo de generación: 14-04-2026 a las 02:04:55
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -59,7 +59,8 @@ INSERT INTO `alumnos` (`id_alumno`, `nombre`, `apellido1`, `apellido2`, `dni`, `
 (14, 'David', 'Jiménez', 'Méndez', '78901234G', 'H', 'david.jimenez@correo.es', '611444555'),
 (57, 'MARCOS Fabian', 'García', 'Gonzalez', '36719012E', 'H', 'marcosf@gmail.com', '671478574'),
 (58, 'JOSUE', 'García', 'Sánchez', '2345678WD', 'H', 'josue@gmail.com', '685412154'),
-(59, 'Abraham', 'Velasquez', 'Granados', '21565678A', 'H', 'abraham@gmail.com', '658873964');
+(59, 'Abraham', 'Velasquez', 'Granados', '21565678A', 'H', 'abraham@gmail.com', '658873964'),
+(60, 'Mariana', 'Gonzalez', 'Díaz', '76545678A', 'M', 'mariana@gmail.com', '611002001');
 
 -- --------------------------------------------------------
 
@@ -95,9 +96,10 @@ INSERT INTO `asignaciones` (`id_asignacion`, `id_alumno`, `id_convenio`, `fecha_
 (13, 8, 2, '2026-03-01', '2026-06-15', '08:00-15:00', 370, 'L-V', 7.00, 1),
 (14, 9, 2, '2026-03-01', '2026-06-15', '', 0, 'L-V', 0.00, 0),
 (15, 10, 4, '0000-00-00', '0000-00-00', '', 370, 'L-V', 6.00, 0),
-(17, 12, 1, '2026-03-01', '2026-06-15', '09:00-17:00', 400, 'L-J', 8.00, 1),
+(17, 12, 1, '2026-03-01', '2026-06-15', '09:00-17:00', 400, 'L-J', 8.00, 0),
 (25, 57, 1, NULL, NULL, '', NULL, NULL, NULL, 0),
-(27, 59, 2, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+(27, 59, 2, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(28, 13, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -116,7 +118,7 @@ CREATE TABLE `asignaciones_firmadas` (
 --
 
 INSERT INTO `asignaciones_firmadas` (`id_firmada`, `id_asignacion`, `exportado`) VALUES
-(15, 17, 1);
+(16, 13, 1);
 
 -- --------------------------------------------------------
 
@@ -199,7 +201,7 @@ INSERT INTO `convenios_aprobados` (`id_convenio_aprobado`, `id_convenio_nuevo`, 
 (1, 2, '2026-04-13 22:15:09', 0),
 (2, 3, '2026-04-13 22:33:18', 0),
 (3, 4, '2026-04-13 22:36:09', 0),
-(4, 5, '2026-04-13 23:21:01', 0);
+(5, 5, '2026-04-13 23:59:26', 0);
 
 -- --------------------------------------------------------
 
@@ -288,7 +290,8 @@ INSERT INTO `curso_academico` (`id_curso_academico`, `id_alumno`, `id_ciclo`, `a
 (14, 5, 5, 2025, 2026),
 (15, 6, 6, 2025, 2026),
 (16, 7, 7, 2025, 2026),
-(32, 59, 1, 2025, 2026);
+(32, 59, 1, 2025, 2026),
+(33, 60, 1, 2026, 2027);
 
 -- --------------------------------------------------------
 
@@ -471,19 +474,19 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `alumnos`
 --
 ALTER TABLE `alumnos`
-  MODIFY `id_alumno` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id_alumno` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT de la tabla `asignaciones`
 --
 ALTER TABLE `asignaciones`
-  MODIFY `id_asignacion` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id_asignacion` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `asignaciones_firmadas`
 --
 ALTER TABLE `asignaciones_firmadas`
-  MODIFY `id_firmada` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_firmada` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `ciclos`
@@ -501,13 +504,13 @@ ALTER TABLE `convenios`
 -- AUTO_INCREMENT de la tabla `convenios_aprobados`
 --
 ALTER TABLE `convenios_aprobados`
-  MODIFY `id_convenio_aprobado` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_convenio_aprobado` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `convenios_nuevos`
 --
 ALTER TABLE `convenios_nuevos`
-  MODIFY `id_convenio_nuevo` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_convenio_nuevo` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos`
@@ -519,7 +522,7 @@ ALTER TABLE `cursos`
 -- AUTO_INCREMENT de la tabla `curso_academico`
 --
 ALTER TABLE `curso_academico`
-  MODIFY `id_curso_academico` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id_curso_academico` int(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT de la tabla `tutores`
