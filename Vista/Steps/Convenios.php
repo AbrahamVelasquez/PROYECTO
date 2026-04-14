@@ -89,7 +89,9 @@
                         </td>
                     </tr>
                 <?php endforeach; else: ?>
-                    <tr><td colspan="2" class="px-6 py-12 text-center text-slate-300 text-xs font-black uppercase italic">Tu listado está vacío</td></tr>
+                    <tr>
+                        <td colspan="2" class="px-6 py-16 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Tu listado está vacío</td>
+                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
