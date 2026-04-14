@@ -205,6 +205,81 @@ class Admin {
     }
 }
 
+    public function obtenerConvenios($busqueda = '', $ordenar = 'nombre_empresa') {
+        try {
+            // Validamos que la columna de ordenación exista para evitar errores de SQL
+            $columnasPermitidas = ['nombre_empresa', 'cif', 'municipio', 'mail'];
+            if (!in_array($ordenar, $columnasPermitidas)) {
+                $ordenar = 'nombre_empresa';
+            }
+
+            $sql = "SELECT * FROM convenios 
+                    WHERE nombre_empresa LIKE :busqueda 
+                    OR cif LIKE :busqueda 
+                    OR municipio LIKE :busqueda
+                    ORDER BY $ordenar ASC";
+                    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':busqueda' => "%$busqueda%"]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en obtenerConvenios: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerConveniosPendientes() {
+        // Seleccionamos los datos de la empresa de convenios_nuevos
+        // Uniendo con convenios_aprobados donde agregado = 0
+        $sql = "SELECT cn.*, ca.id_convenio_aprobado, ca.fecha_aprobacion 
+                FROM convenios_nuevos cn
+                INNER JOIN convenios_aprobados ca ON cn.id_convenio_nuevo = ca.id_convenio_nuevo
+                WHERE ca.agregado = 0
+                ORDER BY ca.fecha_aprobacion DESC";
+                
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function procesarValidacionManual($d) {
+        try {
+            $this->conn->beginTransaction();
+
+            // 1. Insertamos en la tabla oficial 'convenios' con los datos revisados
+            $sql = "INSERT INTO convenios (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, nombre_representante, dni_representante, cargo) 
+                    VALUES (:nom, :cif, :dir, :mun, :cp, :pais, :tel, :fax, :mail, :nom_rep, :dni_rep, :cargo)";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                ':nom'     => $d['nombre_empresa'],
+                ':cif'     => $d['cif'],
+                ':dir'     => $d['direccion'],
+                ':mun'     => $d['municipio'],
+                ':cp'      => $d['cp'],
+                ':pais'    => $d['pais'],
+                ':tel'     => $d['telefono'],
+                ':fax'     => $d['fax'],
+                ':mail'    => $d['mail'],
+                ':nom_rep' => $d['nombre_representante'],
+                ':dni_rep' => $d['dni_representante'],
+                ':cargo'   => $d['cargo']
+            ]);
+
+            // 2. Marcamos como agregado en convenios_aprobados para que desaparezca de pendientes
+            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            $stmtUpd = $this->conn->prepare($sqlUpd);
+            $stmtUpd->execute([':id' => $d['id_convenio_nuevo']]);
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            error_log("Error en procesarValidacionManual: " . $e->getMessage());
+            return false;
+        }
+    }
+
 } // admin
 
 ?>
