@@ -96,39 +96,51 @@ class Admin_Controlador {
         require 'Vista/Vista_Admin.php';
     }
 
-    // Busca en tu Controlador_Admin.php y REEMPLAZA las funciones repetidas por esta:
-public function validarConvenio() {
-    // 1. Caso: Viene del MODAL (Edición manual)
-    // Detectamos esto porque el modal envía el campo 'nombre_empresa'
-    if (isset($_POST['nombre_empresa'])) {
-        $datos = [
-            'id_convenio_nuevo'    => $_POST['id_convenio_nuevo'],
-            'nombre_empresa'       => $_POST['nombre_empresa'],
-            'cif'                  => $_POST['cif'],
-            'direccion'            => $_POST['direccion'],
-            'municipio'            => $_POST['municipio'],
-            'cp'                   => $_POST['cp'],
-            'pais'                 => $_POST['pais'],
-            'telefono'             => $_POST['telefono'],
-            'fax'                  => $_POST['fax'],
-            'mail'                 => $_POST['mail'],
-            'nombre_representante' => $_POST['nombre_representante'],
-            'dni_representante'    => $_POST['dni_representante'],
-            'cargo'                => $_POST['cargo']
-        ];
-        
-        // Llamamos a la función del modelo que procesa el array de datos
-        $this->admin->procesarValidacionManual($datos);
-    } 
-    // 2. Caso: Viene del BOTÓN RÁPIDO de la tabla
-    // Solo recibimos el ID, así que usamos los datos que ya están en la BD
-    else if (isset($_POST['id_convenio_nuevo'])) {
-        $id = $_POST['id_convenio_nuevo'];
-        $this->admin->validarConvenio($id);
+    public function validarConvenio() {
+        if (isset($_POST['nombre_empresa'])) {
+            $datos = [
+                'id_convenio_nuevo'    => $_POST['id_convenio_nuevo'],
+                'nombre_empresa'       => $_POST['nombre_empresa'],
+                'cif'                  => $_POST['cif'],
+                'direccion'            => $_POST['direccion'],
+                'municipio'            => $_POST['municipio'],
+                'cp'                   => $_POST['cp'],
+                'pais'                 => $_POST['pais'],
+                'telefono'             => $_POST['telefono'],
+                'fax'                  => $_POST['fax'],
+                'mail'                 => $_POST['mail'],
+                'nombre_representante' => $_POST['nombre_representante'],
+                'dni_representante'    => $_POST['dni_representante'],
+                'cargo'                => $_POST['cargo']
+            ];
+
+            // --- EL CAMBIO ESTÁ AQUÍ ---
+            if (isset($_POST['solo_guardar'])) {
+                // Solo actualizamos el borrador en la tabla de pendientes
+                $this->admin->actualizarConvenioPendiente($datos);
+            } else {
+                // Si no hay 'solo_guardar', entonces validamos y movemos a la tabla definitiva
+                $this->admin->procesarValidacionManual($datos);
+            }
+            // ---------------------------
+        } 
+        else if (isset($_POST['id_convenio_nuevo'])) {
+            $id = $_POST['id_convenio_nuevo'];
+            $this->admin->validarConvenio($id);
+        }
+
+        $this->mostrarConveniosPendientes();
     }
 
-    // Al terminar cualquiera de los dos procesos, refrescamos la vista
-    $this->mostrarConveniosPendientes();
+    public function eliminarConvenio() {
+    // 1. Ejecutamos el borrado si llega el ID
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id_convenio_borrar'])) {
+        $id = $_POST['id_convenio_borrar'];
+        $this->admin->eliminarConvenio($id);
+    }
+
+    // 2. Después de borrar, redirigimos a la tabla para que se vea el cambio
+    $this->mostrarConvenios(); 
 }
 
 } // Admin_Controlador

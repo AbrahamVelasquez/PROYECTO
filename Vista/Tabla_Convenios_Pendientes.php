@@ -82,6 +82,7 @@
 
         <form action="index.php" method="POST" class="overflow-y-auto p-8 bg-slate-50/30">
             <input type="hidden" name="accion" value="validarConvenio">
+            <input type="hidden" name="solo_guardar" value="1">
             <input type="hidden" name="id_convenio_nuevo" id="rev_id">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -142,8 +143,15 @@
             </div>
 
             <div class="flex gap-4 mt-10">
-                <button type="button" onclick="cerrarModalRevision()" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Cerrar</button>
-                <button type="submit" class="flex-1 py-3 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all">Guardar y Validar Ahora</button>
+                <button type="button" onclick="cerrarModalRevision()" 
+                        class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                    Cancelar
+                </button>
+                
+                <button type="submit" 
+                        class="flex-1 py-3 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg hover:bg-slate-900 transition-all">
+                    Solo Guardar Cambios
+                </button>
             </div>
         </form>
     </div>

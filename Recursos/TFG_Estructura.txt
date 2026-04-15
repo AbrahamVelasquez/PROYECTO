@@ -40,10 +40,12 @@ TFG/ (Raíz)
 │   │   ├── Convenios.php
 │   │   ├── Plan_Formativo.php
 │   │   └── Seguimiento.php
-│   ├── Formulario_Tutores.php
+│   ├── Dashboard_Home.php
 │   ├── index_vista.php
 │   ├── Login.php
 │   ├── Registro_Convenio.php
+│   ├── Tabla_Convenios_Pendientes.php
+│   ├── Tabla_Convenios.php
 │   ├── Tabla_Tutores.php
 │   └── Vista_Admin.php
 │

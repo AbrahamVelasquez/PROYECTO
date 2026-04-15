@@ -31,9 +31,10 @@
     <table class="w-full border-collapse">
         <thead>
             <tr class="bg-slate-50/50 border-b border-slate-100">
-                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">CIF</th>
-                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Razón Social</th>
-                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Dirección</th>
+                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresa / CIF</th>
+                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Ubicación</th>
+                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto</th>
+                <th class="py-5 px-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Representante</th>
                 <th class="py-5 px-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
             </tr>
         </thead>
@@ -56,7 +57,8 @@
                         <div class="text-[10px] text-slate-400"><?= htmlspecialchars($fila['direccion']) ?></div>
                     </td>
                     <td class="py-5 px-6 text-xs text-slate-500">
-                        <?= htmlspecialchars($fila['mail']) ?>
+                        <div class="font-bold"><?= htmlspecialchars($fila['mail']) ?></div>
+                        <div class="text-[9px] text-slate-400"><?= htmlspecialchars($fila['telefono'] ?? '') ?></div>
                     </td>
                     <td class="py-5 px-6">
                         <div class="text-[11px] font-bold text-slate-700 uppercase"><?= htmlspecialchars($fila['nombre_representante']) ?></div>
@@ -78,3 +80,41 @@
         </tbody>
     </table>
 </div>
+
+<div id="modalEliminarConvenio" style="display:none" class="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+        <div class="p-8 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter mb-2">¿Eliminar Convenio?</h3>
+            <p class="text-slate-500 text-sm mb-6">Esta acción no se puede deshacer. Se eliminará a <span id="nombreEmpresaEliminar" class="font-bold text-slate-700"></span> del sistema permanentemente.</p>
+            
+            <form action="index.php" method="POST" class="flex gap-3">
+                <input type="hidden" name="accion" value="eliminarConvenio">    
+                <input type="hidden" name="id_convenio_borrar" id="idConvenioEliminar">
+                
+                <button type="button" onclick="cerrarModalEliminar()" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 py-3 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
+                    Eliminar Ahora
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalEliminarConvenio(datos) {
+    document.getElementById('idConvenioEliminar').value = datos.id_convenio;
+    document.getElementById('nombreEmpresaEliminar').innerText = datos.nombre_empresa;
+    document.getElementById('modalEliminarConvenio').style.display = 'flex';
+}
+
+function cerrarModalEliminar() {
+    document.getElementById('modalEliminarConvenio').style.display = 'none';
+}
+</script>

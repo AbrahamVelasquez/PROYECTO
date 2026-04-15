@@ -278,7 +278,109 @@ class Admin {
             error_log("Error en procesarValidacionManual: " . $e->getMessage());
             return false;
         }
+    } 
+
+    public function validarConvenio($id) {
+        try {
+            $this->conn->beginTransaction();
+
+            // 1. PRIMERO BUSCAMOS LOS DATOS porque el botón de la tabla no los envía, solo envía el ID
+            $sqlSel = "SELECT * FROM convenios_nuevos WHERE id_convenio_nuevo = :id";
+            $stmtSel = $this->conn->prepare($sqlSel);
+            $stmtSel->execute([':id' => $id]);
+            $datos = $stmtSel->fetch(PDO::FETCH_ASSOC);
+
+            if (!$datos) {
+                throw new Exception("No se encontraron datos para el convenio ID: $id");
+            }
+
+            // 2. AHORA SÍ, usamos 'datos' que acabamos de traer de la BD
+            $sqlIns = "INSERT INTO convenios (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, nombre_representante, dni_representante, cargo) 
+                    VALUES (:nom, :cif, :dir, :mun, :cp, :pais, :tel, :fax, :mail, :nom_rep, :dni_rep, :cargo)";
+            
+            $stmtIns = $this->conn->prepare($sqlIns);
+            $stmtIns->execute([
+                ':nom'     => $datos['nombre_empresa'],
+                ':cif'     => $datos['cif'],
+                ':dir'     => $datos['direccion'],
+                ':mun'     => $datos['municipio'],
+                ':cp'      => $datos['cp'],
+                ':pais'    => $datos['pais'],
+                ':tel'     => $datos['telefono'],
+                ':fax'     => $datos['fax'],
+                ':mail'    => $datos['mail'],
+                ':nom_rep' => $datos['nombre_representante'],
+                ':dni_rep' => $datos['dni_representante'],
+                ':cargo'   => $datos['cargo']
+            ]);
+
+            // 3. Marcamos como agregado
+            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            $stmtUpd = $this->conn->prepare($sqlUpd);
+            $stmtUpd->execute([':id' => $id]);
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            error_log("Error en validarConvenio: " . $e->getMessage());
+            return false;
+        }
     }
+
+    public function actualizarConvenioPendiente($datos) {
+        try {
+            $sql = "UPDATE convenios_nuevos SET 
+                    nombre_empresa = :nombre_empresa,
+                    cif = :cif,
+                    direccion = :direccion,
+                    municipio = :municipio,
+                    cp = :cp,
+                    pais = :pais,
+                    telefono = :telefono,
+                    fax = :fax,
+                    mail = :mail,
+                    nombre_representante = :nombre_representante,
+                    dni_representante = :dni_representante,
+                    cargo = :cargo
+                    WHERE id_convenio_nuevo = :id_convenio_nuevo";
+            
+            $stmt = $this->conn->prepare($sql);
+            
+            // Ejecutamos pasando el array de datos que viene del controlador
+            return $stmt->execute([
+                ':id_convenio_nuevo'    => $datos['id_convenio_nuevo'],
+                ':nombre_empresa'       => $datos['nombre_empresa'],
+                ':cif'                  => $datos['cif'],
+                ':direccion'            => $datos['direccion'],
+                ':municipio'            => $datos['municipio'],
+                ':cp'                   => $datos['cp'],
+                ':pais'                 => $datos['pais'],
+                ':telefono'             => $datos['telefono'],
+                ':fax'                  => $datos['fax'],
+                ':mail'                 => $datos['mail'],
+                ':nombre_representante' => $datos['nombre_representante'],
+                ':dni_representante'    => $datos['dni_representante'],
+                ':cargo'                => $datos['cargo']
+            ]);
+
+        } catch (PDOException $e) {
+            // Opcional: registrar el error para depuración
+            error_log("Error en actualizarConvenioPendiente: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function eliminarConvenio($id) {
+    try {
+        $sql = "DELETE FROM convenios WHERE id_convenio = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    } catch (PDOException $e) {
+        error_log("Error en el Modelo: " . $e->getMessage());
+        return false;
+    }
+}
 
 } // admin
 
