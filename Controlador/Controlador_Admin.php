@@ -12,7 +12,7 @@ class Admin_Controlador {
     // Acción por defecto: muestra el "Home" del admin
     public function mostrarPanel() {
         $subVista = 'Dashboard_Home.php'; // Una pequeña vista con los botones
-        require 'Vista/Vista_Admin.php';
+        require 'Vista/Admin/Vista_Admin.php';
     }
 
     // Acción para ver la tabla de tutores
@@ -27,7 +27,7 @@ class Admin_Controlador {
         $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
 
         $subVista = 'Tabla_Tutores.php';
-        require 'Vista/Vista_Admin.php';
+        require 'Vista/Admin/Vista_Admin.php';
     }
 
     public function guardarTutor() {
@@ -84,7 +84,7 @@ class Admin_Controlador {
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         
         $subVista = 'Tabla_Convenios.php';
-        require 'Vista/Vista_Admin.php';
+        require 'Vista/Admin/Vista_Admin.php';
     }
 
     public function mostrarConveniosPendientes() {
@@ -93,7 +93,7 @@ class Admin_Controlador {
         
         // Definimos la nueva vista
         $subVista = 'Tabla_Convenios_Pendientes.php';
-        require 'Vista/Vista_Admin.php';
+        require 'Vista/Admin/Vista_Admin.php';
     }
 
     public function validarConvenio() {
