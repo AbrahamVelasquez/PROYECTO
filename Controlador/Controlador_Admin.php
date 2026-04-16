@@ -184,4 +184,20 @@ class Admin_Controlador {
         }
     }
 
+    public function eliminarConvenioCompleto() {
+    if (isset($_GET['id'])) {
+        $id = $_GET['id'];
+        
+        // Ejecutamos la eliminación en cadena
+        $exito = $this->admin->borrarRegistroPendienteYOficial($id);
+        
+        if ($exito) {
+            header("Location: index.php?accion=mostrarConveniosPendientes&msg=eliminado");
+        } else {
+            echo "Error al intentar eliminar el registro.";
+        }
+        exit();
+    }
+}
+
 } // Admin_Controlador

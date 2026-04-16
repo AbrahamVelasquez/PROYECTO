@@ -431,6 +431,29 @@ class Admin {
         ]);
     }
 
+    public function borrarRegistroPendienteYOficial($id) {
+        try {
+            $this->conn->beginTransaction();
+
+            // 1. Borrar de convenios_nuevos
+            $sql1 = "DELETE FROM convenios_nuevos WHERE id_convenio_nuevo = ?";
+            $stmt1 = $this->conn->prepare($sql1);
+            $stmt1->execute([$id]);
+
+            // 2. Borrar de convenios_aprobados (usando el mismo ID si es relacional)
+            // Nota: Si usas otro campo para enlazar, búscalo antes de borrar
+            $sql2 = "DELETE FROM convenios_aprobados WHERE id_convenio_nuevo = ?";
+            $stmt2 = $this->conn->prepare($sql2);
+            $stmt2->execute([$id]);
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
 } // admin
 
 ?>

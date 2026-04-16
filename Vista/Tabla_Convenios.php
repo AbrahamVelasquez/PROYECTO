@@ -92,14 +92,16 @@
             <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter mb-2">¿Eliminar Convenio?</h3>
             <p class="text-slate-500 text-sm mb-6">Esta acción no se puede deshacer. Se eliminará a <span id="nombreEmpresaEliminar" class="font-bold text-slate-700"></span> del sistema permanentemente.</p>
             
-            <form action="index.php" method="POST" class="flex gap-3">
+            <form id="formEliminarReal"     action="index.php" method="POST" class="flex gap-3">
                 <input type="hidden" name="accion" value="eliminarConvenio">    
                 <input type="hidden" name="id_convenio_borrar" id="idConvenioEliminar">
                 
                 <button type="button" onclick="cerrarModalEliminar()" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
                     Cancelar
                 </button>
-                <button type="submit" class="flex-1 py-3 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
+                <button type="button" 
+                        onclick="abrirConfirmacionFinal()" 
+                        class="flex-1 py-3 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
                     Eliminar Ahora
                 </button>
             </form>
@@ -196,7 +198,51 @@
     </div>
 </div>
 
+<div id="modalConfirmacionFinal" style="display:none" class="fixed inset-0 bg-red-900/20 z-[110] flex items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xs overflow-hidden border-2 border-red-100 animate-in zoom-in duration-150">
+        <div class="p-6 text-center">
+            <div class="text-red-500 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 uppercase tracking-tighter">¿ESTÁS SEGURO?</h3>
+            <p class="text-[11px] text-slate-500 font-bold uppercase mt-2 leading-tight">
+                Esta es la última advertencia. Los datos se borrarán permanentemente de la base de datos.
+            </p>
+        </div>
+        <div class="flex flex-col border-t border-slate-100">
+            <button id="btnEjecutarEliminacionReal" class="py-4 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all">
+                SÍ, BORRAR DEFINITIVAMENTE
+            </button>
+            <button onclick="cerrarConfirmacionFinal()" class="py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 bg-slate-50 transition-all">
+                Mejor no, volver
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
+function abrirConfirmacionFinal() {
+    // Mostramos el modal de seguridad máxima
+    document.getElementById('modalConfirmacionFinal').style.display = 'flex';
+    
+    // Al hacer clic en el botón rojo del segundo modal, enviamos el form del primero
+    document.getElementById('btnEjecutarEliminacionReal').onclick = function() {
+        document.getElementById('formEliminarReal').submit();
+    };
+}
+
+function cerrarConfirmacionFinal() {
+    document.getElementById('modalConfirmacionFinal').style.display = 'none';
+}
+
+// Opcional: Modificar el cerrarModalEliminar para que también cierre el segundo por si acaso
+function cerrarModalEliminar() {
+    document.getElementById('modalEliminarConvenio').style.display = 'none';
+    document.getElementById('modalConfirmacionFinal').style.display = 'none';
+}
+
 function abrirModalEliminarConvenio(datos) {
     document.getElementById('idConvenioEliminar').value = datos.id_convenio;
     document.getElementById('nombreEmpresaEliminar').innerText = datos.nombre_empresa;
