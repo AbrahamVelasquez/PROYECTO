@@ -372,15 +372,64 @@ class Admin {
     }
 
     public function eliminarConvenio($id) {
-    try {
-        $sql = "DELETE FROM convenios WHERE id_convenio = :id";
-        $stmt = $this->conn->prepare($sql);
-        return $stmt->execute([':id' => $id]);
-    } catch (PDOException $e) {
-        error_log("Error en el Modelo: " . $e->getMessage());
-        return false;
+        try {
+            $sql = "DELETE FROM convenios WHERE id_convenio = :id";
+            $stmt = $this->conn->prepare($sql);
+            return $stmt->execute([':id' => $id]);
+        } catch (PDOException $e) {
+            error_log("Error en el Modelo: " . $e->getMessage());
+            return false;
+        }
     }
-}
+
+    /**
+     * Actualiza un convenio en la tabla oficial
+     */
+    public function actualizarConvenio($id, $d) {
+        $sql = "UPDATE convenios SET 
+                nombre_empresa = ?, cif = ?, direccion = ?, municipio = ?, 
+                cp = ?, pais = ?, mail = ?, telefono = ?, fax = ?,
+                nombre_representante = ?, dni_representante = ?, cargo = ?
+                WHERE id_convenio = ?";
+                
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            $d['nombre_empresa'], $d['cif'], $d['direccion'], $d['municipio'],
+            $d['cp'], $d['pais'], $d['mail'], $d['telefono'], $d['fax'],
+            $d['nombre_representante'], $d['dni_representante'], $d['cargo'], 
+            $id
+        ]);
+    }
+
+    /**
+     * Sincroniza por CIF o por Nombre
+     */
+    public function sincronizarConvenioPendiente($cifAntiguo, $nombreAntiguo, $d) {
+        // La lógica es: Actualiza si el CIF coincide OR el nombre coincide
+        $sql = "UPDATE convenios_nuevos SET 
+                nombre_empresa = ?, cif = ?, direccion = ?, municipio = ?, 
+                cp = ?, pais = ?, mail = ?, telefono = ?, fax = ?,
+                nombre_representante = ?, dni_representante = ?, cargo = ?
+                WHERE cif = ? OR nombre_empresa = ?";
+                
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            $d['nombre_empresa'], 
+            $d['cif'], 
+            $d['direccion'], 
+            $d['municipio'],
+            $d['cp'], 
+            $d['pais'], 
+            $d['mail'], 
+            $d['telefono'], 
+            $d['fax'],
+            $d['nombre_representante'], 
+            $d['dni_representante'], 
+            $d['cargo'], 
+            $cifAntiguo,    // Para el primer ? del WHERE
+            $nombreAntiguo  // Para el segundo ? del WHERE (el OR)
+        ]);
+    }
 
 } // admin
 

@@ -126,7 +126,7 @@ class Convenios_Controlador {
         'pais'              => strtoupper(trim($_POST['pais'])),
         'telefono'          => trim($_POST['telefono']),
         'fax'               => trim($_POST['fax']),
-        'mail'             => trim($_POST['email']), // Ojo: en tu otra función pusiste 'mail', asegúrate que en el Modelo coincida
+        'mail'             => trim($_POST['email']), 
         'nombre_representante'  => strtoupper(trim($_POST['nombre_rep_legal'])),
         'dni_representante'     => strtoupper(trim($_POST['dni_rep_legal'])),
         'cargo'   => strtoupper(trim($_POST['cargo_rep_legal']))

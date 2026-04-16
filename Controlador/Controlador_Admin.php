@@ -133,14 +133,55 @@ class Admin_Controlador {
     }
 
     public function eliminarConvenio() {
-    // 1. Ejecutamos el borrado si llega el ID
-    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id_convenio_borrar'])) {
-        $id = $_POST['id_convenio_borrar'];
-        $this->admin->eliminarConvenio($id);
+        // 1. Ejecutamos el borrado si llega el ID
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id_convenio_borrar'])) {
+            $id = $_POST['id_convenio_borrar'];
+            $this->admin->eliminarConvenio($id);
+        }
+
+        // 2. Después de borrar, redirigimos a la tabla para que se vea el cambio
+        $this->mostrarConvenios(); 
     }
 
-    // 2. Después de borrar, redirigimos a la tabla para que se vea el cambio
-    $this->mostrarConvenios(); 
-}
+    /**
+     * Procesa la actualización de un convenio y sincroniza con pendientes
+     */
+    public function actualizarConvenio() {
+        // Verificamos que los datos mínimos existan
+        if (isset($_POST['id_convenio']) && (isset($_POST['cif_original']) || isset($_POST['nombre_original']) )) {
+            
+            $id_convenio = $_POST['id_convenio'];
+            $cif_original = $_POST['cif_original']; // CIF antiguo para rastrear el registro
+            $nombre_original = $_POST['nombre_original']; // Capturamos el nombre previo
+            
+            $datosActualizados = [
+                'nombre_empresa'      => $_POST['nombre_empresa'],
+                'cif'                 => $_POST['cif'],
+                'telefono'            => $_POST['telefono'],
+                'mail'                => $_POST['mail'],
+                'fax'                 => $_POST['fax'],
+                'direccion'           => $_POST['direccion'],
+                'municipio'           => $_POST['municipio'],
+                'cp'                  => $_POST['cp'],
+                'pais'                => $_POST['pais'],
+                'nombre_representante'=> $_POST['nombre_representante'],
+                'dni_representante'   => $_POST['dni_representante'],
+                'cargo'               => $_POST['cargo']
+            ];
+
+            // 1. Instanciamos el modelo si no está disponible globalmente
+            // $admin = new Admin(); 
+
+            // 2. Actualizamos la tabla 'convenios' (la oficial)
+            $this->admin->actualizarConvenio($id_convenio, $datosActualizados);
+
+            // 3. Sincronizamos con la tabla 'convenios_nuevos' por si existe borrador con ese CIF o Nombre
+            $this->admin->sincronizarConvenioPendiente($cif_original, $nombre_original, $datosActualizados);
+
+            // 4. Redirección
+            header("Location: index.php?accion=mostrarConvenios&res=success");
+            exit();
+        }
+    }
 
 } // Admin_Controlador

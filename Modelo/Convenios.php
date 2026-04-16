@@ -108,43 +108,38 @@ class Convenios {
     }
 
     public function actualizarConvenioNuevo($id, $datos) {
-    try {
         $sql = "UPDATE convenios_nuevos SET 
-                nombre_empresa        = :nombre,
-                cif                   = :cif,
-                direccion             = :direccion,
-                municipio             = :municipio,
-                cp                    = :cp,
-                pais                  = :pais,
-                telefono              = :telefono,
-                fax                   = :fax,
-                mail                  = :email,
-                nombre_representante  = :rep_nom,
-                dni_representante     = :rep_dni,
-                cargo                 = :rep_cargo
-                WHERE id_convenio_nuevo = :id";
-
+                nombre_empresa = ?, 
+                cif = ?, 
+                direccion = ?, 
+                municipio = ?, 
+                cp = ?, 
+                pais = ?, 
+                telefono = ?, 
+                fax = ?, 
+                mail = ?, 
+                nombre_representante = ?, 
+                dni_representante = ?, 
+                cargo = ? 
+                WHERE id_convenio_nuevo = ?";
+                
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
-            ':nombre'    => $datos['nombre_empresa'],
-            ':cif'       => $datos['cif'],
-            ':direccion' => $datos['direccion'],
-            ':municipio' => $datos['municipio'],
-            ':cp'        => $datos['cp'],
-            ':pais'      => $datos['pais'],
-            ':telefono'  => $datos['telefono'],
-            ':fax'       => $datos['fax'],
-            ':email'     => $datos['email'],
-            ':rep_nom'   => $datos['nombre_rep_legal'],
-            ':rep_dni'   => $datos['dni_rep_legal'],
-            ':rep_cargo' => $datos['cargo_rep_legal'],
-            ':id'        => $id
+            $datos['nombre_empresa'],
+            $datos['cif'],
+            $datos['direccion'],
+            $datos['municipio'],
+            $datos['cp'],
+            $datos['pais'],
+            $datos['telefono'],
+            $datos['fax'],
+            $datos['mail'],
+            $datos['nombre_representante'],
+            $datos['dni_representante'],
+            $datos['cargo'],
+            $id
         ]);
-    } catch (PDOException $e) {
-        // Opcional: error_log($e->getMessage());
-        return false;
     }
-}
 
 }
 
