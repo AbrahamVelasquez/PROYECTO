@@ -1,4 +1,7 @@
 <?php
+
+// Modelo/Convenios.php
+
 require_once "./Core/Conexion.php"; 
 
 class Convenios {
@@ -141,6 +144,17 @@ class Convenios {
         ]);
     }
 
-}
+    public function eliminarConvenioNuevo($id) {
+        try {
+            $sql = "DELETE FROM convenios_nuevos WHERE id_convenio_nuevo = :id";
+            $stmt = $this->conn->prepare($sql);
+            return $stmt->execute([':id' => $id]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+} // Llave de la clase
+
 
 ?>

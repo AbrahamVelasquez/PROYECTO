@@ -79,4 +79,4 @@
     </table>
 </div>
 
-<?php include 'Modales_TC.php'; ?>
+<?php include 'Vista/Admin/Components/Modales_TC.php'; ?>

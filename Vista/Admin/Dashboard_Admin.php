@@ -23,12 +23,12 @@
     <main class="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             
-            <?php include 'Dashboard_Header.php'; ?>
+            <?php include 'Components/Dashboard_Header.php'; ?>
 
             <div class="p-10 min-h-[550px]">
                 <?php 
-                    if (isset($subVista) && file_exists("Vista/Admin/" . $subVista)) {
-                        include "Vista/Admin/" . $subVista;
+                    if (isset($subVista) && file_exists("Vista/Admin/Dashboard_Sections/" . $subVista)) {
+                        include "Vista/Admin/Dashboard_Sections/" . $subVista;
                     } else {
                         echo "<p class='text-center text-slate-400'>Error: No se pudo cargar el contenido.</p>";
                     }

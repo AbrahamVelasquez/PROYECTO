@@ -1,5 +1,7 @@
 <?php
 
+// Modelo/Admin.php
+
 require_once "./Core/Conexion.php"; // Importa la clase Conexion 
 
 class Admin {
@@ -7,10 +9,10 @@ class Admin {
     private $conn; // Para que inicie la conexión asi accedemos a la BD 
 
     public function __construct() {
-            $this -> conn = Conexion::getConexion();  // El modelo obtiene esa conexión
-        }
-        
-        public function obtenerTutores($busqueda = '', $ordenar = 'id', $filtro_curso = '') {
+        $this -> conn = Conexion::getConexion();  // El modelo obtiene esa conexión
+    }
+    
+    public function obtenerTutores($busqueda = '', $ordenar = 'id', $filtro_curso = '') {
         $params = [];
         $sql = "SELECT t.*, c.nombre_ciclo, cur.nombre_curso
                 FROM tutores t
@@ -175,35 +177,35 @@ class Admin {
     }
 
     public function eliminarTutor($id_tutor) {
-    try {
-        $this->conn->beginTransaction();
+        try {
+            $this->conn->beginTransaction();
 
-        // 1. Obtenemos el id_usuario antes de borrar al tutor
-        $sqlId = "SELECT id_usuario FROM tutores WHERE id_tutor = :id";
-        $stmtId = $this->conn->prepare($sqlId);
-        $stmtId->execute([':id' => $id_tutor]);
-        $tutor = $stmtId->fetch(PDO::FETCH_ASSOC);
+            // 1. Obtenemos el id_usuario antes de borrar al tutor
+            $sqlId = "SELECT id_usuario FROM tutores WHERE id_tutor = :id";
+            $stmtId = $this->conn->prepare($sqlId);
+            $stmtId->execute([':id' => $id_tutor]);
+            $tutor = $stmtId->fetch(PDO::FETCH_ASSOC);
 
-        if ($tutor) {
-            // 2. Borramos al tutor
-            $sqlTutor = "DELETE FROM tutores WHERE id_tutor = :id";
-            $this->conn->prepare($sqlTutor)->execute([':id' => $id_tutor]);
+            if ($tutor) {
+                // 2. Borramos al tutor
+                $sqlTutor = "DELETE FROM tutores WHERE id_tutor = :id";
+                $this->conn->prepare($sqlTutor)->execute([':id' => $id_tutor]);
 
-            // 3. Borramos el usuario asociado
-            $sqlUser = "DELETE FROM usuarios WHERE id_usuario = :id_u";
-            $this->conn->prepare($sqlUser)->execute([':id_u' => $tutor['id_usuario']]);
+                // 3. Borramos el usuario asociado
+                $sqlUser = "DELETE FROM usuarios WHERE id_usuario = :id_u";
+                $this->conn->prepare($sqlUser)->execute([':id_u' => $tutor['id_usuario']]);
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            error_log("Error al eliminar tutor: " . $e->getMessage());
+            return false;
         }
-
-        $this->conn->commit();
-        return true;
-    } catch (Exception $e) {
-        if ($this->conn->inTransaction()) {
-            $this->conn->rollBack();
-        }
-        error_log("Error al eliminar tutor: " . $e->getMessage());
-        return false;
     }
-}
 
     public function obtenerConvenios($busqueda = '', $ordenar = 'nombre_empresa') {
         try {
@@ -454,6 +456,6 @@ class Admin {
         }
     }
 
-} // admin
+} // Llave de la clase
 
 ?>

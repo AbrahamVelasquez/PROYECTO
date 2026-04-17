@@ -1,7 +1,11 @@
 <?php
+
+// Modelo/Tutores.php
+
 require_once "./Core/Conexion.php";
 
 class Tutores {
+    
     private $conn;
 
     public function __construct() {
@@ -22,4 +26,7 @@ class Tutores {
         $stmt->execute([':username' => $username]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-}
+
+} // Llave de la clase
+
+?>

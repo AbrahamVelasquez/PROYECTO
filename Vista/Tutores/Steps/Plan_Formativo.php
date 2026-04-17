@@ -1,12 +1,12 @@
 <div id="contenedor-plan-formativo">
-    <?php include_once 'Vista/Components/Modales_PF.php'; ?>
+    <?php include_once 'Vista/Tutores/Components/Modales_PF.php'; ?>
 
     <div id="vista-tabla">
-        <?php include_once 'Vista/Components/PF_Tabla.php'; ?>
+        <?php include_once 'Vista/Tutores/Components/PF_Tabla.php'; ?>
     </div>
 
     <div id="vista-edicion" class="hidden">
-        <?php include_once 'Vista/Components/PF_Edicion.php'; ?>
+        <?php include_once 'Vista/Tutores/Components/PF_Edicion.php'; ?>
     </div>
 </div>
 

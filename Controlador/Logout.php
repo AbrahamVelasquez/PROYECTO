@@ -1,5 +1,7 @@
 <?php
 
+// Controlador/Logout.php
+
 // Al ser incluido este fichero, lo que hace
 // comprobar si hay sesión o no, en caso que 
 // haya se encarga de cerrarla y devolverte  
@@ -12,6 +14,7 @@
 // fichero sin tener una sesión, le muestro
 // una opción para regresar al "index.php"
 // (En el fondo el "Login.php") 
+
 if(isset($_SESSION['usuario'])){
   
     session_unset();

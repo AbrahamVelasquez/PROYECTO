@@ -1,4 +1,7 @@
 <?php
+
+// Controlador/Controlador_Admin.php
+
 require_once './Modelo/Admin.php';
 
 class Admin_Controlador {
@@ -11,8 +14,8 @@ class Admin_Controlador {
 
     // Acción por defecto: muestra el "Home" del admin
     public function mostrarPanel() {
-        $subVista = 'Dashboard_Home.php'; // Una pequeña vista con los botones
-        require 'Vista/Admin/Vista_Admin.php';
+        $subVista = '../Components/Dashboard_Sections.php'; // Una pequeña vista con los botones
+        require 'Vista/Admin/Dashboard_Admin.php';
     }
 
     // Acción para ver la tabla de tutores
@@ -26,8 +29,8 @@ class Admin_Controlador {
         $ciclosLibres = $this->admin->obtenerCiclosLibres(); // <--- Preparar aquí
         $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
 
-        $subVista = 'Tabla_Tutores.php';
-        require 'Vista/Admin/Vista_Admin.php';
+        $subVista = '../Sections/Tabla_Tutores.php';
+        require 'Vista/Admin/Dashboard_Admin.php';
     }
 
     public function guardarTutor() {
@@ -83,8 +86,8 @@ class Admin_Controlador {
         
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         
-        $subVista = 'Tabla_Convenios.php';
-        require 'Vista/Admin/Vista_Admin.php';
+        $subVista = '../Sections/Tabla_Convenios.php';
+        require 'Vista/Admin/Dashboard_Admin.php';
     }
 
     public function mostrarConveniosPendientes() {
@@ -92,8 +95,8 @@ class Admin_Controlador {
         $pendientes = $this->admin->obtenerConveniosPendientes();
         
         // Definimos la nueva vista
-        $subVista = 'Tabla_Convenios_Pendientes.php';
-        require 'Vista/Admin/Vista_Admin.php';
+        $subVista = '../Sections/Tabla_Convenios_Pendientes.php';
+        require 'Vista/Admin/Dashboard_Admin.php';
     }
 
     public function validarConvenio() {
@@ -185,19 +188,19 @@ class Admin_Controlador {
     }
 
     public function eliminarConvenioCompleto() {
-    if (isset($_GET['id'])) {
-        $id = $_GET['id'];
-        
-        // Ejecutamos la eliminación en cadena
-        $exito = $this->admin->borrarRegistroPendienteYOficial($id);
-        
-        if ($exito) {
-            header("Location: index.php?accion=mostrarConveniosPendientes&msg=eliminado");
-        } else {
-            echo "Error al intentar eliminar el registro.";
+        if (isset($_GET['id'])) {
+            $id = $_GET['id'];
+            
+            // Ejecutamos la eliminación en cadena
+            $exito = $this->admin->borrarRegistroPendienteYOficial($id);
+            
+            if ($exito) {
+                header("Location: index.php?accion=mostrarConveniosPendientes&msg=eliminado");
+            } else {
+                echo "Error al intentar eliminar el registro.";
+            }
+            exit();
         }
-        exit();
     }
-}
 
-} // Admin_Controlador
+} // Llave de la clase

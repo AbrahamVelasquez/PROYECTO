@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 // 1. GESTIÓN DE LOGOUT
@@ -53,3 +54,5 @@ else {
     require_once './Vista/Login.php';
     exit();
 }
+
+?>

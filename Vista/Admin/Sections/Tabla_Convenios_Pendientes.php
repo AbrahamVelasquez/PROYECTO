@@ -87,4 +87,4 @@
     </table>
 </div>
 
-<?php include 'Modales_TCP.php'; ?>
+<?php include 'Vista/Admin/Components/Modales_TCP.php'; ?>

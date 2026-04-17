@@ -46,24 +46,24 @@
     <main class="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             
-            <?php include 'Vista/Components/Header.php'; ?>
+            <?php include 'Vista/Tutores/Components/Header.php'; ?>
 
             <div class="border-t border-slate-100 p-10 bg-white min-h-[500px]">
                 
                 <div data-tab="1" class="<?= $pestanaActiva == 1 ? 'active' : '' ?>">
-                    <?php include 'Vista/Steps/Convenios.php'; ?>
+                    <?php include 'Vista/Tutores/Steps/Convenios.php'; ?>
                 </div>
 
                 <div data-tab="2" class="<?= $pestanaActiva == 2 ? 'active' : '' ?>">
-                    <?php include 'Vista/Steps/Alumnos.php'; ?>
+                    <?php include 'Vista/Tutores/Steps/Alumnos.php'; ?>
                 </div>
 
                 <div data-tab="3" class="<?= $pestanaActiva == 3 ? 'active' : '' ?>">
-                    <?php include 'Vista/Steps/Plan_Formativo.php'; ?>
+                    <?php include 'Vista/Tutores/Steps/Plan_Formativo.php'; ?>
                 </div>
                 
                 <div data-tab="4" class="<?= $pestanaActiva == 4 ? 'active' : '' ?>">
-                    <?php include 'Vista/Steps/Seguimiento.php'; ?>
+                    <?php include 'Vista/Tutores/Steps/Seguimiento.php'; ?>
                 </div>
 
             </div>

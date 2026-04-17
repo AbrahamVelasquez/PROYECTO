@@ -1,0 +1,53 @@
+TFG/ (Raíz)
+│
+├── 📁 Controlador/ ──────────┐ [Lógica de Control]
+│   ├── Controlador_Admin.php
+│   ├── Controlador_Alumnos.php
+│   ├── Controlador_Convenios.php
+│   ├── Controlador_Tutores.php
+│   └── Controlador_Usuarios.php
+│
+├── 📁 Core/ ─────────────────┐ [Núcleo del Sistema]
+│   └── Conexión.php
+│
+├── 📁 Modelo/ ───────────────┐ [Gestión de Datos]
+│   ├── Admin.php
+│   ├── Alumnos.php
+│   ├── Convenios.php
+│   ├── Tutores.php
+│   └── Usuarios.php
+│
+├── 📁 Public/ ───────────────┐ [Recursos Estáticos]
+│   └── 📁 js/
+│       ├── script_password.js
+│       └── script_tabs.js
+│
+├── 📁 Recursos/ ─────────────┐ [Archivos Auxiliares]
+│   └── citye.sql
+│
+├── 📁 Vista/ ────────────────┐ [Interfaz de Usuario]
+│   ├── 📁 Components/ ──────── [Fragmentos Reutilizables]
+│   │   ├── Buttons_PF_Edicion.php
+│   │   ├── Header_Alumnos.php
+│   │   ├── Header.php
+│   │   ├── Modales_Alumnos.php
+│   │   ├── Modales_Convenios.php
+│   │   ├── Modales_PF.php
+│   │   ├── PF_Edicion.php
+│   │   └── PF_Tabla.php
+│   ├── 📁 Steps/ ───────────── [Vistas de Proceso]
+│   │   ├── Alumnos.php
+│   │   ├── Convenios.php
+│   │   ├── Plan_Formativo.php
+│   │   └── Seguimiento.php
+│   ├── Dashboard_Home.php
+│   ├── index_vista.php
+│   ├── Login.php
+│   ├── Registro_Convenio.php
+│   ├── Tabla_Convenios_Pendientes.php
+│   ├── Tabla_Convenios.php
+│   ├── Tabla_Tutores.php
+│   └── Vista_Admin.php
+│
+├── 📄 index.php ─────────────── [Punto de Entrada]
+└── 📄 README.md ────────────── [Documentación]

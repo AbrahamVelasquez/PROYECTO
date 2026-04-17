@@ -131,4 +131,4 @@
     </table>
 </div>
 
-<?php include 'Modales_Tutores.php'; ?>
+<?php include 'Vista/Admin/Components/Modales_Tutores.php'; ?>

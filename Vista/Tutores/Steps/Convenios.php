@@ -1,6 +1,6 @@
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold flex items-center gap-3">🏢 Gestión de Convenios</h2>
-    <a href="Vista/Registro_Convenio.php" class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
+    <a href="Convenios/Registrar.php" class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
         + Registrar Nuevo Convenio
     </a>
 </div>
@@ -163,4 +163,4 @@
     </div>
 </div>
 
-<?php include 'Vista/Components/Modales_Convenios.php'; ?>
+<?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

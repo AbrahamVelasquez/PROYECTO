@@ -1,5 +1,7 @@
 <?php
 
+// Modelo/Usuarios.php
+
 require_once "./Core/Conexion.php"; 
 
 class Usuarios {
@@ -57,4 +59,7 @@ class Usuarios {
         header("Location: index.php");
         exit();
     }
-}
+
+} // Llave de la clase
+
+?>

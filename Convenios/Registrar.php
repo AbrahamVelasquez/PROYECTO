@@ -1,4 +1,10 @@
-<?php session_start(); ?>
+<?php 
+
+// Convenios/Registrar.php
+
+session_start(); 
+
+?>
 <!doctype html>
 <html lang="es">
 <head>
