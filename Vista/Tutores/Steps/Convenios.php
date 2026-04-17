@@ -1,8 +1,31 @@
+<?php 
+  // Preparamos la URL completa (ajusta la base si es necesario)
+  $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+  $host = $_SERVER['HTTP_HOST'];
+  $id_ciclo = $_SESSION['id_ciclo'] ?? '';
+  $urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registrar.php?id_ciclo=" . urlencode($id_ciclo);
+?>
+
+
+
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold flex items-center gap-3">🏢 Gestión de Convenios</h2>
-    <a href="Convenios/Registrar.php" class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
-        + Registrar Nuevo Convenio
-    </a>
+    
+    <div class="flex items-center gap-2">
+        <button type="button" 
+                onclick="copiarUrlRegistro('<?= $urlCompartir ?>', this)"
+                class="inline-flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all shadow-sm cursor-pointer group">
+            <span id="btn-text">📋 Copiar enlace</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 group-active:scale-90 transition-transform">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+            </svg>
+        </button>
+
+        <a href="Convenios/Registrar.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
+           class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
+            <span class="text-sm">+</span> Registrar Convenio
+        </a>
+    </div>
 </div>
 
 <form action="index.php" method="GET" class="flex gap-3 w-full mb-10">
@@ -162,5 +185,30 @@
         </table>
     </div>
 </div>
+
+<script>
+    //CAPI AQUI ESTA EL SCRIPT
+function copiarUrlRegistro(url, elemento) {
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(url).then(() => {
+        const span = elemento.querySelector('#btn-text');
+        const originalText = span.innerText;
+        
+        // Feedback visual
+        span.innerText = '¡COPIADO!';
+        elemento.classList.remove('bg-slate-100', 'text-slate-600');
+        elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+        
+        // Revertir después de 2 segundos
+        setTimeout(() => {
+            span.innerText = originalText;
+            elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
+            elemento.classList.add('bg-slate-100', 'text-slate-600');
+        }, 2000);
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+    });
+}
+</script>
 
 <?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

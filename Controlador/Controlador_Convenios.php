@@ -86,15 +86,49 @@ class Convenios_Controlador {
         ];
 
         $exito = $this->convenio->guardarNuevoConvenioPendiente($datos);
-
-        if ($exito) {
+        
+        //VALIDACION ANTERIOR
+        /*if ($exito) {
             $_SESSION['mensaje_exito'] = "Solicitud de convenio enviada correctamente.";
         } else {
             $_SESSION['error_convenio'] = "Hubo un error al registrar la solicitud.";
-        }
+        }*/
 
-        header('Location: index.php?tab=1');
-        exit();
+        if ($exito) {
+        if (isset($_SESSION['usuario'])) {
+            // CASO A: EL USUARIO TIENE SESIÓN (Tutor/Admin)
+            // Lo redirigimos a su panel con un mensaje de éxito normal
+            header("Location: index.php?accion=mostrarPanel&mensaje=registro_ok");
+            exit();
+        } else {
+            // CASO B: USUARIO EXTERNO (Sin sesión)
+            // Mostramos la pantalla de éxito sin salida
+            die('
+                <script src="https://cdn.tailwindcss.com"></script>
+                <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans text-slate-900">
+                    <div class="max-w-md w-full bg-white border-t-4 border-emerald-500 rounded-2xl shadow-2xl p-10 text-center">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
+                            <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-black uppercase tracking-tight text-slate-800 mb-4">
+                            ¡Registro <span class="text-emerald-600">Completado!</span>
+                        </h2>
+                        <p class="text-slate-500 font-medium leading-relaxed mb-6">
+                            El convenio se ha registrado correctamente en nuestro sistema. <br>
+                            Nuestro equipo revisará la información próximamente.
+                        </p>
+                        <div class="pt-6 border-t border-slate-100">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Ya puede cerrar esta ventana de forma segura
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ');
+            }
+        }
     }
 
     public function aprobarNuevo() {
