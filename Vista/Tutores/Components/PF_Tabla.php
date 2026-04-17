@@ -1,8 +1,12 @@
-<div class="flex justify-between items-center mb-6 mt-2"> 
+<div class="flex justify-between items-center mb-6 mt-2">
     <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
         <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white text-sm">📋</span>
         Gestión de Planes de Formación
     </h2>
+    <button onclick="abrirModalExportarTodo()" class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar Todo
+    </button>
 </div>
 
 <form id="formFiltros" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
@@ -70,14 +74,16 @@
                 foreach ($alumnosFirmados as $al): 
                     $nombreFull = $al['apellido1'] . ( $al['apellido2'] ? " {$al['apellido2']}" : "" ) . ", " . $al['nombre'];
                 ?>
-                <tr class="hover:bg-slate-50/50 transition-colors">
+                <tr class="hover:bg-slate-50/50 transition-colors"
+                    data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
+                    data-exportado="<?= $al['exportado'] ? '1' : '0' ?>">
                     <td class="p-3 text-center">
                         <button type="button" 
                             onclick="window.mostrarEdicion(
-                                <?= $al['id_alumno'] ?>, 
-                                '<?= addslashes($nombreFull) ?>', 
-                                '<?= addslashes($al['correo'] ?? '') ?>', 
-                                '<?= addslashes($al['nombre_empresa'] ?? '') ?>', 
+                                <?= $al['id_alumno'] ?>,
+                                '<?= addslashes($nombreFull) ?>',
+                                '<?= addslashes($al['correo'] ?? '') ?>',
+                                '<?= addslashes($al['nombre_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['telefono'] ?? '') ?>',
                                 '<?= addslashes($al['nif_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['email_empresa'] ?? '') ?>',
@@ -88,9 +94,12 @@
                                 '<?= addslashes($nombreTutor ?? 'Tutor No Definido') ?>',
                                 '<?= addslashes($correoTutor ?? '') ?>',
                                 '<?= addslashes($telTutor ?? '') ?>',
-                                '<?= $al['anio_inicio'] ?? '' ?>', 
+                                '<?= $al['anio_inicio'] ?? '' ?>',
                                 '<?= $al['anio_fin'] ?? '' ?>',
-                                <?= intval($al['id_asignacion']) ?>
+                                <?= intval($al['id_asignacion']) ?>,
+                                '<?= addslashes($al['nombre_tutor_empresa'] ?? '') ?>',
+                                '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
+                                '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>'
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
