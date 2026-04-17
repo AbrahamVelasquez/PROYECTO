@@ -33,7 +33,7 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
 };
 
 // Definimos la función en el objeto window para que sea accesible desde la tabla
-window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal) {
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa) {
     const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
 
@@ -75,6 +75,9 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         if(document.getElementById('edit_nif_empresa')) document.getElementById('edit_nif_empresa').value = nif;
         if(document.getElementById('edit_email_empresa')) document.getElementById('edit_email_empresa').value = emailEmpresa;
         if(document.getElementById('edit_tel_empresa')) document.getElementById('edit_tel_empresa').value = telEmpresa;
+        if(document.getElementById('edit_tutor_empresa')) document.getElementById('edit_tutor_empresa').value = nombreTutorEmpresa ?? '';
+        if(document.getElementById('edit_email_tutor_emp')) document.getElementById('edit_email_tutor_emp').value = correoTutorEmpresa ?? '';
+        if(document.getElementById('edit_tel_tutor_emp')) document.getElementById('edit_tel_tutor_emp').value = telTutorEmpresa ?? '';
         
         // Botón devolver (sigue usando el ID de alumno original si es necesario)
         const btnDevolver = document.getElementById('btn-devolver-alumno');

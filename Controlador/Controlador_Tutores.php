@@ -141,13 +141,16 @@ class Tutores_Controlador {
             strtoupper(trim($_POST['dni'])),
             $_POST['sexo'],
             trim($_POST['correo'] ?? ''),
-            trim($_POST['telefono'] ?? ''), // <-- AQUÍ VA EL 8º ARGUMENTO (TELÉFONO)
+            trim($_POST['telefono'] ?? ''),
             $idConvenio,
             $_POST['fecha_inicio'] ?: null,
             $_POST['fecha_final'] ?: null,
             trim($_POST['horario'] ?? ''),
             $_POST['horas_dia'] ?: null,
-            $enviado
+            $enviado,
+            trim($_POST['nombre_tutor_empresa'] ?? ''),
+            trim($_POST['correo_tutor_empresa'] ?? ''),
+            trim($_POST['tel_tutor_empresa'] ?? '')
         );
         
         header('Location: index.php?tab=2');
@@ -158,12 +161,12 @@ class Tutores_Controlador {
         // Verificamos si llegan IDs por POST
         if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
             $alumnoModelo = new Alumnos();
-            
+
             foreach ($_POST['exportar_ids'] as $idAlumno) {
                 // Importante: castear a int para seguridad
                 $alumnoModelo->marcarComoEnviado((int)$idAlumno);
             }
-            
+
             // Redirigimos para ver los cambios
             header('Location: index.php?tab=2&status=success');
         } else {

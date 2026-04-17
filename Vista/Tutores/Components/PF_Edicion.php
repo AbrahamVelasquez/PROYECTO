@@ -160,7 +160,7 @@
             <div class="flex gap-4">
                 <?php foreach(['Diario', 'Semanal', 'Mensual', 'Otros', 'Varias empresas'] as $int): ?>
                     <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
-                        <input type="checkbox" class="rounded accent-orange-600"> <?= strtoupper($int) ?>
+                        <input type="checkbox" class="rounded accent-orange-600" <?= $int === 'Diario' ? 'checked' : '' ?>> <?= strtoupper($int) ?>
                     </label>
                 <?php endforeach; ?>
             </div>
@@ -192,9 +192,80 @@
             </div>
         </div>
 
+        <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">7. Resultados de Aprendizaje Profesionales</p>
+
+        <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-4">
+            <table class="w-full text-left border-collapse bg-white" id="tabla-modulos">
+                <thead class="bg-slate-50">
+                    <tr class="text-slate-600 text-[9px] font-black uppercase tracking-wider">
+                        <th class="p-3 border-r border-slate-200 w-16 text-center">Periodo</th>
+                        <th class="p-3 border-r border-slate-200">Módulo Profesional</th>
+                        <th class="p-3 border-r border-slate-200 w-20 text-center">Código</th>
+                        <th class="p-3 border-r border-slate-200 w-32 text-center">Resultados de Aprendizaje</th>
+                        <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartido íntegramente en la empresa</th>
+                        <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartición compartida con el centro docente</th>
+                        <th class="p-3 w-10 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody id="modulos-tbody" class="divide-y divide-slate-100">
+                    <tr id="modulos-empty">
+                        <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
+                            Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-center mb-8">
+            <button type="button" onclick="agregarFilaModulo()" class="group flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all font-black text-xs uppercase tracking-widest">
+                <span class="text-xl font-black leading-none">+</span> Añadir resultado de aprendizaje
+            </button>
+        </div>
+
         <input type="hidden" id="edit_id_asignacion" name="id_asignacion" value="<?= $_GET['editar'] ?? '' ?>">
-        
+
         <?php include 'Buttons_PF_Edicion.php'; ?>
-        
+
     </form>
 </div>
+
+<script>
+function agregarFilaModulo() {
+    const tbody = document.getElementById('modulos-tbody');
+    const emptyRow = document.getElementById('modulos-empty');
+    if (emptyRow) emptyRow.style.display = 'none';
+
+    const fila = document.createElement('tr');
+    fila.className = 'divide-slate-100';
+    fila.innerHTML = `
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="2" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="Desarrollo web entorno servidor" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="613" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="RA: 7" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
+        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
+        <td class="p-2 text-center"><button type="button" onclick="eliminarFilaModulo(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none" title="Eliminar fila">×</button></td>
+    `;
+    tbody.appendChild(fila);
+    fila.querySelector('input[type="text"]').focus();
+}
+
+function eliminarFilaModulo(btn) {
+    const modal = document.getElementById('modalEliminarFila');
+    const btnConfirmar = document.getElementById('btnConfirmarEliminarFila');
+    if (modal && btnConfirmar) {
+        modal.style.display = 'flex';
+        btnConfirmar.onclick = function() {
+            btn.closest('tr').remove();
+            modal.style.display = 'none';
+            const tbody = document.getElementById('modulos-tbody');
+            const dataRows = tbody.querySelectorAll('tr:not(#modulos-empty)');
+            if (dataRows.length === 0) {
+                const emptyRow = document.getElementById('modulos-empty');
+                if (emptyRow) emptyRow.style.display = '';
+            }
+        };
+    }
+}
+</script>
