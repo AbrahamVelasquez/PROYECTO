@@ -25,7 +25,14 @@ class Convenios_Controlador {
 
         // Lógica para AÑADIR A FAVORITOS
         if (isset($_POST['btnFavorito'])) {
-            $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
+            $resultado = $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
+            
+            // Si es duplicado, guardamos en la sesión
+            if ($resultado === "duplicado") {
+                $_SESSION['error_duplicado'] = true;
+            }
+
+            // Redirección limpia (sin parámetros de error en la URL)
             header("Location: index.php?tab=1&busqueda=" . urlencode($_GET['busqueda'] ?? ''));
             exit();
         }
