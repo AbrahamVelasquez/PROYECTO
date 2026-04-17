@@ -1,5 +1,7 @@
 <?php
 
+// Core/Conexion.php
+
 class Conexion {
 
     private static $instancia = null; 
@@ -27,6 +29,6 @@ class Conexion {
         return self::$instancia; // Nos la devuelve. En caso de estar vacía pues nos da un null. 
     }
     
-}
+} // Llave de la clase
 
 ?>

@@ -1,6 +1,7 @@
 <?php
 
-// Traemos el Modelo
+// Controlador/Controlador_Usuarios.php
+
 require_once './Modelo/Usuarios.php';
 
 class Usuarios_Controlador {
@@ -21,6 +22,6 @@ class Usuarios_Controlador {
         $this -> usuario -> validarDatos();
     }
 
-}
+} // Llave de la clase
 
 ?>

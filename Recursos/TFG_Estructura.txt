@@ -1,0 +1,71 @@
+TFG/ (Raíz del Proyecto)
+│
+├── 📄 index.php
+├── 📄 README.md
+├── 📄 TFG_Sebastian_Alain_Abraham.docx
+│
+├── 📁 Controlador/ ────────────────────────── [Lógica de control y gestión de acceso]
+│   ├── Controlador_Admin.php
+│   ├── Controlador_Alumnos.php
+│   ├── Controlador_Convenios.php
+│   ├── Controlador_Tutores.php
+│   ├── Controlador_Usuarios.php
+│   ├── Logout.php
+│   └── Seguridad.php
+│
+├── 📁 Convenios/ ──────────────────────────── [Módulo externo de registro]
+│   └── Registrar.php
+│
+├── 📁 Core/ ───────────────────────────────── [Clases base y configuración del sistema]
+│   └── Conexion.php
+│
+├── 📁 Modelo/ ─────────────────────────────── [Capa de datos y acceso a BD]
+│   ├── Admin.php
+│   ├── Alumnos.php
+│   ├── Convenios.php
+│   ├── Tutores.php
+│   └── Usuarios.php
+│
+├── 📁 Public/ ─────────────────────────────── [Activos estáticos accesibles por el cliente]
+│   └── 📁 js/ ─────────────────────────────── [Scripts de comportamiento frontend]
+│       ├── script_password.js
+│       └── script_tabs.js
+│
+├── 📁 Recursos/ ───────────────────────────── [Repositorio de scripts SQL y multimedia]
+│
+└── 📁 Vista/ ──────────────────────────────── [Interfaz de usuario principal]
+    ├── Login.php
+    │
+    ├── 📁 Admin/ ──────────────────────────── [Módulo exclusivo para administradores]
+    │   ├── Dashboard_Admin.php
+    │   │
+    │   ├── 📁 Components/ ─────────────────── [Fragmentos de UI reutilizables]
+    │   │   ├── Dashboard_Header.php
+    │   │   ├── Dashboard_Sections.php
+    │   │   ├── Modales_TC.php
+    │   │   ├── Modales_TCP.php
+    │   │   └── Modales_Tutores.php
+    │   │
+    │   └── 📁 Sections/ ───────────────────── [Vistas de gestión de tablas]
+    │       ├── Tabla_Convenios.php
+    │       ├── Tabla_Convenios_Pendientes.php
+    │       └── Tabla_Tutores.php
+    │
+    └── 📁 Tutores/ ────────────────────────── [Módulo para el profesorado y tutores]
+        ├── Dashboard_Tutores.php
+        │
+        ├── 📁 Components/ ─────────────────── [Componentes de edición y visualización]
+        │   ├── Buttons_PF_Edicion.php
+        │   ├── Header.php
+        │   ├── Header_Alumnos.php
+        │   ├── Modales_Alumnos.php
+        │   ├── Modales_Convenios.php
+        │   ├── Modales_PF.php
+        │   ├── PF_Edicion.php
+        │   └── PF_Tabla.php
+        │
+        └── 📁 Steps/ ──────────────────────── [Procesos guiados del plan formativo]
+                ├── Alumnos.php
+                ├── Convenios.php
+                ├── Plan_Formativo.php
+                └── Seguimiento.php
