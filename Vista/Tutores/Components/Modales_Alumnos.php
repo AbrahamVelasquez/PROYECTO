@@ -180,6 +180,23 @@
                 </div>
             </div>
 
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Tutor de Empresa</p>
+
+            <div class="mb-4">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre Tutor de Empresa</label>
+                <input type="text" name="nombre_tutor_empresa" id="edit_nombre_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+            </div>
+            <div class="flex gap-3 mb-6">
+                <div class="flex-1">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Tutor Empresa</label>
+                    <input type="email" name="correo_tutor_empresa" id="edit_correo_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                </div>
+                <div class="w-40">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Tutor Emp.</label>
+                    <input type="text" name="tel_tutor_empresa" id="edit_tel_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                </div>
+            </div>
+
             <div id="bloque_enviado" class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">¿Documentación enviada?</span>
@@ -211,9 +228,12 @@
             <button onclick="document.getElementById('modalSeleccionarExportar').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
         </div>
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Alumnos con estado "Completado" no enviados</p>
-        <div class="flex justify-between px-4 py-2 bg-slate-50 rounded-t-xl border-b border-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-tighter">
+        <div class="flex justify-between items-center px-4 py-2 bg-slate-50 rounded-t-xl border-b border-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-tighter">
             <span>Alumno</span>
-            <span>Seleccionar</span>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-700 transition-colors select-none">
+                <span>Seleccionar todos</span>
+                <input type="checkbox" id="checkSeleccionarTodos" onclick="seleccionarTodosExportar(this)" class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer">
+            </label>
         </div>
         <form id="formExportar" method="POST" action="index.php">
             <input type="hidden" name="accion" value="exportarAlumnos">
@@ -328,6 +348,27 @@
         <div class="flex gap-3 justify-center">
             <button onclick="cerrarModalFirma()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
             <button id="btnConfirmarFirmaAccion" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalSinSeleccion" style="display:none" class="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white text-xs">⚠️</span>
+                SIN SELECCIÓN
+            </h3>
+            <button onclick="document.getElementById('modalSinSeleccion').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <div class="flex flex-col items-center mb-6">
+            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Ningún alumno seleccionado</p>
+            <p class="text-xs font-bold text-slate-600 text-center leading-relaxed">
+                Debes seleccionar al menos un alumno antes de continuar con la exportación.
+            </p>
+        </div>
+        <div class="flex justify-center">
+            <button onclick="document.getElementById('modalSinSeleccion').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors cursor-pointer">Entendido</button>
         </div>
     </div>
 </div>

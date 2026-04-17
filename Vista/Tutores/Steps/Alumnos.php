@@ -281,6 +281,9 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
+        document.getElementById('edit_nombre_tutor_empresa').value = al.nombre_tutor_empresa ?? '';
+        document.getElementById('edit_correo_tutor_empresa').value = al.correo_tutor_empresa ?? '';
+        document.getElementById('edit_tel_tutor_empresa').value = al.tel_tutor_empresa ?? '';
 
         const bloque = document.getElementById('bloque_enviado');
         const checkbox = document.getElementById('edit_enviado');
@@ -310,15 +313,21 @@ document.getElementById('edit_enviado').addEventListener('click', function(e) {
 
 function abrirConfirmacionFinal() {
     const seleccionados = document.querySelectorAll('input[name="exportar_ids[]"]:checked');
-    
+
     if (seleccionados.length === 0) {
-        alert("Por favor, selecciona al menos un alumno.");
+        document.getElementById('modalSinSeleccion').style.display = 'flex';
         return;
     }
 
     // Cerramos el selector y abrimos la confirmación
     document.getElementById('modalSeleccionarExportar').style.display = 'none';
     document.getElementById('modalConfirmarExportar').style.display = 'flex';
+}
+
+function seleccionarTodosExportar(master) {
+    document.querySelectorAll('#formExportar input[name="exportar_ids[]"]').forEach(cb => {
+        cb.checked = master.checked;
+    });
 }
 
 function mostrarErrorExportar(nombreAlumno, checkbox) {
