@@ -1,3 +1,6 @@
+<?php 
+// Vista/Admin/Components/Dashboard_Section.php
+?>
 <div class="flex flex-col items-center justify-center h-full py-10">
     <div class="text-center mb-12">
         <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Módulos del Sistema</h2>

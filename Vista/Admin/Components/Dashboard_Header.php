@@ -1,3 +1,6 @@
+<?php 
+// Vista/Admin/Components/Dashboard_Header.php
+?>
 <div class="pt-6 px-8 pb-6 border-b border-slate-100"> 
     <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0"> 

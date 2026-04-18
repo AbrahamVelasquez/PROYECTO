@@ -1,3 +1,6 @@
+<?php 
+// Vista/Admin/Sections/Tabla_Convenios.php
+?>
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 px-2">
     <div>
         <h2 class="text-3xl font-black text-slate-800 tracking-tight">Convenios de Empresa</h2>

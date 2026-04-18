@@ -1,3 +1,6 @@
+<?php 
+// Vista/Admin/Sections/Tabla_Convenios_Pendientes.php
+?>
 <div class="flex items-center justify-between mb-10 px-2">
     <div>
         <h2 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">Convenios Pendientes</h2>

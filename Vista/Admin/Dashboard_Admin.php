@@ -1,3 +1,6 @@
+<?php 
+// Vista/Admin/Dashboard_Admin.php
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
