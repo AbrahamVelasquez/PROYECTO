@@ -1,24 +1,9 @@
 <?php
 
-// Se puede aplicar
-
-class Tutores_Controlador {   
-
-    private $tutorModelo;
-    private $alumnoModelo;
-    private $convenioModelo;
-
-    public function __construct() {
-        $this->tutorModelo = new Tutores();
-        $this->alumnoModelo = new Alumnos();
-        $this->convenioModelo = new Convenios();
-    }
-
-}
-
 // Dentro de la función guardarNuevoConvenio(), en el caso sin sesión:
 //Cerrar ventana con tiempo despues de rellenar el formulario
-/*else {
+
+else {
     die('
         <script src="https://cdn.tailwindcss.com"></script>
         <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans text-slate-900">
@@ -49,6 +34,96 @@ class Tutores_Controlador {
             }, 5000);
         </script>
     ');
-}*/
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+// Ver porque en Controlador_Tutores esto no da error al js de los pasos
+
+    public function mostrarPanel() {
+        // --- PESTAÑA ACTIVA ---
+        $pestanaActiva = $_GET['tab'] ?? 1;
+
+        // --- GESTIÓN DE PERFIL DEL TUTOR ---
+        $tutorModelo = new Tutores();
+        $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
+
+        $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
+        $correoTutor = $perfil['email'] ?? '';
+        $telTutor = $perfil['telefono'] ?? '';
+        $cicloTutor = $perfil['nombre_ciclo'] ?? 'Sin Ciclo';
+        $cursoTutor = $perfil['nombre_curso'] ?? 'Sin Curso';
+        $idCicloTutor = $perfil['id_ciclo'] ?? 0;
+        $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
+
+        // --- GESTIÓN DE CONVENIOS ---
+        $convControlador = new Convenios_Controlador();
+        $data = $convControlador->gestionar();
+        
+        $convenios = $data['busqueda_convenio'];
+        $misConvenios = $data['favoritos'];
+        
+        // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
+        $convModelo = new Convenios();
+        $conveniosProceso = $convModelo->listarPendientesDeAprobacion($idCicloTutor);
+
+        // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
+        $busqueda = $_REQUEST['busqueda'] ?? '';
+        $estadoFiltro = $_REQUEST['estado'] ?? '';
+
+        $alumnoModelo = new Alumnos();
+        $ordenar = $_POST['ordenar'] ?? '';
+        $misConveniosIds = array_column($misConvenios, 'id_convenio');
+        $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
+        $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+
+        // --- CARGA DE VISTA ---
+        require_once 'Vista/Tutores/Dashboard_Tutores.php';
+    }
+
+// y la siguiente versión, con la uso de variables del constructor, si da
+
+    public function mostrarPanel() {
+        // --- PESTAÑA ACTIVA ---
+        $pestanaActiva = $_GET['tab'] ?? 1;
+
+        // --- GESTIÓN DE PERFIL DEL TUTOR ---
+        // $tutorModelo = new Tutores(); // <-- ESTO YA NO ES NECESARIO
+        $perfil = $this->tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
+
+        $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
+        $correoTutor = $perfil['email'] ?? '';
+        $telTutor = $perfil['telefono'] ?? '';
+        $cicloTutor = $perfil['nombre_ciclo'] ?? 'Sin Ciclo';
+        $cursoTutor = $perfil['nombre_curso'] ?? 'Sin Curso';
+        $idCicloTutor = $perfil['id_ciclo'] ?? 0;
+        $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
+
+        // --- GESTIÓN DE CONVENIOS ---
+        // $convControlador = new Convenios_Controlador(); // <-- ESTO YA NO ES NECESARIO
+        $data = $this->convControlador->gestionar();
+        
+        $convenios = $data['busqueda_convenio'];
+        $misConvenios = $data['favoritos'];
+        
+        // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
+        // $convModelo = new Convenios(); // <-- ESTO YA NO ES NECESARIO
+        $conveniosProceso = $this->convModelo->listarPendientesDeAprobacion($idCicloTutor);
+
+        // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
+        $busqueda = $_REQUEST['busqueda'] ?? '';
+        $estadoFiltro = $_REQUEST['estado'] ?? '';
+
+        // $alumnoModelo = new Alumnos(); // <-- ESTO YA NO ES NECESARIO
+        $ordenar = $_POST['ordenar'] ?? '';
+        $misConveniosIds = array_column($misConvenios, 'id_convenio');
+        $alumnos = $this->alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
+        $alumnosFirmados = $this->alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+
+        // --- CARGA DE VISTA ---
+        require_once 'Vista/Tutores/Dashboard_Tutores.php';
+    }
+
+
 ?>
 

@@ -23,13 +23,16 @@ class Tutores_Controlador {
         $this->convControlador = new Convenios_Controlador();
     }
 
+    // Si bien ya existen las variables en el constructor,
+    // por alguna razón se cambiaron y daba error al Javascript
+    // de cambiar de de paso "Steps". Por ende, se decidió 
     public function mostrarPanel() {
         // --- PESTAÑA ACTIVA ---
         $pestanaActiva = $_GET['tab'] ?? 1;
 
         // --- GESTIÓN DE PERFIL DEL TUTOR ---
-        // $tutorModelo = new Tutores(); // <-- ESTO YA NO ES NECESARIO
-        $perfil = $this->tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
+        $tutorModelo = new Tutores();
+        $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
 
         $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
         $correoTutor = $perfil['email'] ?? '';
@@ -40,25 +43,25 @@ class Tutores_Controlador {
         $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
 
         // --- GESTIÓN DE CONVENIOS ---
-        // $convControlador = new Convenios_Controlador(); // <-- ESTO YA NO ES NECESARIO
-        $data = $this->convControlador->gestionar();
+        $convControlador = new Convenios_Controlador();
+        $data = $convControlador->gestionar();
         
         $convenios = $data['busqueda_convenio'];
         $misConvenios = $data['favoritos'];
         
         // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
-        // $convModelo = new Convenios(); // <-- ESTO YA NO ES NECESARIO
-        $conveniosProceso = $this->convModelo->listarPendientesDeAprobacion($idCicloTutor);
+        $convModelo = new Convenios();
+        $conveniosProceso = $convModelo->listarPendientesDeAprobacion($idCicloTutor);
 
         // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
         $busqueda = $_REQUEST['busqueda'] ?? '';
         $estadoFiltro = $_REQUEST['estado'] ?? '';
 
-        // $alumnoModelo = new Alumnos(); // <-- ESTO YA NO ES NECESARIO
+        $alumnoModelo = new Alumnos();
         $ordenar = $_POST['ordenar'] ?? '';
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
-        $alumnos = $this->alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
-        $alumnosFirmados = $this->alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+        $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
+        $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
 
         // --- CARGA DE VISTA ---
         require_once 'Vista/Tutores/Dashboard_Tutores.php';
