@@ -5,14 +5,22 @@
 require_once 'Controlador/Controlador_Convenios.php';
 require_once 'Modelo/Tutores.php';
 require_once 'Modelo/Alumnos.php';
+require_once 'Modelo/Convenios.php'; // Añadido para que funcione el objeto Convenios
 
 class Tutores_Controlador {
 
+    // --- VARIABLES DE CLASE (Propiedades) ---
     private $alumnoModelo;
+    private $tutorModelo;
+    private $convModelo;
+    private $convControlador;
 
     public function __construct() {
-        // Asegúrate de que el nombre de la clase sea el correcto
+        // Inicializamos los objetos una sola vez para evitar errores de "null"
         $this->alumnoModelo = new Alumnos(); 
+        $this->tutorModelo = new Tutores();
+        $this->convModelo = new Convenios();
+        $this->convControlador = new Convenios_Controlador();
     }
 
     public function mostrarPanel() {
@@ -20,8 +28,8 @@ class Tutores_Controlador {
         $pestanaActiva = $_GET['tab'] ?? 1;
 
         // --- GESTIÓN DE PERFIL DEL TUTOR ---
-        $tutorModelo = new Tutores();
-        $perfil = $tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
+        // $tutorModelo = new Tutores(); // <-- ESTO YA NO ES NECESARIO
+        $perfil = $this->tutorModelo->obtenerDatosPerfil($_SESSION['usuario']);
 
         $nombreTutor = $perfil ? ($perfil['nombre'] . " " . $perfil['apellidos']) : $_SESSION['usuario'];
         $correoTutor = $perfil['email'] ?? '';
@@ -32,25 +40,25 @@ class Tutores_Controlador {
         $_SESSION['id_ciclo'] = $idCicloTutor; // Aseguramos que el ID esté en sesión para el registro
 
         // --- GESTIÓN DE CONVENIOS ---
-        $convControlador = new Convenios_Controlador();
-        $data = $convControlador->gestionar();
+        // $convControlador = new Convenios_Controlador(); // <-- ESTO YA NO ES NECESARIO
+        $data = $this->convControlador->gestionar();
         
         $convenios = $data['busqueda_convenio'];
         $misConvenios = $data['favoritos'];
         
         // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
-        $convModelo = new Convenios();
-        $conveniosProceso = $convModelo->listarPendientesDeAprobacion($idCicloTutor);
+        // $convModelo = new Convenios(); // <-- ESTO YA NO ES NECESARIO
+        $conveniosProceso = $this->convModelo->listarPendientesDeAprobacion($idCicloTutor);
 
         // --- RESTO DEL CÓDIGO (Alumnos, etc.) ---
         $busqueda = $_REQUEST['busqueda'] ?? '';
         $estadoFiltro = $_REQUEST['estado'] ?? '';
 
-        $alumnoModelo = new Alumnos();
+        // $alumnoModelo = new Alumnos(); // <-- ESTO YA NO ES NECESARIO
         $ordenar = $_POST['ordenar'] ?? '';
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
-        $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
-        $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+        $alumnos = $this->alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
+        $alumnosFirmados = $this->alumnoModelo->listarAlumnosFirmados($idCicloTutor);
 
         // --- CARGA DE VISTA ---
         require_once 'Vista/Tutores/Dashboard_Tutores.php';
@@ -62,13 +70,13 @@ class Tutores_Controlador {
         }
 
         $idCiclo = $_SESSION['id_ciclo'];
-        $alumnoModelo = new Alumnos();
+        // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
 
         // Capturamos años si vinieran del formulario, si no, el modelo pondrá los actuales
         $anioInicio = $_POST['anio_inicio'] ?? date('Y');
         $anioFin = $_POST['anio_fin'] ?? (date('Y') + 1);
 
-        $resultado = $alumnoModelo->agregarAlumno(
+        $resultado = $this->alumnoModelo->agregarAlumno(
             trim($_POST['nombre']),
             trim($_POST['apellido1']),
             trim($_POST['apellido2'] ?? ''),
@@ -88,20 +96,19 @@ class Tutores_Controlador {
         }
     }
 
-        
     public function obtenerAlumno() {
-        $alumnoModelo = new Alumnos();
+        // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
 
         if (isset($_POST['verificar_firma'])) {
             $idAsig = (int)$_POST['id_asignacion'];
-            $yaFirmado = $alumnoModelo->comprobarFirmaExistente($idAsig);
+            $yaFirmado = $this->alumnoModelo->comprobarFirmaExistente($idAsig);
             header('Content-Type: application/json');
             echo json_encode(['yaFirmado' => $yaFirmado]);
             exit();
         }
 
         $idAlumno = isset($_POST['id_alumno']) ? (int)$_POST['id_alumno'] : 0;
-        $alumno = $alumnoModelo->obtenerPorId($idAlumno);
+        $alumno = $this->alumnoModelo->obtenerPorId($idAlumno);
 
         header('Content-Type: application/json');
         
@@ -109,7 +116,7 @@ class Tutores_Controlador {
             echo json_encode(['error' => 'Alumno no encontrado', 'id_recibido' => $idAlumno]);
         } else {
             // --- Verificar si ya está firmado ---
-            $alumno['yaFirmado'] = $alumnoModelo->comprobarFirmaExistente($alumno['id_asignacion'] ?? 0);
+            $alumno['yaFirmado'] = $this->alumnoModelo->comprobarFirmaExistente($alumno['id_asignacion'] ?? 0);
             // -------------------------------------------------------
             echo json_encode($alumno);
         }
@@ -117,15 +124,15 @@ class Tutores_Controlador {
     }
 
     public function editarAlumno() {
-        $alumnoModelo = new Alumnos();
+        // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
 
         $idAlumno = $_POST['id_alumno'];
         $idConvenio = $_POST['id_convenio'];
         $enviado = isset($_POST['enviado']) ? 1 : 0;
 
         if (empty($idConvenio)) {
-            $alumnoModelo->eliminarAsignacion($idAlumno);
-            $alumnoModelo->actualizarDatosBasicos(
+            $this->alumnoModelo->eliminarAsignacion($idAlumno);
+            $this->alumnoModelo->actualizarDatosBasicos(
                 $idAlumno,
                 trim($_POST['nombre']),
                 trim($_POST['apellido1']),
@@ -140,7 +147,7 @@ class Tutores_Controlador {
         }
 
         // Lógica normal de edición
-        $alumnoModelo->editarAlumno(
+        $this->alumnoModelo->editarAlumno(
             $idAlumno,
             trim($_POST['nombre']),
             trim($_POST['apellido1']),
@@ -167,11 +174,11 @@ class Tutores_Controlador {
     public function exportarAlumnos() {
         // Verificamos si llegan IDs por POST
         if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
-            $alumnoModelo = new Alumnos();
+            // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
 
             foreach ($_POST['exportar_ids'] as $idAlumno) {
                 // Importante: castear a int para seguridad
-                $alumnoModelo->marcarComoEnviado((int)$idAlumno);
+                $this->alumnoModelo->marcarComoEnviado((int)$idAlumno);
             }
 
             // Redirigimos para ver los cambios
@@ -192,8 +199,8 @@ class Tutores_Controlador {
             // Doble check de seguridad
             if ($enviado === 1) {
                 // No necesitas require_once de nuevo porque ya está arriba en el fichero
-                $alumnoModelo = new Alumnos(); 
-                $resultado = $alumnoModelo->firmarAsignacion($idAsig);
+                // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
+                $resultado = $this->alumnoModelo->firmarAsignacion($idAsig);
                 
                 if ($resultado) {
                     header("Location: index.php?tab=2&res=firmado_ok");
@@ -212,8 +219,8 @@ class Tutores_Controlador {
         $idAlumno = $_REQUEST['id_alumno'] ?? null;
 
         if ($idAlumno) {
-            $modelo = new Alumnos();
-            $resultado = $modelo->devolverAlumnoAEnvio($idAlumno);
+            // $modelo = new Alumnos(); // <-- ELIMINADO
+            $resultado = $this->alumnoModelo->devolverAlumnoAEnvio($idAlumno);
 
             if ($resultado) {
                 header("Location: index.php?controlador=Tutores&accion=mostrarPanel&tab=3&res=devuelto_ok");
@@ -254,27 +261,24 @@ class Tutores_Controlador {
     }
 
     public function guardarNuevoConvenio() {
-        $convControlador = new Convenios_Controlador();
         // Llamamos al método que creamos en el controlador de convenios
-        $convControlador->guardarNuevoConvenioPendiente();
+        $this->convControlador->guardarNuevoConvenioPendiente();
     }
 
     public function aprobarNuevo() {
-        $convControlador = new Convenios_Controlador();
-        $convControlador->aprobarNuevo();
+        $this->convControlador->aprobarNuevo();
     }
 
     public function editarConvenioNuevo() {
-        $convControlador = new Convenios_Controlador();
         // Llamamos al método que procesa la edición en el controlador de convenios
-        $convControlador->editarConvenioNuevo();
+        $this->convControlador->editarConvenioNuevo();
     }
 
     public function eliminarConvenioNuevo() {
         $id = $_POST['id_convenio_nuevo'] ?? null;
         if ($id) {
-            $convModelo = new Convenios();
-            $exito = $convModelo->eliminarConvenioNuevo($id);
+            // $convModelo = new Convenios(); // <-- ELIMINADO
+            $exito = $this->convModelo->eliminarConvenioNuevo($id);
             
             if ($exito) {
                 $_SESSION['mensaje_exito'] = "Solicitud eliminada correctamente.";

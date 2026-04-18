@@ -9,6 +9,7 @@ class Admin_Controlador {
     private $admin; 
 
     public function __construct() {
+        // Inicializamos el modelo una sola vez para usarlo en todos los métodos
         $this->admin = new Admin();
     }
 
@@ -24,8 +25,8 @@ class Admin_Controlador {
         $ordenar = $_POST['ordenar'] ?? 'id';
         $filtro_curso = $_POST['filtro_curso'] ?? '';
 
-        $admin = new Admin();
-        $tutores = $admin->obtenerTutores($busqueda, $ordenar, $filtro_curso);
+        // $admin = new Admin(); // <-- ELIMINADO: Ya usamos $this->admin
+        $tutores = $this->admin->obtenerTutores($busqueda, $ordenar, $filtro_curso);
         $ciclosLibres = $this->admin->obtenerCiclosLibres(); // <--- Preparar aquí
         $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
 
@@ -45,8 +46,8 @@ class Admin_Controlador {
                 'id_ciclo'  => $_POST['id_ciclo'] ?? ''
             ];
 
-            $admin = new Admin();
-            $admin->guardarTutor($datos);
+            // $admin = new Admin(); // <-- ELIMINADO
+            $this->admin->guardarTutor($datos);
         }
         
         // Al terminar, volvemos a la tabla
@@ -64,8 +65,8 @@ class Admin_Controlador {
                 'id_ciclo'  => $_POST['id_ciclo']
             ];
             
-            $admin = new Admin();
-            $admin->actualizarTutor($datos);
+            // $admin = new Admin(); // <-- ELIMINADO
+            $this->admin->actualizarTutor($datos);
         }
         $this->mostrarTutores();
     }
@@ -173,7 +174,7 @@ class Admin_Controlador {
             ];
 
             // 1. Instanciamos el modelo si no está disponible globalmente
-            // $admin = new Admin(); 
+            // $admin = new Admin(); // <-- ELIMINADO: Ya usamos $this->admin
 
             // 2. Actualizamos la tabla 'convenios' (la oficial)
             $this->admin->actualizarConvenio($id_convenio, $datosActualizados);
@@ -204,3 +205,5 @@ class Admin_Controlador {
     }
 
 } // Llave de la clase
+
+?>
