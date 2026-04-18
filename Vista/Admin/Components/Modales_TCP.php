@@ -135,7 +135,7 @@
             <p class="text-slate-500 text-sm">Los datos se han actualizado correctamente en el borrador.</p>
         </div>
         <div class="flex border-t border-slate-100 p-4 gap-3 bg-slate-50/50">
-            <button onclick="cerrarTodoYRecargar()" class="flex-1 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-all">Salir a la tabla</button>
+            <button onclick="cerrarTodoYRecargar()" class="flex-1 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-all">Volver a la tabla</button>
             <button onclick="ocultarModalExito()" class="flex-1 py-3 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all">Seguir Editando</button>
         </div>
     </div>

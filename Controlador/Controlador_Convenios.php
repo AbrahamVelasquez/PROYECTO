@@ -21,20 +21,31 @@ class Convenios_Controlador {
         $id_tutor_actual = $_SESSION['id_tutor']; 
         $id_ciclo_actual = $_SESSION['id_ciclo'] ?? null; 
         
+        // Recogemos la búsqueda priorizando POST (el nuevo método)
+        // Pero mantenemos GET por si viniera de alguna redirección antigua
+        $terminoBusqueda = $_POST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
+        
         $resultadosBusqueda = [];
 
         // Lógica para AÑADIR A FAVORITOS
         if (isset($_POST['btnFavorito'])) {
             $resultado = $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
             
-            // Si es duplicado, guardamos en la sesión
             if ($resultado === "duplicado") {
                 $_SESSION['error_duplicado'] = true;
             }
 
-            // Redirección limpia (sin parámetros de error en la URL)
-            header("Location: index.php?tab=1&busqueda=" . urlencode($_GET['busqueda'] ?? ''));
+            // Redirigimos. NOTA: Ya no enviamos la búsqueda por la URL en el header
+            // porque la pasaremos por POST en el siguiente ciclo o se perderá.
+            // Si quieres que se mantenga tras añadir, lo mejor es usar la sesión 
+            // o procesar sin redirigir.
+            header("Location: index.php?tab=1"); 
             exit();
+        }
+
+        // BUSQUEDA DE CONVENIOS
+        if (trim($terminoBusqueda) !== '') {
+            $resultadosBusqueda = $this->convenio->buscar($terminoBusqueda);
         }
 
         // LÓGICA PARA ELIMINAR DE FAVORITOS
@@ -42,7 +53,8 @@ class Convenios_Controlador {
             $idConvenio = $_POST['id_convenio_eliminar'];
             $id_ciclo_actual = $_SESSION['id_ciclo']; // <--- Importante tener esto aquí
             
-            $url = "index.php?tab=1" . (!empty($_GET['busqueda']) ? "&busqueda=" . urlencode($_GET['busqueda']) : "");
+            // Limpiamos la URL para que sea POST puro (sin busqueda en el GET)
+            $url = "index.php?tab=1";
 
             // Ahora pasamos ambos parámetros
             if ($this->convenio->estaEnUso($idConvenio, $id_ciclo_actual)) {
@@ -52,11 +64,6 @@ class Convenios_Controlador {
             }
             header("Location: " . $url);
             exit();
-        }
-
-        // BUSQUEDA DE CONVENIOS OFICIALES
-        if (isset($_GET['busqueda']) && trim($_GET['busqueda']) !== '') {
-            $resultadosBusqueda = $this->convenio->buscar($_GET['busqueda']);
         }
 
         // OBTENER FAVORITOS
@@ -69,7 +76,7 @@ class Convenios_Controlador {
         }
 
         return [
-            'busqueda' => $resultadosBusqueda, 
+            'busqueda_convenio' => $resultadosBusqueda, 
             'favoritos' => $misFavoritos,
             'proceso'   => $conveniosProceso 
         ];

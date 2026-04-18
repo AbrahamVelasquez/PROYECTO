@@ -91,7 +91,7 @@
                                 '<?= addslashes($al['nombre_ciclo'] ?? '') ?>',
                                 '<?= $al['id_curso'] ?>',
                                 '<?= $al['id_ciclo'] ?>',
-                                '<?= addslashes($nombreTutor ?? 'Tutor No Definido') ?>',
+                                '<?= addslashes($nombreTutor ?? '') ?>',
                                 '<?= addslashes($correoTutor ?? '') ?>',
                                 '<?= addslashes($telTutor ?? '') ?>',
                                 '<?= $al['anio_inicio'] ?? '' ?>',

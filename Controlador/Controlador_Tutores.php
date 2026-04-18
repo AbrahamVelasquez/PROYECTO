@@ -8,6 +8,13 @@ require_once 'Modelo/Alumnos.php';
 
 class Tutores_Controlador {
 
+    private $alumnoModelo;
+
+    public function __construct() {
+        // Asegúrate de que el nombre de la clase sea el correcto
+        $this->alumnoModelo = new Alumnos(); 
+    }
+
     public function mostrarPanel() {
         // --- PESTAÑA ACTIVA ---
         $pestanaActiva = $_GET['tab'] ?? 1;
@@ -28,7 +35,7 @@ class Tutores_Controlador {
         $convControlador = new Convenios_Controlador();
         $data = $convControlador->gestionar();
         
-        $convenios = $data['busqueda'];
+        $convenios = $data['busqueda_convenio'];
         $misConvenios = $data['favoritos'];
         
         // REGLA: Solo mostramos los convenios nuevos que NO estén en la tabla de aprobados
@@ -220,35 +227,30 @@ class Tutores_Controlador {
     }
 
     public function marcarComoExportado() {
-        // Limpiamos cualquier salida previa para asegurar un JSON puro
-        if (ob_get_level()) ob_end_clean(); 
+        // 1. Limpiar cualquier salida previa (evita el error de "position 1")
+        if (ob_get_length()) ob_clean();
+        
         header('Content-Type: application/json');
 
-        $id = filter_input(INPUT_POST, 'id_asignacion', FILTER_VALIDATE_INT);
-        $response = ['success' => false];
+        try {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_asignacion'])) {
+                $idAsignacion = intval($_POST['id_asignacion']);
+                
+                // Pasamos todo el $_POST al modelo
+                $resultado = $this->alumnoModelo->actualizarTodoYExportar($idAsignacion, $_POST);
 
-        if ($id) {
-            try {
-                require_once __DIR__ . '/../Modelo/Alumnos.php';
-                $modelo = new Alumnos(); 
-                
-                $resultado = $modelo->actualizarEstadoExportacion($id, 1);
-                
-                if ($resultado === true) {
-                    $response['success'] = true;
+                if ($resultado) {
+                    echo json_encode(['success' => true]);
                 } else {
-                    // Si el modelo devuelve un array con error, lo capturamos
-                    $response['error'] = is_array($resultado) ? $resultado['error'] : "No se encontró el registro o ya está exportado";
+                    echo json_encode(['success' => false, 'error' => 'No se pudo actualizar la base de datos']);
                 }
-            } catch (Exception $e) {
-                $response['error'] = "Excepción: " . $e->getMessage();
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Faltan parámetros']);
             }
-        } else {
-            $response['error'] = "ID de asignación no válido o ausente";
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
-
-        echo json_encode($response);
-        exit;
+        exit(); // Importante para que no se imprima nada más después
     }
 
     public function guardarNuevoConvenio() {

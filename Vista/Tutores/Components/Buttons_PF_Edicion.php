@@ -42,30 +42,67 @@ window.exportarYMarcar = async function(idAsignacion) {
         return;
     }
 
+    // 1. Recolectar todos los datos del formulario de edición
+    const formData = new URLSearchParams();
+    formData.append('id_asignacion', idDefinitivo);
+    
+    // Mapeo de los campos del formulario (IDs de los inputs en PF_Edicion.php)
+    const campos = {
+        'regimen': 'edit_regimen',
+        'fecha_plan': 'edit_fecha_plan',
+        'anio_inicio': 'edit_anio_inicio',
+        'anio_fin': 'edit_anio_fin',
+        'curso_selector': 'edit_curso_selector',
+        'nombre_ciclo': 'edit_nombre_ciclo',
+        'codigo_ciclo': 'edit_codigo_ciclo',
+        'email_alumno': 'edit_email_alumno',
+        'tel_alumno': 'edit_tel_alumno',
+        'centro_nombre': 'edit_centro_nombre',
+        'centro_correo': 'edit_centro_correo',
+        'centro_tel': 'edit_centro_tel',
+        'nombre_empresa': 'edit_nombre_empresa',
+        'nif_empresa': 'edit_nif_empresa',
+        'email_empresa': 'edit_email_empresa',
+        'tel_empresa': 'edit_tel_empresa',
+        'tutor_empresa': 'edit_tutor_empresa',
+        'email_tutor_emp': 'edit_email_tutor_emp',
+        'tel_tutor_emp': 'edit_tel_tutor_emp'
+    };
+
+    // Añadir cada valor al formData si el elemento existe
+    for (const [key, id] of Object.entries(campos)) {
+        const el = document.getElementById(id);
+        if (el) formData.append(key, el.value);
+    }
+
     try {
         const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id_asignacion=${encodeURIComponent(idDefinitivo)}`
+            body: formData.toString()
         });
 
         const textoBruto = await res.text();
-        // Buscamos el JSON dentro del texto por si PHP soltó algún warning invisible
-        const inicioJson = textoBruto.indexOf('{');
-        const finJson = textoBruto.lastIndexOf('}') + 1;
-        const jsonLimpio = textoBruto.substring(inicioJson, finJson);
+        console.log("Respuesta del servidor:", textoBruto); // Revisa esto en la consola F12
 
+        // Buscamos donde empieza el JSON real
+        const inicioJson = textoBruto.indexOf('{');
+        if (inicioJson === -1) {
+            throw new Error("El servidor no devolvió un JSON válido: " + textoBruto);
+        }
+        
+        const jsonLimpio = textoBruto.substring(inicioJson, textoBruto.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonLimpio);
 
         if (data.success) {
-            // ÉXITO: Redirigimos al panel con la pestaña 3 activa
+            // En lugar de alert, redirigimos directamente si todo fue bien
             window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
         } else {
-            alert("No se pudo actualizar la base de datos. Verifica si el ID " + idDefinitivo + " existe.");
+            alert("Error: " + (data.error || "No se pudo guardar."));
         }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Error de comunicación. Revisa la consola.");
+        console.error("Error crítico:", error);
+        alert("Hubo un problema al conectar con el servidor. Revisa la consola.");
     }
 };
 </script>

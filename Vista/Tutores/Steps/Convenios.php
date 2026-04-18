@@ -28,14 +28,14 @@
     </div>
 </div>
 
-<form action="index.php" method="GET" class="flex gap-3 w-full mb-10">
-    <input type="text" name="busqueda" value="<?= htmlspecialchars($_GET['busqueda'] ?? '') ?>" 
+<form action="index.php" method="POST" class="flex gap-3 w-full mb-10">
+    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>" 
         placeholder="CIF O NOMBRE DE EMPRESA..." 
         class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all">
     <button type="submit" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg cursor-pointer">Buscar</button>
 </form>
 
-<?php if (isset($_GET['busqueda']) && trim($_GET['busqueda']) !== ''): ?>
+<?php if (isset($_POST['busqueda_convenio']) && trim($_POST['busqueda_convenio']) !== ''): ?>
     <div class="mb-10">
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Resultados de la búsqueda</h3>
         <div class="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
@@ -65,14 +65,20 @@
                             </td>
                             <td class="px-4 py-5 text-sm font-bold text-slate-500 uppercase"><?= $c['nombre_representante'] ?></td>
                             <td class="px-4 py-5 text-center">
-                                <form action="index.php?busqueda=<?= urlencode($_GET['busqueda']) ?>" method="POST">
+                                <form action="index.php" method="POST">
                                     <input type="hidden" name="id_convenio_fav" value="<?= $c['id_convenio'] ?>">
-                                    <button type="submit" name="btnFavorito" class="px-4 py-2 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase hover:bg-orange-600 hover:text-white transition-all cursor-pointer">⭐ Añadir</button>
+                                    
+                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                    
+                                    <button type="submit" name="btnFavorito" 
+                                            class="px-4 py-2 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase hover:bg-orange-600 hover:text-white transition-all cursor-pointer">
+                                        ⭐ Añadir
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_GET['busqueda']) ?>".</td></tr>
+                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_POST['busqueda_convenio']) ?>".</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -97,12 +103,13 @@
                             <div class="text-xs text-slate-400 font-bold"><?= $mc['municipio'] ?></div>
                         </td>
                         <td class="px-6 py-5 text-center">
-                            <?php 
-                                $urlDestino = "index.php";
-                                if(!empty($_GET['busqueda'])) $urlDestino .= "?busqueda=".urlencode($_GET['busqueda']);
-                            ?>
-                            <form action="<?= $urlDestino ?>" method="POST" class="flex justify-center">
+                            <form action="index.php" method="POST" class="flex justify-center">
                                 <input type="hidden" name="id_convenio_eliminar" value="<?= $mc['id_convenio'] ?>">
+                                
+                                <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                
+                                <input type="hidden" name="btnEliminarFav" value="1">
+
                                 <button type="button" onclick="abrirConfirmarEliminar(<?= $mc['id_convenio'] ?>, '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
                                         class="group flex items-center gap-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all border border-red-100 shadow-sm cursor-pointer">
                                     <span class="text-[10px] font-black uppercase">Eliminar</span>
@@ -163,7 +170,7 @@
                                 <form action="index.php" method="POST" class="flex justify-center">
                                     <input type="hidden" name="accion" value="aprobarNuevo">
                                     <input type="hidden" name="id_convenio_nuevo" value="<?= $convP['id_convenio_nuevo'] ?>">
-                                    
+                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
                                     <button type="button" 
                                             onclick="abrirConfirmarAprobar('<?= $convP['id_convenio_nuevo'] ?>', '<?= addslashes($convP['nombre_empresa']) ?>')"
                                             class="group flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-5 py-2.5 rounded-xl transition-all border border-emerald-100 shadow-sm hover:shadow-emerald-200 cursor-pointer active:scale-95">

@@ -364,20 +364,43 @@ class Alumnos {
         }
     }
 
-    public function actualizarEstadoExportacion($idAsignacion, $estado) {
-        try {
-            $sql = "UPDATE asignaciones_firmadas SET exportado = ? WHERE id_asignacion = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$estado, $idAsignacion]);
-            
-            // Esto nos dirá si realmente encontró el ID y cambió algo
-            return $stmt->rowCount() > 0; 
-        } catch (Exception $e) {
-            // Si hay un error de SQL (columna inexistente, etc), lo capturamos aquí
-            return ["error" => $e->getMessage()];
-        }
-    }
+    public function actualizarTodoYExportar($idAsignacion, $datos) {
+    try {
+        $this->conn->beginTransaction();
 
+        // 1. Obtener IDs relacionados
+        $stmt = $this->conn->prepare("SELECT id_alumno, id_convenio FROM asignaciones WHERE id_asignacion = ?");
+        $stmt->execute([$idAsignacion]);
+        $relaciones = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$relaciones) return false;
+
+        $idAlu = $relaciones['id_alumno'];
+        $idConv = $relaciones['id_convenio'];
+
+        // 2. Actualizar ALUMNOS (Usando tus nombres: correo, telefono)
+        $sqlAlu = "UPDATE alumnos SET correo = ?, telefono = ? WHERE id_alumno = ?";
+        $this->conn->prepare($sqlAlu)->execute([$datos['email_alumno'], $datos['tel_alumno'], $idAlu]);
+
+        // 3. Actualizar CONVENIOS (Usando tus nombres: nombre_empresa, cif, mail, telefono)
+        $sqlConv = "UPDATE convenios SET nombre_empresa = ?, cif = ?, mail = ?, telefono = ? WHERE id_convenio = ?";
+        $this->conn->prepare($sqlConv)->execute([$datos['nombre_empresa'], $datos['nif_empresa'], $datos['email_empresa'], $datos['tel_empresa'], $idConv]);
+
+        // 4. Actualizar ASIGNACIONES (Tutor empresa)
+        $sqlAsig = "UPDATE asignaciones SET nombre_tutor_empresa = ?, correo_tutor_empresa = ?, tel_tutor_empresa = ? WHERE id_asignacion = ?";
+        $this->conn->prepare($sqlAsig)->execute([$datos['tutor_empresa'], $datos['email_tutor_emp'], $datos['tel_tutor_emp'], $idAsignacion]);
+
+        // 5. Marcar como exportado
+        $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1 WHERE id_asignacion = ?";
+        $this->conn->prepare($sqlExp)->execute([$idAsignacion]);
+
+        $this->conn->commit();
+        return true;
+    } catch (Exception $e) {
+        if ($this->conn->inTransaction()) $this->conn->rollBack();
+        return false;
+    }
+}
 } // Llave de la clase
 
 ?>
