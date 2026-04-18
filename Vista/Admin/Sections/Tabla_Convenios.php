@@ -1,5 +1,12 @@
 <?php 
+
 // Vista/Admin/Sections/Tabla_Convenios.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
 ?>
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 px-2">
     <div>

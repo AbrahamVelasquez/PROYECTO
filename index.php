@@ -1,6 +1,10 @@
 <?php
 
+// Inicia
 session_start();
+
+// Definimos la ruta raíz para efectos del Login
+define('ROOT_PATH', __DIR__ . '/');
 
 // 1. GESTIÓN DE LOGOUT
 if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
@@ -49,8 +53,14 @@ else if (!empty($_REQUEST['btnLogIn'])) {
     $user->validarUsuario();
 }
 
-// 4. PANTALLA INICIAL
+// 4. PANTALLA INICIAL O REDIRECCIÓN
 else {
+    if (isset($_SESSION['usuario'])) {
+        // Si por algún motivo llegamos aquí pero hay sesión, 
+        // recargamos para que entre en la Sección 2
+        header("Location: index.php");
+        exit();
+    }
     require_once './Vista/Login.php';
     exit();
 }

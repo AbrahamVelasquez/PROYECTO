@@ -1,5 +1,12 @@
 <?php 
+
 // Vista/Admin/Components/Dashboard_Header.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
 ?>
 <div class="pt-6 px-8 pb-6 border-b border-slate-100"> 
     <div class="flex justify-between items-start">

@@ -1,13 +1,19 @@
 <?php 
-  // Preparamos la URL completa (ajusta la base si es necesario)
-  $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-  $host = $_SERVER['HTTP_HOST'];
-  $id_ciclo = $_SESSION['id_ciclo'] ?? '';
-  $urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
+
+// Vista/Tutores/Steps/Convenios.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+// Preparamos la URL completa (ajusta la base si es necesario)
+$protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$id_ciclo = $_SESSION['id_ciclo'] ?? '';
+$urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
+
 ?>
-
-
-
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold flex items-center gap-3">🏢 Gestión de Convenios</h2>
     
@@ -194,28 +200,27 @@
 </div>
 
 <script>
-    //CAPI AQUI ESTA EL SCRIPT
-function copiarUrlRegistro(url, elemento) {
-    // Copiar al portapapeles
-    navigator.clipboard.writeText(url).then(() => {
-        const span = elemento.querySelector('#btn-text');
-        const originalText = span.innerText;
-        
-        // Feedback visual
-        span.innerText = '¡COPIADO!';
-        elemento.classList.remove('bg-slate-100', 'text-slate-600');
-        elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
-        
-        // Revertir después de 2 segundos
-        setTimeout(() => {
-            span.innerText = originalText;
-            elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
-            elemento.classList.add('bg-slate-100', 'text-slate-600');
-        }, 2000);
-    }).catch(err => {
-        console.error('Error al copiar: ', err);
-    });
-}
+    function copiarUrlRegistro(url, elemento) {
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(url).then(() => {
+            const span = elemento.querySelector('#btn-text');
+            const originalText = span.innerText;
+            
+            // Feedback visual
+            span.innerText = '¡COPIADO!';
+            elemento.classList.remove('bg-slate-100', 'text-slate-600');
+            elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+            
+            // Revertir después de 2 segundos
+            setTimeout(() => {
+                span.innerText = originalText;
+                elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
+                elemento.classList.add('bg-slate-100', 'text-slate-600');
+            }, 2000);
+        }).catch(err => {
+            console.error('Error al copiar: ', err);
+        });
+    }
 </script>
 
 <?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

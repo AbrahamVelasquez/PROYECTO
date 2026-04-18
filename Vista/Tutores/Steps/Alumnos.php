@@ -1,8 +1,16 @@
 <?php 
+
+// Vista/Tutores/Steps/Alumnos.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
 // Incluimos el Header (Título y Filtros)
 include __DIR__ . '/../Components/Header_Alumnos.php'; 
-?>
 
+?>
 <style>
     [data-tooltip] {
         position: relative;

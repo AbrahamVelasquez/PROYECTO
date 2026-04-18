@@ -1,5 +1,12 @@
-<?php 
+<?php
+
 // Vista/Admin/Components/Modales_TC.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
 ?>
 <div id="modalEliminarConvenio" style="display:none" class="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">

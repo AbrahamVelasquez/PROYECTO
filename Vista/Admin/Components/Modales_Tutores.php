@@ -1,5 +1,12 @@
 <?php 
+
 // Vista/Admin/Components/Modales_Tutores.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
 ?>
 <div id="modalConfirmarEliminar" style="display:none" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100" onclick="event.stopPropagation()">

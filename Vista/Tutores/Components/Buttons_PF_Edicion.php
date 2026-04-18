@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/Buttons_PF_Edicion.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div class="pt-8 border-t border-slate-100 flex flex-wrap gap-4 justify-between items-center">
     <button type="button" onclick="volverALista()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-[10px] transition-all uppercase tracking-widest cursor-pointer border border-slate-200">
         ← VOLVER AL LISTADO

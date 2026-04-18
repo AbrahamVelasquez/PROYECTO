@@ -1,5 +1,12 @@
 <?php 
+
 // Vista/Admin/Sections/Tabla_Convenios_Pendientes.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
 ?>
 <div class="flex items-center justify-between mb-10 px-2">
     <div>
