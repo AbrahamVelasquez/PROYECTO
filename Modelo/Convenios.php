@@ -2,7 +2,7 @@
 
 // Modelo/Convenios.php
 
-require_once "./Core/Conexion.php"; 
+require_once __DIR__ . '/../Core/Conexion.php'; 
 
 class Convenios {
     private $conn; 

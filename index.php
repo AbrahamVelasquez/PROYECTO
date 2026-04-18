@@ -7,19 +7,6 @@ if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
     require_once 'Controlador/Logout.php';
     exit();
 }
-/**
- * 2.5 PROCESO DE REGISTRO EXTERNO (NUEVA LÓGICA)
- * Si el formulario envía 'guardarNuevoConvenio', procesamos sin obligar a tener sesión
- */
-else if (isset($_REQUEST['accion']) && $_REQUEST['accion'] === 'guardarNuevoConvenio') {
-    // Cargamos el controlador de Tutores que es donde reside la lógica de convenios
-    require_once 'Controlador/Controlador_Tutores.php';
-    $controlador = new Tutores_Controlador();
-    
-    // Ejecutamos la acción de guardado
-    $controlador->guardarNuevoConvenio();
-    exit(); 
-}
 
 // 2. SESIÓN ACTIVA
 else if (isset($_SESSION['usuario'])) {

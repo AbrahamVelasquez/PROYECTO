@@ -3,7 +3,7 @@
   $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
   $host = $_SERVER['HTTP_HOST'];
   $id_ciclo = $_SESSION['id_ciclo'] ?? '';
-  $urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registrar.php?id_ciclo=" . urlencode($id_ciclo);
+  $urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
 ?>
 
 
@@ -21,9 +21,9 @@
             </svg>
         </button>
 
-        <a href="Convenios/Registrar.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
+        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
            class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
-            <span class="text-sm">+</span> Registrar Convenio
+            <span class="text-sm">+</span> Registro Convenio
         </a>
     </div>
 </div>

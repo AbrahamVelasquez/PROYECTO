@@ -14,7 +14,7 @@ TFG/ (Raíz del Proyecto)
 │   └── Seguridad.php
 │
 ├── 📁 Convenios/ ──────────────────────────── [Módulo externo de registro]
-│   └── Registrar.php
+│   └── Registro.php
 │
 ├── 📁 Core/ ───────────────────────────────── [Clases base y configuración del sistema]
 │   └── Conexion.php
