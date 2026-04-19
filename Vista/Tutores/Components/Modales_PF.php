@@ -162,6 +162,37 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<div id="modalLimiteRA" style="display:none" class="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500 text-white text-xs">🚫</span>
+                Límite alcanzado
+            </h3>
+            <button onclick="document.getElementById('modalLimiteRA').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        
+        <div class="flex flex-col items-center mb-6">
+            <p class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 text-center">Máximo de filas completado</p>
+            <p class="text-xs font-bold text-slate-600 text-center leading-relaxed">
+                Has alcanzado el límite máximo de <span class="text-slate-900">14 Resultados de Aprendizaje</span> permitidos en este Plan Formativo.
+            </p>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg mb-6 border border-slate-100">
+            <p class="text-[10px] text-slate-500 font-medium text-center italic">
+                Para añadir un nuevo resultado, primero debes eliminar uno de los existentes.
+            </p>
+        </div>
+
+        <div class="flex justify-center">
+            <button onclick="document.getElementById('modalLimiteRA').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all cursor-pointer uppercase tracking-widest">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 function abrirModalDevolver(idAlumno, nombre) {
     const elNombre = document.getElementById('nombreAlumnoDevolver');
