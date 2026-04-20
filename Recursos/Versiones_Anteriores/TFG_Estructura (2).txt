@@ -4,32 +4,22 @@ TFG/ (Raíz del Proyecto)
 ├── 📄 README.md
 ├── 📄 TFG_Sebastian_Alain_Abraham.docx
 │
-├── 📁 Controlador/ ────────────────────────── [Lógica de negocio y gestión de peticiones]
-│   ├── .htaccess
+├── 📁 Controlador/ ────────────────────────── [Lógica de control y gestión de acceso]
 │   ├── Controlador_Admin.php
 │   ├── Controlador_Alumnos.php
 │   ├── Controlador_Convenios.php
 │   ├── Controlador_Tutores.php
 │   ├── Controlador_Usuarios.php
-│   └── Logout.php
+│   ├── Logout.php
+│   └── Seguridad.php
 │
-├── 📁 Convenios/ ──────────────────────────── [Módulo autónomo para registro externo]
-│   ├── .htaccess
-│   ├── Controlador_Registro.php
-│   ├── Modales_Registro.php
-│   ├── Procesar.php
-│   └── Registro.php
+├── 📁 Convenios/ ──────────────────────────── [Módulo externo de registro]
+│   └── Registrar.php
 │
-├── 📁 Core/ ───────────────────────────────── [Núcleo: Conexión y configuraciones base]
-│   ├── .htaccess
+├── 📁 Core/ ───────────────────────────────── [Clases base y configuración del sistema]
 │   └── Conexion.php
 │
-├── 📁 Helpers/ ────────────────────────────── [Funciones de apoyo y utilidades generales]
-│   ├── .htaccess
-│   └── Paginador.php
-│
-├── 📁 Modelo/ ─────────────────────────────── [Capa de datos y consultas SQL]
-│   ├── .htaccess
+├── 📁 Modelo/ ─────────────────────────────── [Capa de datos y acceso a BD]
 │   ├── Admin.php
 │   ├── Alumnos.php
 │   ├── Convenios.php
@@ -37,24 +27,13 @@ TFG/ (Raíz del Proyecto)
 │   └── Usuarios.php
 │
 ├── 📁 Public/ ─────────────────────────────── [Activos estáticos accesibles por el cliente]
-│   └── 📁 js/
+│   └── 📁 js/ ─────────────────────────────── [Scripts de comportamiento frontend]
 │       ├── script_password.js
 │       └── script_tabs.js
 │
-├── 📁 Recursos/ ───────────────────────────── [Almacenamiento de backups y documentación]
-│   ├── .htaccess
-│   ├── citye.sql
-│   ├── Diseño.png
-│   ├── TFG_Estructura.txt
-│   │
-│   └── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
+├── 📁 Recursos/ ───────────────────────────── [Repositorio de scripts SQL y multimedia]
 │
-├── 📁 Seguridad/ ──────────────────────────── [Capa de protección y validación de sesiones]
-│   ├── .htaccess
-│   └── Control_Accesos.php
-│
-└── 📁 Vista/ ──────────────────────────────── [Capa de presentación e interfaz]
-    ├── .htaccess
+└── 📁 Vista/ ──────────────────────────────── [Interfaz de usuario principal]
     ├── Login.php
     │
     ├── 📁 Admin/ ──────────────────────────── [Módulo exclusivo para administradores]

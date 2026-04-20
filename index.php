@@ -1,24 +1,15 @@
 <?php
 
+// Inicia
 session_start();
+
+// Definimos la ruta raíz para efectos del Login
+define('ROOT_PATH', __DIR__ . '/');
 
 // 1. GESTIÓN DE LOGOUT
 if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
     require_once 'Controlador/Logout.php';
     exit();
-}
-/**
- * 2.5 PROCESO DE REGISTRO EXTERNO (NUEVA LÓGICA)
- * Si el formulario envía 'guardarNuevoConvenio', procesamos sin obligar a tener sesión
- */
-else if (isset($_REQUEST['accion']) && $_REQUEST['accion'] === 'guardarNuevoConvenio') {
-    // Cargamos el controlador de Tutores que es donde reside la lógica de convenios
-    require_once 'Controlador/Controlador_Tutores.php';
-    $controlador = new Tutores_Controlador();
-    
-    // Ejecutamos la acción de guardado
-    $controlador->guardarNuevoConvenio();
-    exit(); 
 }
 
 // 2. SESIÓN ACTIVA
@@ -62,8 +53,14 @@ else if (!empty($_REQUEST['btnLogIn'])) {
     $user->validarUsuario();
 }
 
-// 4. PANTALLA INICIAL
+// 4. PANTALLA INICIAL O REDIRECCIÓN
 else {
+    if (isset($_SESSION['usuario'])) {
+        // Si por algún motivo llegamos aquí pero hay sesión, 
+        // recargamos para que entre en la Sección 2
+        header("Location: index.php");
+        exit();
+    }
     require_once './Vista/Login.php';
     exit();
 }

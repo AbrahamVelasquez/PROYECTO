@@ -2,7 +2,7 @@
 
 // Controlador/Controlador_Convenios.php
 
-require_once './Modelo/Convenios.php';
+require_once __DIR__ . '/../Modelo/Convenios.php';
 
 class Convenios_Controlador {
 
@@ -21,13 +21,28 @@ class Convenios_Controlador {
         $id_tutor_actual = $_SESSION['id_tutor']; 
         $id_ciclo_actual = $_SESSION['id_ciclo'] ?? null; 
         
+        // Recogemos la búsqueda priorizando POST (el nuevo método)
+        // Pero mantenemos GET por si viniera de alguna redirección antigua
+        $terminoBusqueda = $_POST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
+        
         $resultadosBusqueda = [];
 
         // Lógica para AÑADIR A FAVORITOS
         if (isset($_POST['btnFavorito'])) {
-            $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
-            header("Location: index.php?tab=1&busqueda=" . urlencode($_GET['busqueda'] ?? ''));
+            $resultado = $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
+            
+            if ($resultado === "duplicado") {
+                $_SESSION['error_duplicado'] = true;
+            }
+
+            // Redirigimos. NOTA: Ya no enviamos la búsqueda por la URL en el header
+            header("Location: index.php?tab=1"); 
             exit();
+        }
+
+        // BUSQUEDA DE CONVENIOS
+        if (trim($terminoBusqueda) !== '') {
+            $resultadosBusqueda = $this->convenio->buscar($terminoBusqueda);
         }
 
         // LÓGICA PARA ELIMINAR DE FAVORITOS
@@ -35,7 +50,8 @@ class Convenios_Controlador {
             $idConvenio = $_POST['id_convenio_eliminar'];
             $id_ciclo_actual = $_SESSION['id_ciclo']; // <--- Importante tener esto aquí
             
-            $url = "index.php?tab=1" . (!empty($_GET['busqueda']) ? "&busqueda=" . urlencode($_GET['busqueda']) : "");
+            // Limpiamos la URL para que sea POST puro (sin busqueda en el GET)
+            $url = "index.php?tab=1";
 
             // Ahora pasamos ambos parámetros
             if ($this->convenio->estaEnUso($idConvenio, $id_ciclo_actual)) {
@@ -45,11 +61,6 @@ class Convenios_Controlador {
             }
             header("Location: " . $url);
             exit();
-        }
-
-        // BUSQUEDA DE CONVENIOS OFICIALES
-        if (isset($_GET['busqueda']) && trim($_GET['busqueda']) !== '') {
-            $resultadosBusqueda = $this->convenio->buscar($_GET['busqueda']);
         }
 
         // OBTENER FAVORITOS
@@ -62,7 +73,7 @@ class Convenios_Controlador {
         }
 
         return [
-            'busqueda' => $resultadosBusqueda, 
+            'busqueda_convenio' => $resultadosBusqueda, 
             'favoritos' => $misFavoritos,
             'proceso'   => $conveniosProceso 
         ];
@@ -87,46 +98,16 @@ class Convenios_Controlador {
 
         $exito = $this->convenio->guardarNuevoConvenioPendiente($datos);
         
-        //VALIDACION ANTERIOR
-        /*if ($exito) {
-            $_SESSION['mensaje_exito'] = "Solicitud de convenio enviada correctamente.";
-        } else {
-            $_SESSION['error_convenio'] = "Hubo un error al registrar la solicitud.";
-        }*/
-
         if ($exito) {
-        if (isset($_SESSION['usuario'])) {
-            // CASO A: EL USUARIO TIENE SESIÓN (Tutor/Admin)
-            // Lo redirigimos a su panel con un mensaje de éxito normal
-            header("Location: index.php?accion=mostrarPanel&mensaje=registro_ok");
-            exit();
-        } else {
-            // CASO B: USUARIO EXTERNO (Sin sesión)
-            // Mostramos la pantalla de éxito sin salida
-            die('
-                <script src="https://cdn.tailwindcss.com"></script>
-                <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans text-slate-900">
-                    <div class="max-w-md w-full bg-white border-t-4 border-emerald-500 rounded-2xl shadow-2xl p-10 text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-                            <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <h2 class="text-3xl font-black uppercase tracking-tight text-slate-800 mb-4">
-                            ¡Registro <span class="text-emerald-600">Completado!</span>
-                        </h2>
-                        <p class="text-slate-500 font-medium leading-relaxed mb-6">
-                            El convenio se ha registrado correctamente en nuestro sistema. <br>
-                            Nuestro equipo revisará la información próximamente.
-                        </p>
-                        <div class="pt-6 border-t border-slate-100">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                Ya puede cerrar esta ventana de forma segura
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            ');
+            if (isset($_SESSION['usuario'])) {
+                // FLUJO INTERNO (LOGUEADO)
+                header("Location: index.php?accion=mostrarPanel&mensaje=registro_ok");
+                exit();
+            } else {
+                // FLUJO EXTERNO
+                // No imprimimos el die() gigante aquí, solo confirmamos éxito 
+                // para que el JS de Registro.php muestre el modal de éxito.
+                return true; 
             }
         }
     }

@@ -2,7 +2,7 @@
 
 // Modelo/Convenios.php
 
-require_once "./Core/Conexion.php"; 
+require_once __DIR__ . '/../Core/Conexion.php'; 
 
 class Convenios {
     private $conn; 
@@ -22,11 +22,19 @@ class Convenios {
     }
 
     public function añadirAFavoritos($id_tutor, $id_convenio) {
-        $sql = "INSERT INTO mi_listado (id_tutor, id_convenio) VALUES (:id_t, :id_conv)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':id_t', $id_tutor);
-        $stmt->bindParam(':id_conv', $id_convenio);
-        return $stmt->execute();
+        try {
+            $sql = "INSERT INTO mi_listado (id_tutor, id_convenio) VALUES (:id_t, :id_conv)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':id_t', $id_tutor);
+            $stmt->bindParam(':id_conv', $id_convenio);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            // El código 23000 es para violaciones de integridad (como duplicados)
+            if ($e->getCode() == 23000) {
+                return "duplicado"; 
+            }
+            return false;
+        }
     }
 
     public function obtenerFavoritos($id_tutor) {

@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/Modales_Alumnos.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <style>
     /* Estilos para el tooltip */
     .help-trigger {

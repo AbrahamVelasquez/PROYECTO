@@ -1,3 +1,13 @@
+<?php 
+
+// Vista/Admin/Components/Modales_Tutores.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('admin'); 
+
+?>
 <div id="modalConfirmarEliminar" style="display:none" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-6">
@@ -113,42 +123,36 @@
             <input type="hidden" name="accion" value="actualizarTutor">
             <input type="hidden" name="id_tutor" id="edit_id">
 
-        <div class="mb-4">
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cambiar Ciclo Asignado</label>
-            <select name="id_ciclo" id="edit_ciclo" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm bg-white">
-                <?php 
-                    $todosLosCiclos = $admin->obtenerTodosLosCiclos(); 
-                    foreach ($todosLosCiclos as $c): 
-                        $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
-                        $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
-                        
-                        $esOcupado = !empty($c['ocupado_por']);
-                        
-                        // LÓGICA DE ETIQUETAS Y COLORES
-                        // Usaremos un color azul/celeste para identificar el ciclo actual del tutor
-                        $esSuCicloActual = ($esOcupado && isset($fila['id_tutor']) && $c['ocupado_por'] == $fila['id_tutor']);
+            <div class="mb-4">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cambiar Ciclo Asignado</label>
+                <select name="id_ciclo" id="edit_ciclo" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm bg-white">
+                    <?php 
+                        $todosLosCiclos = $this->admin->obtenerTodosLosCiclos(); 
+                        foreach ($todosLosCiclos as $c): 
+                            $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
+                            $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
+                            
+                            $idOcupante = $c['ocupado_por']; // ID del tutor que lo tiene (si existe)
 
-                        if ($esSuCicloActual) {
-                            $labelEstado = '— CICLO ACTUAL';
-                            $estiloFondo = 'background-color: #e0f2fe; color: #075985;'; // Azul claro
-                        } elseif ($esOcupado) {
-                            $labelEstado = '— OCUPADO';
-                            $estiloFondo = 'background-color: #fee2e2; color: #991b1b;'; // Rojo
-                        } else {
-                            $labelEstado = '— DISPONIBLE';
-                            $estiloFondo = 'background-color: #dcfce7; color: #166534;'; // Verde
-                        }
-                ?>
-                    <option value="<?= $c['id_ciclo'] ?>" 
-                            style="<?= $estiloFondo ?>" 
-                            data-bg="<?= explode(':', explode(';', $estiloFondo)[0])[1] ?>" 
-                            data-color="<?= explode(':', explode(';', $estiloFondo)[1])[1] ?>"
-                            class="py-3 font-medium">
-                        <?= $prefijo ?> <?= htmlspecialchars($c['nombre_ciclo']) ?> <?= $labelEstado ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+                            // Definimos los estilos por defecto
+                            if (!empty($idOcupante)) {
+                                $labelEstado = '— OCUPADO';
+                                $estiloFondo = 'background-color: #fee2e2; color: #991b1b;'; // Rojo (Ocupado por otro)
+                            } else {
+                                $labelEstado = '— DISPONIBLE';
+                                $estiloFondo = 'background-color: #dcfce7; color: #166534;'; // Verde (Libre)
+                            }
+                    ?>
+                        <option value="<?= $c['id_ciclo'] ?>" 
+                                style="<?= $estiloFondo ?>" 
+                                data-tutor="<?= $idOcupante ?>" 
+                                data-original-label="<?= $prefijo ?> <?= htmlspecialchars($c['nombre_ciclo']) ?>"
+                                class="py-3 font-medium">
+                            <?= $prefijo ?> <?= htmlspecialchars($c['nombre_ciclo']) ?> <?= $labelEstado ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre</label>
@@ -207,23 +211,42 @@
     });
 
     function abrirEditarTutor(datos) {
-        // 1. Obtener la referencia correcta al elemento
         const selectCiclo = document.getElementById('edit_ciclo');
         
-        // 2. Rellenar los campos de texto
+        // 1. Rellenar campos básicos
         document.getElementById('edit_id').value = datos.id_tutor;
         document.getElementById('edit_nombre').value = datos.nombre;
         document.getElementById('edit_apellidos').value = datos.apellidos;
         document.getElementById('edit_telefono').value = datos.telefono;
         document.getElementById('edit_email').value = datos.email;
         
-        // 3. Asignar el valor del ciclo
-        selectCiclo.value = datos.id_ciclo;
+        // 2. Iterar las opciones para marcar el "Ciclo Actual" dinámicamente
+        Array.from(selectCiclo.options).forEach(option => {
+            const idTutorOcupante = option.getAttribute('data-tutor');
+            const nombreCiclo = option.getAttribute('data-original-label');
 
-        // 4. Aplicar el estilo visual inmediatamente al abrir
+            if (idTutorOcupante == datos.id_tutor) {
+                // Es el ciclo que tiene asignado este tutor actualmente
+                option.innerText = nombreCiclo + " — TU CICLO ACTUAL";
+                option.style.backgroundColor = "#e0f2fe"; // Azul celeste
+                option.style.color = "#075985";
+            } else if (!idTutorOcupante) {
+                // Está libre
+                option.innerText = nombreCiclo + " — DISPONIBLE";
+                option.style.backgroundColor = "#dcfce7";
+                option.style.color = "#166534";
+            } else {
+                // Ocupado por otra persona
+                option.innerText = nombreCiclo + " — OCUPADO";
+                option.style.backgroundColor = "#fee2e2";
+                option.style.color = "#991b1b";
+            }
+        });
+
+        // 3. Seleccionar el valor y aplicar estilo al select
+        selectCiclo.value = datos.id_ciclo;
         actualizarEstiloSelect(selectCiclo);
         
-        // 5. Mostrar el modal
         document.getElementById('modalEditarTutor').style.display = 'flex';
     }
 

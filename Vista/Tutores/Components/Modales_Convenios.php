@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/Modales_Convenios.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div id="modalConvenioEnUso" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-6">
@@ -176,6 +186,20 @@
     </div>
 </div>
 
+<div id="modalDuplicado" style="display:none" class="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-orange-100">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-4 text-2xl">⭐</div>
+            <h3 class="text-lg font-black text-slate-900 mb-2 uppercase italic">Ya en favoritos</h3>
+            <p class="text-slate-500 text-xs font-bold mb-6">Este convenio ya forma parte de tu listado personal.</p>
+            <button onclick="document.getElementById('modalDuplicado').style.display='none'" 
+                    class="w-full py-3 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-orange-600 transition-all cursor-pointer">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 
     function abrirEditarConvenioNuevo(datos) {
@@ -242,4 +266,13 @@
             });
         };
     }
+
+    <?php if (isset($_SESSION['error_duplicado'])): ?>
+        // Mostramos el modal al cargar la página
+        document.getElementById('modalDuplicado').style.display = 'flex';
+    <?php 
+        // Eliminamos la variable para que no salga al refrescar
+        unset($_SESSION['error_duplicado']); 
+    ?>
+    <?php endif; ?>
 </script>

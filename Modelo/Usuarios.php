@@ -36,14 +36,8 @@ class Usuarios {
         $stmt->execute();
         $fila = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$fila) {
-            header("Location: index.php?mensaje=El usuario no es válido");
-            die();
-        }
-
-        // Nota: Si usas password_hash en el futuro, aquí iría password_verify
-        if ($password_post !== $fila['password']) { 
-            header("Location: index.php?mensaje=La contraseña no es correcta");
+        if ((!$fila) || ($password_post !== $fila['password'])) {
+            header("Location: index.php?mensaje=El usuario y/o la contraseña son incorrectos.");
             die();
         }
 
