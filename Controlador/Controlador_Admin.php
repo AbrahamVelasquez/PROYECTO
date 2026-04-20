@@ -15,7 +15,7 @@ class Admin_Controlador {
 
     // Acción por defecto: muestra el "Home" del admin
     public function mostrarPanel() {
-        $subVista = '../Components/Dashboard_Sections.php'; // Una pequeña vista con los botones
+        $subVista = 'Admin/Components/Dashboard_Sections.php'; // Una pequeña vista con los botones
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -30,7 +30,7 @@ class Admin_Controlador {
         $ciclosLibres = $this->admin->obtenerCiclosLibres(); // <--- Preparar aquí
         $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
 
-        $subVista = '../Sections/Tabla_Tutores.php';
+        $subVista = 'Admin/Sections/Tabla_Tutores.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -87,7 +87,7 @@ class Admin_Controlador {
         
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         
-        $subVista = '../Sections/Tabla_Convenios.php';
+        $subVista = 'Admin/Sections/Tabla_Convenios.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -96,7 +96,7 @@ class Admin_Controlador {
         $pendientes = $this->admin->obtenerConveniosPendientes();
         
         // Definimos la nueva vista
-        $subVista = '../Sections/Tabla_Convenios_Pendientes.php';
+        $subVista = 'Admin/Sections/Tabla_Convenios_Pendientes.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
