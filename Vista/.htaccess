@@ -1,0 +1,2 @@
+# Opcional: Evita que se listen los archivos si el bloqueo falla
+Options -Indexes
