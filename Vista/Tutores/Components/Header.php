@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/Header.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div class="pt-6 px-8 pb-0"> 
     <div class="flex justify-between items-start mb-6">
         <div class="flex-1 min-w-0"> 

@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/Header_Alumnos.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div class="flex justify-between items-center mb-8">
   <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white text-sm">👥</span>

@@ -1,9 +1,14 @@
-<?php 
+<?php
+session_start();
+$esExterno = !isset($_SESSION['usuario']);
+$id_ciclo = $_GET['id_ciclo'] ?? '';
 
-// Convenios/Registrar.php
-
-session_start(); 
-
+// Si es externo y NO hay ciclo, bloqueamos todo.
+if ($esExterno && empty($id_ciclo)) {
+    include 'Modales_Registro.php';
+    echo "<script>document.getElementById('modalErrorCiclo').classList.remove('hidden');</script>";
+    die(); 
+}
 ?>
 <!doctype html>
 <html lang="es">
@@ -38,10 +43,8 @@ session_start();
         $id_ciclo_actual = $_GET['id_ciclo'] ?? $_SESSION['id_ciclo'] ?? ''; 
       ?>
 
-      <form action="../index.php" method="POST" class="p-10 space-y-8">
-        
+      <form id="formRegistro" action="<?= $esExterno ? 'Procesar.php' : '../index.php' ?>" method="POST" class="p-10 space-y-8">        
         <input type="hidden" name="accion" value="guardarNuevoConvenio">
-        <input type="hidden" name="id_tutor_registro" value="<?= $_SESSION['id_tutor'] ?? '' ?>">
         <input type="hidden" name="id_ciclo" value="<?= htmlspecialchars($id_ciclo_actual) ?>"> 
 
         <section class="space-y-6">
@@ -103,13 +106,63 @@ session_start();
           </div>
         </section>
 
-        <div class="pt-10 flex justify-end">
-          <button type="submit" class="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-2xl active:scale-95">
-            Finalizar Registro de Convenio
-          </button>
-        </div>
+      <div class="pt-10 flex justify-end">
+        <button onclick="abrirConfirmacion()" type="button" class="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-2xl active:scale-95">
+          Finalizar Registro de Convenio
+        </button>
+      </div>
       </form>
     </div>
   </main>
+
+  <?php include 'Modales_Registro.php'; ?>
+
+  <script>
+    function abrirConfirmacion() {
+        document.getElementById('modalConfirmar').classList.remove('hidden');
+    }
+
+    function cerrarConfirmacion() {
+        document.getElementById('modalConfirmar').classList.add('hidden');
+    }
+
+    function ejecutarEnvioReal() {
+      const form = document.getElementById('formRegistro');
+      
+      // Validación básica de HTML5 (required) antes de enviar
+      if (!form.checkValidity()) {
+          cerrarConfirmacion();
+          form.reportValidity();
+          return;
+      }
+
+      const formData = new FormData(form);
+
+      <?php if ($esExterno): ?>
+          cerrarConfirmacion();
+          
+          fetch('Procesar.php', {
+              method: 'POST',
+              body: formData
+          })
+          .then(response => {
+              // Si la respuesta es OK, mostramos el modal de éxito
+              if (response.ok) {
+                  document.getElementById('modalExito').classList.remove('hidden');
+                  form.reset(); // Aquí se resetean los inputs como pediste
+              } else {
+                  alert("Error en el servidor al procesar el registro.");
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert("Error de conexión.");
+          });
+      <?php else: ?>
+          // Si hay sesión, el formulario se envía al index.php normalmente
+          form.submit();
+      <?php endif; ?>
+  }
+</script>
 </body>
 </html>

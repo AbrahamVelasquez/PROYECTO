@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Components/PF_Edicion.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div class="w-full bg-white shadow-sm rounded-2xl overflow-hidden border border-slate-200 mb-10">
     <div class="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
         <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -233,6 +243,16 @@
 <script>
 function agregarFilaModulo() {
     const tbody = document.getElementById('modulos-tbody');
+    const filasActuales = tbody.querySelectorAll('tr:not(#modulos-empty)').length;
+    const MAX_FILAS = 14;
+
+    // Control de límite con el nuevo Modal
+    if (filasActuales >= MAX_FILAS) {
+        const modal = document.getElementById('modalLimiteRA');
+        if (modal) modal.style.display = 'flex';
+        return; 
+    }
+
     const emptyRow = document.getElementById('modulos-empty');
     if (emptyRow) emptyRow.style.display = 'none';
 
@@ -247,8 +267,33 @@ function agregarFilaModulo() {
         <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
         <td class="p-2 text-center"><button type="button" onclick="eliminarFilaModulo(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none" title="Eliminar fila">×</button></td>
     `;
+    
     tbody.appendChild(fila);
+    
+    // Si tienes el botón de añadir con ID, esto lo deshabilitará al llegar a 14
+    if(typeof actualizarEstadoBotonRA === 'function') actualizarEstadoBotonRA();
+    
     fila.querySelector('input[type="text"]').focus();
+}
+
+// Función auxiliar para bloquear el botón visualmente
+function actualizarEstadoBotonRA() {
+    const tbody = document.getElementById('modulos-tbody');
+    const filas = tbody.querySelectorAll('tr:not(#modulos-empty)').length;
+    // Asegúrate de que el botón de "Añadir Fila" tenga este ID o cámbialo por el tuyo
+    const btnAgregar = document.getElementById('btn-añadir-fila-ra'); 
+
+    if (btnAgregar) {
+        if (filas >= 14) {
+            btnAgregar.disabled = true;
+            btnAgregar.classList.add('opacity-50', 'cursor-not-allowed');
+            btnAgregar.title = "Máximo de 14 resultados alcanzado";
+        } else {
+            btnAgregar.disabled = false;
+            btnAgregar.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnAgregar.title = "Añadir fila";
+        }
+    }
 }
 
 function eliminarFilaModulo(btn) {

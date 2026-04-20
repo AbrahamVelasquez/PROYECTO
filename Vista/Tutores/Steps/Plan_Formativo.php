@@ -1,3 +1,13 @@
+<?php
+
+// Vista/Tutores/Steps/Plan_Formativo.php
+
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+validarAcceso('tutor'); 
+
+?>
 <div id="contenedor-plan-formativo">
     <?php include_once 'Vista/Tutores/Components/Modales_PF.php'; ?>
 

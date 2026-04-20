@@ -1,3 +1,27 @@
+<?php
+
+// Vista/Login.php
+
+// 1. Definimos si el acceso es legal (si viene del index tendrá ROOT_PATH definido)
+if (!defined('ROOT_PATH')) {
+    // Si alguien entra directo a la URL, lo mandamos al index real
+    // Usamos una ruta que suba niveles para encontrar el index
+    header("Location: ../index.php");
+    exit();
+}
+
+// 2. Si la sesión ya existe, lo mandamos al index con ruta absoluta
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+if (isset($_SESSION['usuario'])) {
+    // Calculamos la URL base para el index.php
+    $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    $urlIndex = $protocolo . "://" . $_SERVER['HTTP_HOST'] . "/PROYECTO/index.php";
+    
+    header("Location: $urlIndex");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

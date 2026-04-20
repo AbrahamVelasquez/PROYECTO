@@ -21,15 +21,6 @@ if(isset($_SESSION['usuario'])){
     session_destroy();
     header("Location: index.php");
     
-} else {
-  
-    echo "No hay sesión, presione para volver a página de Login.<br/><br/>";
-    echo "<a href='../index.php'>
-            <button style = 'padding: 3px; font-size: 0.8em'>
-                Volver al Login
-            </button>
-          </a>";
-
 }
 
 ?>
