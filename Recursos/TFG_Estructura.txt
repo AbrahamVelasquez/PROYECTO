@@ -1,0 +1,92 @@
+TFG/ (Raíz del Proyecto)
+│
+├── 📄 index.php
+├── 📄 README.md
+├── 📄 TFG_Sebastian_Alain_Abraham.docx
+│
+├── 📁 Controlador/ ────────────────────────── [Lógica de negocio y gestión de peticiones]
+│   ├── .htaccess
+│   ├── Controlador_Admin.php
+│   ├── Controlador_Alumnos.php
+│   ├── Controlador_Convenios.php
+│   ├── Controlador_Tutores.php
+│   ├── Controlador_Usuarios.php
+│   └── Logout.php
+│
+├── 📁 Convenios/ ──────────────────────────── [Módulo autónomo para registro externo]
+│   ├── .htaccess
+│   ├── Controlador_Registro.php
+│   ├── Modales_Registro.php
+│   ├── Procesar.php
+│   └── Registro.php
+│
+├── 📁 Core/ ───────────────────────────────── [Núcleo: Conexión y configuraciones base]
+│   ├── .htaccess
+│   └── Conexion.php
+│
+├── 📁 Helpers/ ────────────────────────────── [Funciones de apoyo y utilidades generales]
+│   ├── .htaccess
+│   └── Paginador.php
+│
+├── 📁 Modelo/ ─────────────────────────────── [Capa de datos y consultas SQL]
+│   ├── .htaccess
+│   ├── Admin.php
+│   ├── Alumnos.php
+│   ├── Convenios.php
+│   ├── Tutores.php
+│   └── Usuarios.php
+│
+├── 📁 Public/ ─────────────────────────────── [Activos estáticos accesibles por el cliente]
+│   └── 📁 js/
+│       ├── script_password.js
+│       └── script_tabs.js
+│
+├── 📁 Recursos/ ───────────────────────────── [Almacenamiento de backups y documentación]
+│   ├── .htaccess
+│   ├── citye.sql
+│   ├── Diseño.png
+│   ├── TFG_Estructura.txt
+│   │
+│   └── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
+│
+├── 📁 Seguridad/ ──────────────────────────── [Capa de protección y validación de sesiones]
+│   ├── .htaccess
+│   └── Control_Accesos.php
+│
+└── 📁 Vista/ ──────────────────────────────── [Capa de presentación e interfaz]
+    ├── .htaccess
+    ├── Login.php
+    │
+    ├── 📁 Admin/ ──────────────────────────── [Módulo exclusivo para administradores]
+    │   ├── Dashboard_Admin.php
+    │   │
+    │   ├── 📁 Components/ ─────────────────── [Fragmentos de UI reutilizables]
+    │   │   ├── Dashboard_Header.php
+    │   │   ├── Dashboard_Sections.php
+    │   │   ├── Modales_TC.php
+    │   │   ├── Modales_TCP.php
+    │   │   └── Modales_Tutores.php
+    │   │
+    │   └── 📁 Sections/ ───────────────────── [Vistas de gestión de tablas]
+    │       ├── Tabla_Convenios.php
+    │       ├── Tabla_Convenios_Pendientes.php
+    │       └── Tabla_Tutores.php
+    │
+    └── 📁 Tutores/ ────────────────────────── [Módulo para el profesorado y tutores]
+        ├── Dashboard_Tutores.php
+        │
+        ├── 📁 Components/ ─────────────────── [Componentes de edición y visualización]
+        │   ├── Buttons_PF_Edicion.php
+        │   ├── Header.php
+        │   ├── Header_Alumnos.php
+        │   ├── Modales_Alumnos.php
+        │   ├── Modales_Convenios.php
+        │   ├── Modales_PF.php
+        │   ├── PF_Edicion.php
+        │   └── PF_Tabla.php
+        │
+        └── 📁 Steps/ ──────────────────────── [Procesos guiados del plan formativo]
+                ├── Alumnos.php
+                ├── Convenios.php
+                ├── Plan_Formativo.php
+                └── Seguimiento.php

@@ -1,33 +1,32 @@
 <?php
 
-require_once "./Core/Conexion.php"; // Importa la clase Conexion 
+// Modelo/Usuarios.php
+
+require_once "./Core/Conexion.php"; 
 
 class Usuarios {
 
-    private $id_usuario;
-    private $username;
-    private $password;
-    private $rol;
-    private $conn; // Para que inicie la conexión asi accedemos a la BD 
+    private $conn; 
 
     public function __construct() {
-        $this -> conn = Conexion::getConexion();  // El modelo obtiene esa conexión
+        $this->conn = Conexion::getConexion();
     }
         
-    public function set_session($usr, $rol, $id_usr, $id_tutor) { // Añadimos id_tutor
+    // Corregimos los parámetros para incluir el id_ciclo
+    public function set_session($usr, $rol, $id_usr, $id_tutor, $id_ciclo) { 
         $_SESSION['usuario'] = $usr;
         $_SESSION['rol'] = $rol;
         $_SESSION['id_usuario'] = $id_usr;
-        $_SESSION['id_tutor'] = $id_tutor; // <--- ESTO ES VITAL
-        $_SESSION['id_ciclo']= $datosUsuario['id_ciclo'];
+        $_SESSION['id_tutor'] = $id_tutor; 
+        $_SESSION['id_ciclo'] = $id_ciclo; // <--- Ahora sí funcionará
     }
 
     public function validarDatos() {
         $user_post = strtolower(trim($_POST['usuario'])); 
         $password_post = $_POST['contrasena'];
 
-        // Modificamos la consulta para traer el id_tutor también
-        $sql = "SELECT u.*, t.id_tutor 
+        // MODIFICACIÓN: Traemos también el id_ciclo desde la tabla tutores
+        $sql = "SELECT u.*, t.id_tutor, t.id_ciclo 
                 FROM usuarios u
                 LEFT JOIN tutores t ON u.id_usuario = t.id_usuario
                 WHERE u.username = :usuario";
@@ -35,24 +34,26 @@ class Usuarios {
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':usuario', $user_post);
         $stmt->execute();
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC); // Fetch directo, más limpio
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$fila) {
-            header("Location: index.php?mensaje=El usuario no es válido");
+        if ((!$fila) || ($password_post !== $fila['password'])) {
+            header("Location: index.php?mensaje=El usuario y/o la contraseña son incorrectos.");
             die();
         }
 
-        if ($password_post !== $fila['password']) { 
-            header("Location: index.php?mensaje=La contraseña no es correcta");
-            die();
-        }
-
-        // Pasamos el id_tutor que hemos sacado del JOIN
-        $this->set_session($user_post, $fila['rol'], $fila['id_usuario'], $fila['id_tutor']);
+        // Pasamos todos los datos necesarios a la sesión, incluyendo el id_ciclo
+        $this->set_session(
+            $fila['username'], 
+            $fila['rol'], 
+            $fila['id_usuario'], 
+            $fila['id_tutor'], 
+            $fila['id_ciclo']
+        );
+        
         header("Location: index.php");
+        exit();
     }
 
-}
-
+} // Llave de la clase
 
 ?>

@@ -1,5 +1,10 @@
 <?php
+
+// Inicia
 session_start();
+
+// Definimos la ruta raíz para efectos del Login
+define('ROOT_PATH', __DIR__ . '/');
 
 // 1. GESTIÓN DE LOGOUT
 if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
@@ -10,27 +15,17 @@ if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
 // 2. SESIÓN ACTIVA
 else if (isset($_SESSION['usuario'])) {
 
-    // GUARDAR NUEVO CONVENIO (viene de Registro_Convenio.php)
-    if (isset($_POST['accion']) && $_POST['accion'] === 'guardarNuevoConvenio') {
-        require_once 'Controlador/Controlador_Convenios.php';
-        $ctrlConv = new Convenios_Controlador();
-        $ctrlConv->guardarNuevoConvenio();
-        exit();
-    }
-
     // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
         $nomControlador = "Tutores";
-        $accion = "mostrarPanel";
     } else if ($_SESSION['rol'] == 'admin') {
         $nomControlador = "Admin";
-        $accion = "mostrarTutores";
+    } else {
+        die("Error: Rol no reconocido.");
     }
 
-    // Si viene una acción específica por POST
-    if (isset($_POST['accion'])) {
-        $accion = $_POST['accion'];
-    }
+    // Capturamos la acción (por defecto mostrarPanel)
+    $accion = $_REQUEST['accion'] ?? "mostrarPanel";
 
     // Carga dinámica del controlador
     $rutaControlador = 'Controlador/Controlador_' . $nomControlador . ".php";
@@ -40,8 +35,9 @@ else if (isset($_SESSION['usuario'])) {
         $nombreClase = $nomControlador . "_Controlador";
         $controlador = new $nombreClase();
 
+        // Verificamos si la acción existe en el controlador (sea mostrarPanel o guardarNuevoConvenio)
         if (method_exists($controlador, $accion)) {
-            call_user_func(array($controlador, $accion));
+            $controlador->$accion(); // Ejecución más limpia
         } else {
             die("Error: La acción [{$accion}] no existe en el controlador [{$nombreClase}].");
         }
@@ -57,8 +53,16 @@ else if (!empty($_REQUEST['btnLogIn'])) {
     $user->validarUsuario();
 }
 
-// 4. PANTALLA INICIAL
+// 4. PANTALLA INICIAL O REDIRECCIÓN
 else {
+    if (isset($_SESSION['usuario'])) {
+        // Si por algún motivo llegamos aquí pero hay sesión, 
+        // recargamos para que entre en la Sección 2
+        header("Location: index.php");
+        exit();
+    }
     require_once './Vista/Login.php';
     exit();
 }
+
+?>

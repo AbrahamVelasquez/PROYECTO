@@ -1,0 +1,5 @@
+# Bloquea el acceso a cualquier persona desde la URL
+Deny from all
+
+# Opcional: Evita que se listen los archivos si el bloqueo falla
+Options -Indexes
