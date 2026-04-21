@@ -64,6 +64,118 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<!-- Modal: Formulario nuevo RA -->
+<div id="modalNuevoRA" style="display:none" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-4" onclick="if(event.target===this) cerrarNuevoRA()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-100 p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white text-xs font-black">+</span>
+                Nuevo Resultado de Aprendizaje
+            </h3>
+            <button onclick="cerrarNuevoRA()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Periodo <span class="text-red-400">*</span></label>
+                <input type="text" id="nuevoRA_periodo" placeholder="Ej: 2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Código <span class="text-red-400">*</span></label>
+                <input type="text" id="nuevoRA_codigo" placeholder="Ej: 613" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Módulo Profesional <span class="text-red-400">*</span></label>
+                <input type="text" id="nuevoRA_modulo" placeholder="Ej: Desarrollo web entorno servidor" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Resultados de Aprendizaje <span class="text-red-400">*</span></label>
+                <input type="text" id="nuevoRA_numero" placeholder="Ej: RA: 7" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+            </div>
+        </div>
+
+        <div class="flex gap-6 mb-6 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                <input type="checkbox" id="nuevoRA_empresa" class="accent-orange-600 w-4 h-4 cursor-pointer">
+                Impartido íntegramente en la empresa
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                <input type="checkbox" id="nuevoRA_compartida" class="accent-orange-600 w-4 h-4 cursor-pointer">
+                Impartición compartida con el centro docente
+            </label>
+        </div>
+
+        <div class="flex gap-3 justify-end">
+            <button onclick="cerrarNuevoRA()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Cancelar
+            </button>
+            <button onclick="confirmarNuevoRA()" class="px-6 py-2.5 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 shadow-md cursor-pointer transition-all uppercase tracking-wide">
+                Añadir fila
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Advertencia campos vacíos -->
+<div id="modalCamposVaciosRA" style="display:none" class="fixed inset-0 bg-black/60 z-[130] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400 text-white text-xs">⚠️</span>
+                Campos incompletos
+            </h3>
+            <button onclick="document.getElementById('modalCamposVaciosRA').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <p id="textosCamposVacios" class="text-xs font-bold text-slate-600 mb-4 text-center leading-relaxed"></p>
+
+        <div class="bg-amber-50 p-3 rounded-lg mb-6 border border-amber-100">
+            <p class="text-[10px] text-amber-700 font-medium text-center">
+                Puedes añadir la fila igualmente y completarla más tarde.
+            </p>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalCamposVaciosRA').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Volver a rellenar
+            </button>
+            <button onclick="confirmarAgregarFilaRA()" class="px-5 py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 shadow-md cursor-pointer transition-all uppercase tracking-wide">
+                Añadir igualmente
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Eliminar fila RA (z alto para quedar sobre el modal de gestión) -->
+<div id="modalEliminarFilaRA" style="display:none" class="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500 text-white text-xs font-black">✕</span>
+                ELIMINAR FILA
+            </h3>
+            <button onclick="document.getElementById('modalEliminarFilaRA').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <p class="text-xs font-bold text-slate-500 mb-4 text-center uppercase tracking-widest">¿Estás seguro de que quieres eliminar esta fila?</p>
+
+        <div class="bg-red-50 p-3 rounded-lg mb-6 border border-red-100">
+            <p class="text-[10px] text-red-700 font-medium text-center">
+                Esta acción no se puede deshacer. Se perderán los datos introducidos en la fila.
+            </p>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalEliminarFilaRA').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Cancelar
+            </button>
+            <button id="btnConfirmarEliminarFilaRA" class="px-5 py-2.5 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 shadow-md cursor-pointer transition-all uppercase tracking-wide">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="modalConfirmarDevolver" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-6">
@@ -250,48 +362,98 @@ validarAcceso('tutor');
 </div>
 
 <script>
+var _pendingRAData = null;
+
 function agregarFilaRA() {
     const tbody = document.getElementById('ra-modal-tbody');
     const filasActuales = tbody.querySelectorAll('tr:not(#ra-modal-empty)').length;
-    const MAX_FILAS = 14;
 
-    if (filasActuales >= MAX_FILAS) {
-        const modal = document.getElementById('modalLimiteRA');
-        if (modal) modal.style.display = 'flex';
+    if (filasActuales >= 14) {
+        document.getElementById('modalLimiteRA').style.display = 'flex';
         return;
     }
 
+    document.getElementById('nuevoRA_periodo').value = '';
+    document.getElementById('nuevoRA_modulo').value = '';
+    document.getElementById('nuevoRA_codigo').value = '';
+    document.getElementById('nuevoRA_numero').value = '';
+    document.getElementById('nuevoRA_empresa').checked = false;
+    document.getElementById('nuevoRA_compartida').checked = false;
+    document.getElementById('modalNuevoRA').style.display = 'flex';
+    setTimeout(function() { document.getElementById('nuevoRA_periodo').focus(); }, 50);
+}
+
+function cerrarNuevoRA() {
+    document.getElementById('modalNuevoRA').style.display = 'none';
+}
+
+function confirmarNuevoRA() {
+    const periodo  = document.getElementById('nuevoRA_periodo').value.trim();
+    const modulo   = document.getElementById('nuevoRA_modulo').value.trim();
+    const codigo   = document.getElementById('nuevoRA_codigo').value.trim();
+    const numero   = document.getElementById('nuevoRA_numero').value.trim();
+    const empresa  = document.getElementById('nuevoRA_empresa').checked;
+    const compartida = document.getElementById('nuevoRA_compartida').checked;
+
+    _pendingRAData = { periodo, modulo, codigo, numero, empresa, compartida };
+
+    const vacios = [];
+    if (!periodo)  vacios.push('Periodo');
+    if (!modulo)   vacios.push('Módulo Profesional');
+    if (!codigo)   vacios.push('Código');
+    if (!numero)   vacios.push('Resultados de Aprendizaje');
+
+    if (vacios.length > 0) {
+        const texto = 'Los siguientes campos están vacíos: <span class="text-amber-700 font-black">' + vacios.join(', ') + '</span>.';
+        document.getElementById('textosCamposVacios').innerHTML = texto;
+        document.getElementById('modalCamposVaciosRA').style.display = 'flex';
+        return;
+    }
+
+    confirmarAgregarFilaRA();
+}
+
+function confirmarAgregarFilaRA() {
+    document.getElementById('modalCamposVaciosRA').style.display = 'none';
+    document.getElementById('modalNuevoRA').style.display = 'none';
+
+    if (!_pendingRAData) return;
+    const { periodo, modulo, codigo, numero, empresa, compartida } = _pendingRAData;
+    _pendingRAData = null;
+
+    const tbody = document.getElementById('ra-modal-tbody');
     const emptyRow = document.getElementById('ra-modal-empty');
     if (emptyRow) emptyRow.style.display = 'none';
 
     const fila = document.createElement('tr');
     fila.className = 'divide-slate-100';
-    fila.innerHTML = `
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="2" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="Desarrollo web entorno servidor" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="613" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="RA: 7" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-        <td class="p-2 text-center"><button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none cursor-pointer" title="Eliminar fila">×</button></td>
-    `;
+    fila.innerHTML =
+        '<td class="p-2 border-r border-slate-200"><input type="text" value="' + _esc(periodo) + '" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>' +
+        '<td class="p-2 border-r border-slate-200"><input type="text" value="' + _esc(modulo) + '" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600"></td>' +
+        '<td class="p-2 border-r border-slate-200"><input type="text" value="' + _esc(codigo) + '" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-600 text-center"></td>' +
+        '<td class="p-2 border-r border-slate-200"><input type="text" value="' + _esc(numero) + '" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>' +
+        '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" ' + (empresa ? 'checked' : '') + ' class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
+        '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" ' + (compartida ? 'checked' : '') + ' class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
+        '<td class="p-2 text-center"><button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none cursor-pointer" title="Eliminar fila">×</button></td>';
 
     tbody.appendChild(fila);
     actualizarBotonAgregarRA();
-    fila.querySelector('input[type="text"]').focus();
+}
+
+function _esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function eliminarFilaRA(btn) {
-    const modal = document.getElementById('modalEliminarFila');
-    const btnConfirmar = document.getElementById('btnConfirmarEliminarFila');
+    const modal = document.getElementById('modalEliminarFilaRA');
+    const btnConfirmar = document.getElementById('btnConfirmarEliminarFilaRA');
     if (modal && btnConfirmar) {
         modal.style.display = 'flex';
         btnConfirmar.onclick = function() {
             btn.closest('tr').remove();
             modal.style.display = 'none';
             const tbody = document.getElementById('ra-modal-tbody');
-            const dataRows = tbody.querySelectorAll('tr:not(#ra-modal-empty)');
-            if (dataRows.length === 0) {
+            if (tbody.querySelectorAll('tr:not(#ra-modal-empty)').length === 0) {
                 document.getElementById('ra-modal-empty').style.display = '';
             }
             actualizarBotonAgregarRA();

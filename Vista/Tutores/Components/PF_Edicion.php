@@ -202,9 +202,14 @@ validarAcceso('tutor');
             </div>
         </div>
 
-        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
-            <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider">7. Resultados de Aprendizaje Profesionales</p>
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">Gestiona los RAs desde el botón inferior</span>
+        <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">7. Resultados de Aprendizaje Profesionales</p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 flex items-center gap-3">
+            <span class="text-lg leading-none">📋</span>
+            <p class="text-[10px] font-bold text-slate-500 leading-relaxed">
+                Los Resultados de Aprendizaje son <span class="text-slate-800 font-black">comunes a todos los alumnos</span>.
+                Gestiónelos desde el botón <span class="text-slate-800 font-black uppercase">Resultados de Aprendizaje</span> del listado de Planes Formativos.
+            </p>
         </div>
 
         <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-8">
