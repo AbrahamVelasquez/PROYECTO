@@ -31,8 +31,14 @@ validarAcceso('tutor');
             </div>
         </div>
 
-        <button type="button" 
-                onclick="abrirModalExportarPF(document.getElementById('edit_id_asignacion')?.value)" 
+        <button type="button"
+                onclick="document.getElementById('modalGestionarRA').style.display='flex'"
+                class="bg-slate-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
+            <span>📋</span> RESULTADOS DE APRENDIZAJE
+        </button>
+
+        <button type="button"
+                onclick="abrirModalExportarPF(document.getElementById('edit_id_asignacion')?.value)"
                 class="bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
             <span>📤</span> GUARDAR Y EXPORTAR EXCEL
         </button>

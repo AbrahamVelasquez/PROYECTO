@@ -8,6 +8,62 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.ph
 validarAcceso('tutor'); 
 
 ?>
+<div id="modalGestionarRA" style="display:none" class="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl border border-slate-100 flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-700 text-white text-xs">📋</span>
+                Resultados de Aprendizaje
+            </h3>
+            <button onclick="document.getElementById('modalGestionarRA').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                Estos RAs son comunes a todos los alumnos. Máximo <span class="text-slate-700">14 filas</span>.
+            </p>
+
+            <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-4">
+                <table class="w-full text-left border-collapse bg-white">
+                    <thead class="bg-slate-50">
+                        <tr class="text-slate-600 text-[9px] font-black uppercase tracking-wider">
+                            <th class="p-3 border-r border-slate-200 w-16 text-center">Periodo</th>
+                            <th class="p-3 border-r border-slate-200">Módulo Profesional</th>
+                            <th class="p-3 border-r border-slate-200 w-20 text-center">Código</th>
+                            <th class="p-3 border-r border-slate-200 w-32 text-center">Resultados de Aprendizaje</th>
+                            <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartido íntegramente en la empresa</th>
+                            <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartición compartida con el centro docente</th>
+                            <th class="p-3 w-10 text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ra-modal-tbody" class="divide-y divide-slate-100">
+                        <tr id="ra-modal-empty">
+                            <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
+                                Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="button" id="btn-agregar-ra-modal" onclick="agregarFilaRA()" class="group flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all font-black text-xs uppercase tracking-widest">
+                    <span class="text-xl font-black leading-none">+</span> Añadir resultado de aprendizaje
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-3 justify-end p-6 border-t border-slate-100 flex-shrink-0">
+            <button onclick="document.getElementById('modalGestionarRA').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Cancelar
+            </button>
+            <button onclick="aplicarRAsAlPF()" class="px-6 py-2.5 rounded-xl bg-slate-700 text-white text-xs font-bold hover:bg-slate-800 shadow-md cursor-pointer transition-all uppercase tracking-wide">
+                Aplicar a todos los alumnos
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="modalConfirmarDevolver" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-6">
@@ -194,6 +250,102 @@ validarAcceso('tutor');
 </div>
 
 <script>
+function agregarFilaRA() {
+    const tbody = document.getElementById('ra-modal-tbody');
+    const filasActuales = tbody.querySelectorAll('tr:not(#ra-modal-empty)').length;
+    const MAX_FILAS = 14;
+
+    if (filasActuales >= MAX_FILAS) {
+        const modal = document.getElementById('modalLimiteRA');
+        if (modal) modal.style.display = 'flex';
+        return;
+    }
+
+    const emptyRow = document.getElementById('ra-modal-empty');
+    if (emptyRow) emptyRow.style.display = 'none';
+
+    const fila = document.createElement('tr');
+    fila.className = 'divide-slate-100';
+    fila.innerHTML = `
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="2" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="Desarrollo web entorno servidor" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="613" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="RA: 7" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
+        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
+        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
+        <td class="p-2 text-center"><button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none cursor-pointer" title="Eliminar fila">×</button></td>
+    `;
+
+    tbody.appendChild(fila);
+    actualizarBotonAgregarRA();
+    fila.querySelector('input[type="text"]').focus();
+}
+
+function eliminarFilaRA(btn) {
+    const modal = document.getElementById('modalEliminarFila');
+    const btnConfirmar = document.getElementById('btnConfirmarEliminarFila');
+    if (modal && btnConfirmar) {
+        modal.style.display = 'flex';
+        btnConfirmar.onclick = function() {
+            btn.closest('tr').remove();
+            modal.style.display = 'none';
+            const tbody = document.getElementById('ra-modal-tbody');
+            const dataRows = tbody.querySelectorAll('tr:not(#ra-modal-empty)');
+            if (dataRows.length === 0) {
+                document.getElementById('ra-modal-empty').style.display = '';
+            }
+            actualizarBotonAgregarRA();
+        };
+    }
+}
+
+function actualizarBotonAgregarRA() {
+    const tbody = document.getElementById('ra-modal-tbody');
+    const filas = tbody.querySelectorAll('tr:not(#ra-modal-empty)').length;
+    const btn = document.getElementById('btn-agregar-ra-modal');
+    if (!btn) return;
+    if (filas >= 14) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+function aplicarRAsAlPF() {
+    const modalTbody = document.getElementById('ra-modal-tbody');
+    const filas = modalTbody.querySelectorAll('tr:not(#ra-modal-empty)');
+    const pfTbody = document.getElementById('modulos-tbody-pf');
+    if (!pfTbody) {
+        document.getElementById('modalGestionarRA').style.display = 'none';
+        return;
+    }
+
+    const inputs = pfTbody.querySelectorAll('tr');
+
+    filas.forEach(function(fila, idx) {
+        if (idx >= inputs.length) return;
+        const celdas = fila.querySelectorAll('td');
+        const pfFila = inputs[idx];
+        const pfInputs = pfFila.querySelectorAll('input');
+        if (celdas[0]) pfInputs[0].value = celdas[0].querySelector('input')?.value ?? '';
+        if (celdas[1]) pfInputs[1].value = celdas[1].querySelector('input')?.value ?? '';
+        if (celdas[2]) pfInputs[2].value = celdas[2].querySelector('input')?.value ?? '';
+        if (celdas[3]) pfInputs[3].value = celdas[3].querySelector('input')?.value ?? '';
+        if (celdas[4]) pfInputs[4].checked = celdas[4].querySelector('input')?.checked ?? false;
+        if (celdas[5]) pfInputs[5].checked = celdas[5].querySelector('input')?.checked ?? false;
+    });
+
+    for (let i = filas.length; i < inputs.length; i++) {
+        const pfFila = inputs[i];
+        pfFila.querySelectorAll('input[type="text"]').forEach(function(inp) { inp.value = ''; });
+        pfFila.querySelectorAll('input[type="checkbox"]').forEach(function(inp) { inp.checked = false; });
+    }
+
+    document.getElementById('modalGestionarRA').style.display = 'none';
+}
+
 function abrirModalDevolver(idAlumno, nombre) {
     const elNombre = document.getElementById('nombreAlumnoDevolver');
     if (elNombre) elNombre.textContent = nombre;
@@ -231,6 +383,10 @@ window.abrirModalExportarPF = function(idAsignacion) {
             }
         };
     }
+};
+
+window.abrirModalGestionarRA = function() {
+    document.getElementById('modalGestionarRA').style.display = 'flex';
 };
 
 window.abrirModalExportarTodo = function() {
