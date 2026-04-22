@@ -204,7 +204,15 @@ validarAcceso('tutor');
 
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">7. Resultados de Aprendizaje Profesionales</p>
 
-        <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-4">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 flex items-center gap-3">
+            <span class="text-lg leading-none">📋</span>
+            <p class="text-[10px] font-bold text-slate-500 leading-relaxed">
+                Los Resultados de Aprendizaje son <span class="text-slate-800 font-black">comunes a todos los alumnos</span>.
+                Gestiónelos desde el botón <span class="text-slate-800 font-black uppercase">Resultados de Aprendizaje</span> del listado de Planes Formativos.
+            </p>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm mb-8">
             <table class="w-full text-left border-collapse bg-white" id="tabla-modulos">
                 <thead class="bg-slate-50">
                     <tr class="text-slate-600 text-[9px] font-black uppercase tracking-wider">
@@ -213,24 +221,22 @@ validarAcceso('tutor');
                         <th class="p-3 border-r border-slate-200 w-20 text-center">Código</th>
                         <th class="p-3 border-r border-slate-200 w-32 text-center">Resultados de Aprendizaje</th>
                         <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartido íntegramente en la empresa</th>
-                        <th class="p-3 border-r border-slate-200 w-36 text-center leading-tight">Impartición compartida con el centro docente</th>
-                        <th class="p-3 w-10 text-center"></th>
+                        <th class="p-3 w-36 text-center leading-tight">Impartición compartida con el centro docente</th>
                     </tr>
                 </thead>
-                <tbody id="modulos-tbody" class="divide-y divide-slate-100">
-                    <tr id="modulos-empty">
-                        <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
-                            Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
-                        </td>
+                <tbody class="divide-y divide-slate-100" id="modulos-tbody-pf">
+                    <?php for($raFila = 1; $raFila <= 14; $raFila++): ?>
+                    <tr>
+                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_periodo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
+                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_modulo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 bg-transparent"></td>
+                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_codigo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-500 text-center bg-transparent"></td>
+                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_numero[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
+                        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" name="ra_empresa_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
+                        <td class="p-2 text-center"><input type="checkbox" name="ra_compartida_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
                     </tr>
+                    <?php endfor; ?>
                 </tbody>
             </table>
-        </div>
-
-        <div class="flex justify-center mb-8">
-            <button type="button" onclick="agregarFilaModulo()" class="group flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all font-black text-xs uppercase tracking-widest">
-                <span class="text-xl font-black leading-none">+</span> Añadir resultado de aprendizaje
-            </button>
         </div>
 
         <input type="hidden" id="edit_id_asignacion" name="id_asignacion" value="<?= $_GET['editar'] ?? '' ?>">
@@ -240,77 +246,3 @@ validarAcceso('tutor');
     </form>
 </div>
 
-<script>
-function agregarFilaModulo() {
-    const tbody = document.getElementById('modulos-tbody');
-    const filasActuales = tbody.querySelectorAll('tr:not(#modulos-empty)').length;
-    const MAX_FILAS = 14;
-
-    // Control de límite con el nuevo Modal
-    if (filasActuales >= MAX_FILAS) {
-        const modal = document.getElementById('modalLimiteRA');
-        if (modal) modal.style.display = 'flex';
-        return; 
-    }
-
-    const emptyRow = document.getElementById('modulos-empty');
-    if (emptyRow) emptyRow.style.display = 'none';
-
-    const fila = document.createElement('tr');
-    fila.className = 'divide-slate-100';
-    fila.innerHTML = `
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="2" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="Desarrollo web entorno servidor" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="613" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="RA: 7" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center"></td>
-        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-        <td class="p-2 text-center"><button type="button" onclick="eliminarFilaModulo(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none" title="Eliminar fila">×</button></td>
-    `;
-    
-    tbody.appendChild(fila);
-    
-    // Si tienes el botón de añadir con ID, esto lo deshabilitará al llegar a 14
-    if(typeof actualizarEstadoBotonRA === 'function') actualizarEstadoBotonRA();
-    
-    fila.querySelector('input[type="text"]').focus();
-}
-
-// Función auxiliar para bloquear el botón visualmente
-function actualizarEstadoBotonRA() {
-    const tbody = document.getElementById('modulos-tbody');
-    const filas = tbody.querySelectorAll('tr:not(#modulos-empty)').length;
-    // Asegúrate de que el botón de "Añadir Fila" tenga este ID o cámbialo por el tuyo
-    const btnAgregar = document.getElementById('btn-añadir-fila-ra'); 
-
-    if (btnAgregar) {
-        if (filas >= 14) {
-            btnAgregar.disabled = true;
-            btnAgregar.classList.add('opacity-50', 'cursor-not-allowed');
-            btnAgregar.title = "Máximo de 14 resultados alcanzado";
-        } else {
-            btnAgregar.disabled = false;
-            btnAgregar.classList.remove('opacity-50', 'cursor-not-allowed');
-            btnAgregar.title = "Añadir fila";
-        }
-    }
-}
-
-function eliminarFilaModulo(btn) {
-    const modal = document.getElementById('modalEliminarFila');
-    const btnConfirmar = document.getElementById('btnConfirmarEliminarFila');
-    if (modal && btnConfirmar) {
-        modal.style.display = 'flex';
-        btnConfirmar.onclick = function() {
-            btn.closest('tr').remove();
-            modal.style.display = 'none';
-            const tbody = document.getElementById('modulos-tbody');
-            const dataRows = tbody.querySelectorAll('tr:not(#modulos-empty)');
-            if (dataRows.length === 0) {
-                const emptyRow = document.getElementById('modulos-empty');
-                if (emptyRow) emptyRow.style.display = '';
-            }
-        };
-    }
-}
-</script>

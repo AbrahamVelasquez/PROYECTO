@@ -378,17 +378,22 @@ class Alumnos {
         $idAlu = $relaciones['id_alumno'];
         $idConv = $relaciones['id_convenio'];
 
-        // 2. Actualizar ALUMNOS (Usando tus nombres: correo, telefono)
-        $sqlAlu = "UPDATE alumnos SET correo = ?, telefono = ? WHERE id_alumno = ?";
-        $this->conn->prepare($sqlAlu)->execute([$datos['email_alumno'], $datos['tel_alumno'], $idAlu]);
+        // Solo actualizar datos si vienen del formulario de edición individual
+        $tieneFormData = isset($datos['email_alumno']) || isset($datos['nombre_empresa']);
 
-        // 3. Actualizar CONVENIOS (Usando tus nombres: nombre_empresa, cif, mail, telefono)
-        $sqlConv = "UPDATE convenios SET nombre_empresa = ?, cif = ?, mail = ?, telefono = ? WHERE id_convenio = ?";
-        $this->conn->prepare($sqlConv)->execute([$datos['nombre_empresa'], $datos['nif_empresa'], $datos['email_empresa'], $datos['tel_empresa'], $idConv]);
+        if ($tieneFormData) {
+            // 2. Actualizar ALUMNOS
+            $sqlAlu = "UPDATE alumnos SET correo = ?, telefono = ? WHERE id_alumno = ?";
+            $this->conn->prepare($sqlAlu)->execute([$datos['email_alumno'] ?? null, $datos['tel_alumno'] ?? null, $idAlu]);
 
-        // 4. Actualizar ASIGNACIONES (Tutor empresa)
-        $sqlAsig = "UPDATE asignaciones SET nombre_tutor_empresa = ?, correo_tutor_empresa = ?, tel_tutor_empresa = ? WHERE id_asignacion = ?";
-        $this->conn->prepare($sqlAsig)->execute([$datos['tutor_empresa'], $datos['email_tutor_emp'], $datos['tel_tutor_emp'], $idAsignacion]);
+            // 3. Actualizar CONVENIOS
+            $sqlConv = "UPDATE convenios SET nombre_empresa = ?, cif = ?, mail = ?, telefono = ? WHERE id_convenio = ?";
+            $this->conn->prepare($sqlConv)->execute([$datos['nombre_empresa'] ?? null, $datos['nif_empresa'] ?? null, $datos['email_empresa'] ?? null, $datos['tel_empresa'] ?? null, $idConv]);
+
+            // 4. Actualizar ASIGNACIONES (Tutor empresa)
+            $sqlAsig = "UPDATE asignaciones SET nombre_tutor_empresa = ?, correo_tutor_empresa = ?, tel_tutor_empresa = ? WHERE id_asignacion = ?";
+            $this->conn->prepare($sqlAsig)->execute([$datos['tutor_empresa'] ?? null, $datos['email_tutor_emp'] ?? null, $datos['tel_tutor_emp'] ?? null, $idAsignacion]);
+        }
 
         // 5. Marcar como exportado
         $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1 WHERE id_asignacion = ?";
