@@ -36,19 +36,66 @@ validarAcceso('tutor');
                             <th class="p-3 w-10 text-center"></th>
                         </tr>
                     </thead>
-                    <tbody id="ra-modal-tbody" class="divide-y divide-slate-100">
-                        <tr id="ra-modal-empty">
-                            <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
-                                Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
-                            </td>
-                        </tr>
+                        <tbody id="ra-modal-tbody" class="divide-y divide-slate-100">
+                        <?php if (empty($rasExistentes)): ?>
+                            <tr id="ra-modal-empty">
+                                <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
+                                    Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($rasExistentes as $ra): ?>
+                                <tr class="divide-slate-100 border-b border-slate-50 hover:bg-slate-50 transition-colors" 
+                                    data-id-ra="<?= $ra['id_ra'] ?>" 
+                                    data-id-modulo="<?= $ra['id_modulo'] ?>">
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">
+                                        <?= htmlspecialchars($ra['periodo']) ?>
+                                        <input type="hidden" class="val-periodo" value="<?= htmlspecialchars($ra['periodo']) ?>">
+                                    </td>
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-xs font-bold text-slate-600">
+                                        <?= htmlspecialchars($ra['nombre_modulo']) ?>
+                                    </td>
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-xs font-mono font-bold text-slate-500 text-center">
+                                        <?= htmlspecialchars($ra['id_modulo']) ?>
+                                    </td>
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">
+                                        RA<?= htmlspecialchars($ra['numero_ra']) ?>
+                                        <input type="hidden" class="val-numero" value="<?= htmlspecialchars($ra['numero_ra']) ?>">
+                                    </td>
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-center">
+                                        <input type="checkbox" <?= $ra['impartido_empresa'] == 1 ? 'checked' : '' ?> class="check-empresa accent-orange-600 w-4 h-4 cursor-pointer">
+                                    </td>
+                                    
+                                    <td class="p-2 border-r border-slate-200 text-center">
+                                        <input type="checkbox" <?= $ra['impartido_empresa'] == 0 ? 'checked' : '' ?> class="check-centro accent-orange-600 w-4 h-4 cursor-pointer">
+                                    </td>
+                                    
+                                    <td class="p-2 text-center">
+                                        <button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base cursor-pointer">×</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            
+                            <tr id="ra-modal-empty" style="display:none">
+                                <td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">
+                                    Pulsa el <span class="text-orange-500 font-black not-italic">+</span> para añadir un resultado de aprendizaje
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <div class="flex justify-center">
-                <button type="button" id="btn-agregar-ra-modal" onclick="agregarFilaRA()" class="group flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all font-black text-xs uppercase tracking-widest">
-                    <span class="text-xl font-black leading-none">+</span> Añadir resultado de aprendizaje
+                <button type="button" id="btn-agregar-ra-modal" 
+                        onclick="document.getElementById('modalNuevoRA').style.display='flex'" 
+                        class="group flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all font-black text-xs uppercase tracking-widest">
+                    <span class="text-xl font-black leading-none">+</span> Añadir nuevo resultado
                 </button>
             </div>
         </div>
@@ -58,7 +105,7 @@ validarAcceso('tutor');
                 Cancelar
             </button>
             <button onclick="aplicarRAsAlPF()" class="px-6 py-2.5 rounded-xl bg-slate-700 text-white text-xs font-bold hover:bg-slate-800 shadow-md cursor-pointer transition-all uppercase tracking-wide">
-                Aplicar a todos los alumnos
+                Aplicar y Guardar Cambios
             </button>
         </div>
     </div>
@@ -397,27 +444,18 @@ validarAcceso('tutor');
 
 <script>
 var _pendingRAData = null;
-// Array con los id_ra de filas eliminadas en el modal (se borrarán de BD al aplicar)
 var _raEliminados = [];
 
-function agregarFilaRA() {
-    const tbody = document.getElementById('ra-modal-tbody');
-    const filasActuales = tbody.querySelectorAll('tr:not(#ra-modal-empty)').length;
+// 1. CONSTANTE DE MÓDULOS (Viene del controlador)
+const MODULOS_DEL_CICLO = <?php echo isset($modulosCiclo) ? json_encode($modulosCiclo) : '[]'; ?>;
 
-    if (filasActuales >= 14) {
-        document.getElementById('modalLimiteRA').style.display = 'flex';
-        return;
-    }
+// 2. CARGA INICIAL
+document.addEventListener('DOMContentLoaded', function() {
+    // Si quieres que se carguen al entrar a la página:
+    // cargarRAsExistentesEnTabla(); 
+});
 
-    document.getElementById('nuevoRA_periodo').value = '';
-    document.getElementById('nuevoRA_modulo').value = '';
-    document.getElementById('nuevoRA_numero').value = '';
-    document.getElementById('nuevoRA_empresa').checked = false;
-    document.getElementById('nuevoRA_compartida').checked = false;
-    document.getElementById('modalNuevoRA').style.display = 'flex';
-    setTimeout(function() { document.getElementById('nuevoRA_periodo').focus(); }, 50);
-}
-
+// 3. GESTIÓN DEL SEGUNDO MODAL (NUEVO RA)
 function cerrarNuevoRA() {
     document.getElementById('modalNuevoRA').style.display = 'none';
 }
@@ -429,11 +467,8 @@ function confirmarNuevoRA() {
     const empresa    = document.getElementById('nuevoRA_empresa').checked;
     const compartida = document.getElementById('nuevoRA_compartida').checked;
 
-    // Obtenemos el nombre visible del módulo seleccionado
     const selectMod  = document.getElementById('nuevoRA_modulo');
     const nombreModulo = selectMod.options[selectMod.selectedIndex]?.getAttribute('data-nombre') ?? '';
-
-    _pendingRAData = { periodo, idModulo, nombreModulo, numero, empresa, compartida };
 
     const vacios = [];
     if (!periodo)  vacios.push('Periodo');
@@ -447,101 +482,132 @@ function confirmarNuevoRA() {
         return;
     }
 
+    _pendingRAData = { periodo, idModulo, nombreModulo, numero, empresa, compartida };
     confirmarAgregarFilaRA();
 }
 
+// 4. PASAR DEL SEGUNDO MODAL A LA TABLA DEL PRIMERO
 function confirmarAgregarFilaRA() {
     document.getElementById('modalCamposVaciosRA').style.display = 'none';
     document.getElementById('modalNuevoRA').style.display = 'none';
 
     if (!_pendingRAData) return;
-    const { periodo, idModulo, nombreModulo, numero, empresa, compartida } = _pendingRAData;
+    const data = _pendingRAData;
     _pendingRAData = null;
 
+    // Usamos una función unificada para pintar la fila y no repetir código
+    pintarFilaEnTablaModal({
+        id_ra: 0, // 0 significa que es nuevo
+        id_modulo: data.idModulo,
+        nombre_modulo: data.nombreModulo,
+        periodo: data.periodo,
+        numero_ra: data.numero,
+        impartido_empresa: data.empresa ? 1 : 0
+    });
+    
+    actualizarBotonAgregarRA();
+}
+
+// 5. FUNCIÓN UNIFICADA PARA PINTAR FILAS (Evita errores de formato)
+function pintarFilaEnTablaModal(ra) {
     const tbody = document.getElementById('ra-modal-tbody');
     const emptyRow = document.getElementById('ra-modal-empty');
     if (emptyRow) emptyRow.style.display = 'none';
 
     const fila = document.createElement('tr');
-    fila.className = 'divide-slate-100';
-    // data-id-ra="0" indica fila nueva (sin id en BD todavía)
-    fila.setAttribute('data-id-ra', '0');
-    fila.setAttribute('data-id-modulo', idModulo);
-    fila.innerHTML =
-        '<td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">' + _esc(periodo) + '<input type="hidden" value="' + _esc(periodo) + '"></td>' +
-        '<td class="p-2 border-r border-slate-200 text-xs font-bold text-slate-600">' + _esc(nombreModulo) + '</td>' +
-        '<td class="p-2 border-r border-slate-200 text-xs font-mono font-bold text-slate-500 text-center">' + _esc(idModulo) + '</td>' +
-        '<td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">' + _esc(numero) + '</td>' +
-        '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" ' + (empresa ? 'checked' : '') + ' class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
-        '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" ' + (compartida ? 'checked' : '') + ' class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
-        '<td class="p-2 text-center"><button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none cursor-pointer" title="Eliminar fila">×</button></td>';
+    fila.className = 'divide-slate-100 border-b border-slate-50';
+    fila.setAttribute('data-id-ra', ra.id_ra);
+    fila.setAttribute('data-id-modulo', ra.id_modulo);
 
+    // IMPORTANTE: Revisa que ra.periodo, ra.nombre_modulo, etc., 
+    // se llamen igual que en tu base de datos (SELECT en el modelo)
+    fila.innerHTML = `
+        <td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">
+            ${_esc(ra.periodo)}
+            <input type="hidden" class="val-periodo" value="${_esc(ra.periodo)}">
+        </td>
+        <td class="p-2 border-r border-slate-200 text-xs font-bold text-slate-600">
+            ${_esc(ra.nombre_modulo)}
+        </td>
+        <td class="p-2 border-r border-slate-200 text-xs font-mono font-bold text-slate-50 text-center">
+             <span class="bg-slate-100 px-1 rounded text-slate-500">${_esc(ra.id_modulo)}</span>
+        </td>
+        <td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">
+            RA${_esc(ra.numero_ra)}
+            <input type="hidden" class="val-numero" value="${_esc(ra.numero_ra)}">
+        </td>
+        <td class="p-2 border-r border-slate-200 text-center">
+            <input type="checkbox" ${ra.impartido_empresa == 1 ? 'checked' : ''} class="check-empresa w-4 h-4">
+        </td>
+        <td class="p-2 border-r border-slate-200 text-center">
+            <input type="checkbox" ${ra.impartido_empresa == 0 ? 'checked' : ''} class="check-centro w-4 h-4">
+        </td>
+        <td class="p-2 text-center">
+            <button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 text-lg">×</button>
+        </td>
+    `;
     tbody.appendChild(fila);
-    actualizarBotonAgregarRA();
 }
 
-function _esc(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function eliminarFilaRA(btn) {
-    const modal = document.getElementById('modalEliminarFilaRA');
-    const btnConfirmar = document.getElementById('btnConfirmarEliminarFilaRA');
-    if (modal && btnConfirmar) {
-        modal.style.display = 'flex';
-        btnConfirmar.onclick = function() {
-            const fila = btn.closest('tr');
-            const idRa = parseInt(fila.getAttribute('data-id-ra') || '0');
-            // Si ya existe en BD (id > 0), lo marcamos para borrar al aplicar
-            if (idRa > 0) {
-                _raEliminados.push(idRa);
-            }
-            fila.remove();
-            modal.style.display = 'none';
-            const tbody = document.getElementById('ra-modal-tbody');
-            if (tbody.querySelectorAll('tr:not(#ra-modal-empty)').length === 0) {
-                document.getElementById('ra-modal-empty').style.display = '';
-            }
-            actualizarBotonAgregarRA();
-        };
-    }
-}
-
-function actualizarBotonAgregarRA() {
+// 6. ABRIR EL MODAL PRINCIPAL Y CARGAR DATOS
+window.abrirModalGestionarRA = async function() {
+    _raEliminados = [];
     const tbody = document.getElementById('ra-modal-tbody');
-    const filas = tbody.querySelectorAll('tr:not(#ra-modal-empty)').length;
-    const btn = document.getElementById('btn-agregar-ra-modal');
-    if (!btn) return;
-    if (filas >= 14) {
-        btn.disabled = true;
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    const emptyRow = document.getElementById('ra-modal-empty');
+    
+    // 1. Limpiamos lo que hubiera antes
+    tbody.querySelectorAll('tr:not(#ra-modal-empty)').forEach(tr => tr.remove());
+    if (emptyRow) {
+        emptyRow.style.display = '';
+        emptyRow.innerHTML = '<td colspan="7" class="py-8 text-center text-slate-400 text-xs italic font-bold">Cargando datos de la base de datos...</td>';
     }
-}
 
+    try {
+        // 2. Pedimos los datos al controlador
+        const res = await fetch('index.php?controlador=Tutores&accion=obtenerRAs');
+        const data = await res.json(); // Intentamos leer JSON directo
+
+        if (data && data.length > 0) {
+            if (emptyRow) emptyRow.style.display = 'none';
+            // 3. Pintamos cada RA usando la función que ya tenemos
+            data.forEach(ra => pintarFilaEnTablaModal(ra));
+        } else {
+            if (emptyRow) {
+                emptyRow.innerHTML = '<td colspan="7" class="py-8 text-center text-slate-400 text-xs font-bold italic">No hay RAs guardados. Pulsa el <span class="text-orange-500">+</span></td>';
+            }
+        }
+    } catch(e) {
+        console.error('Error al traer los RAs:', e);
+        if (emptyRow) emptyRow.innerHTML = '<td colspan="7" class="py-8 text-center text-red-400 text-xs">Error de conexión al cargar RAs</td>';
+    }
+
+    document.getElementById('modalGestionarRA').style.display = 'flex';
+};
+
+// 7. GUARDAR CAMBIOS (APLICAR)
 async function aplicarRAsAlPF() {
     const modalTbody = document.getElementById('ra-modal-tbody');
     const filas = modalTbody.querySelectorAll('tr:not(#ra-modal-empty)');
-
-    // Recopilar datos de las filas actuales para enviar a BD
     const rasNuevos = [];
-    filas.forEach(function(fila) {
-        const idRa    = parseInt(fila.getAttribute('data-id-ra') || '0');
-        const idMod   = fila.getAttribute('data-id-modulo') || '';
-        const celdas  = fila.querySelectorAll('td');
-        const periodo = celdas[0]?.querySelector('input[type="hidden"]')?.value
-                        ?? celdas[0]?.textContent?.trim() ?? '';
-        const numero  = celdas[3]?.textContent?.trim() ?? '';
-        const empresa = celdas[4]?.querySelector('input[type="checkbox"]')?.checked ? 1 : 0;
+
+    filas.forEach(fila => {
+        const idRa     = fila.getAttribute('data-id-ra');
+        const idMod    = fila.getAttribute('data-id-modulo');
+        const periodo  = fila.querySelector('.val-periodo')?.value;
+        const numero   = fila.querySelector('.val-numero')?.value;
+        const empresa  = fila.querySelector('.check-empresa').checked ? 1 : 0;
 
         if (idMod && periodo && numero) {
-            rasNuevos.push({ id_ra: idRa, id_modulo: idMod, periodo: periodo, numero_ra: numero, impartido_empresa: empresa });
+            rasNuevos.push({ 
+                id_ra: idRa, 
+                id_modulo: idMod, 
+                periodo: periodo, 
+                numero_ra: numero, 
+                impartido_empresa: empresa 
+            });
         }
     });
 
-    // Construir payload
     const formData = new URLSearchParams();
     formData.append('ra_nuevos', JSON.stringify(rasNuevos));
     formData.append('ra_eliminar', JSON.stringify(_raEliminados));
@@ -556,44 +622,62 @@ async function aplicarRAsAlPF() {
         const inicio = texto.indexOf('{');
         const data = inicio !== -1 ? JSON.parse(texto.substring(inicio, texto.lastIndexOf('}') + 1)) : {};
 
-        if (!data.success) {
-            console.error('Error guardando RAs:', data.error ?? 'desconocido');
+        if (data.success) {
+            _raEliminados = [];
+            document.getElementById('modalGestionarRA').style.display = 'none';
+            // Opcional: Refrescar la página para ver cambios
+            location.reload();
+        } else {
+            alert('Error al guardar: ' + (data.error || 'Desconocido'));
         }
     } catch(e) {
         console.error('Error AJAX guardarRA:', e);
     }
-
-    // Resetear array de eliminados
-    _raEliminados = [];
-
-    // Reflejar en la tabla de PF_Edicion (si está visible)
-    const pfTbody = document.getElementById('modulos-tbody-pf');
-    if (pfTbody) {
-        const inputs = pfTbody.querySelectorAll('tr');
-        filas.forEach(function(fila, idx) {
-            if (idx >= inputs.length) return;
-            const celdas  = fila.querySelectorAll('td');
-            const pfFila  = inputs[idx];
-            const pfInps  = pfFila.querySelectorAll('input');
-            const periodo = celdas[0]?.querySelector('input[type="hidden"]')?.value
-                            ?? celdas[0]?.textContent?.trim() ?? '';
-            if (pfInps[0]) pfInps[0].value = periodo;
-            if (pfInps[1]) pfInps[1].value = celdas[1]?.textContent?.trim() ?? '';
-            if (pfInps[2]) pfInps[2].value = celdas[2]?.textContent?.trim() ?? '';
-            if (pfInps[3]) pfInps[3].value = celdas[3]?.textContent?.trim() ?? '';
-            if (pfInps[4]) pfInps[4].checked = celdas[4]?.querySelector('input[type="checkbox"]')?.checked ?? false;
-            if (pfInps[5]) pfInps[5].checked = celdas[5]?.querySelector('input[type="checkbox"]')?.checked ?? false;
-        });
-
-        for (let i = filas.length; i < inputs.length; i++) {
-            const pfFila = inputs[i];
-            pfFila.querySelectorAll('input[type="text"]').forEach(function(inp) { inp.value = ''; });
-            pfFila.querySelectorAll('input[type="checkbox"]').forEach(function(inp) { inp.checked = false; });
-        }
-    }
-
-    document.getElementById('modalGestionarRA').style.display = 'none';
 }
+
+// 8. ELIMINAR FILA
+function eliminarFilaRA(btn) {
+    const modal = document.getElementById('modalEliminarFilaRA');
+    const btnConfirmar = document.getElementById('btnConfirmarEliminarFilaRA');
+    
+    if (modal && btnConfirmar) {
+        modal.style.display = 'flex';
+        btnConfirmar.onclick = function() {
+            const fila = btn.closest('tr');
+            const idRa = fila.getAttribute('data-id-ra');
+            
+            if (idRa && idRa !== '0') {
+                _raEliminados.push(parseInt(idRa));
+            }
+            
+            fila.remove();
+            modal.style.display = 'none';
+            
+            const tbody = document.getElementById('ra-modal-tbody');
+            if (tbody.querySelectorAll('tr:not(#ra-modal-empty)').length === 0) {
+                document.getElementById('ra-modal-empty').style.display = '';
+            }
+            actualizarBotonAgregarRA();
+        };
+    }
+}
+
+// 9. UTILIDADES
+function actualizarBotonAgregarRA() {
+    const filas = document.querySelectorAll('#ra-modal-tbody tr:not(#ra-modal-empty)').length;
+    const btn = document.getElementById('btn-agregar-ra-modal');
+    if (!btn) return;
+    btn.disabled = (filas >= 14);
+    btn.classList.toggle('opacity-50', filas >= 14);
+    btn.classList.toggle('cursor-not-allowed', filas >= 14);
+}
+
+function _esc(str) {
+    if (!str) return "";
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// El resto de funciones (Devolver, Exportar) se mantienen igual que las tenías...
 
 function abrirModalDevolver(idAlumno, nombre) {
     const elNombre = document.getElementById('nombreAlumnoDevolver');
@@ -632,48 +716,6 @@ window.abrirModalExportarPF = function(idAsignacion) {
             }
         };
     }
-};
-
-window.abrirModalGestionarRA = async function() {
-    // Resetear eliminados cada vez que se abre
-    _raEliminados = [];
-
-    // Limpiar tabla del modal
-    const tbody = document.getElementById('ra-modal-tbody');
-    const emptyRow = document.getElementById('ra-modal-empty');
-    tbody.querySelectorAll('tr:not(#ra-modal-empty)').forEach(tr => tr.remove());
-    if (emptyRow) emptyRow.style.display = '';
-
-    // Cargar RAs existentes desde BD
-    try {
-        const res = await fetch('index.php?controlador=Tutores&accion=obtenerRAs');
-        const texto = await res.text();
-        const inicio = texto.indexOf('[');
-        if (inicio !== -1) {
-            const ras = JSON.parse(texto.substring(inicio, texto.lastIndexOf(']') + 1));
-            ras.forEach(function(ra) {
-                if (emptyRow) emptyRow.style.display = 'none';
-                const fila = document.createElement('tr');
-                fila.className = 'divide-slate-100';
-                fila.setAttribute('data-id-ra', ra.id_ra);
-                fila.setAttribute('data-id-modulo', ra.id_modulo);
-                fila.innerHTML =
-                    '<td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">' + _esc(ra.periodo) + '<input type="hidden" value="' + _esc(ra.periodo) + '"></td>' +
-                    '<td class="p-2 border-r border-slate-200 text-xs font-bold text-slate-600">' + _esc(ra.nombre_modulo) + '</td>' +
-                    '<td class="p-2 border-r border-slate-200 text-xs font-mono font-bold text-slate-500 text-center">' + _esc(ra.id_modulo) + '</td>' +
-                    '<td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">RA' + _esc(ra.numero_ra) + '</td>' +
-                    '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" ' + (ra.impartido_empresa ? 'checked' : '') + ' class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
-                    '<td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>' +
-                    '<td class="p-2 text-center"><button type="button" onclick="eliminarFilaRA(this)" class="text-slate-300 hover:text-red-500 transition-colors font-black text-base leading-none cursor-pointer" title="Eliminar fila">×</button></td>';
-                tbody.appendChild(fila);
-            });
-            actualizarBotonAgregarRA();
-        }
-    } catch(e) {
-        console.error('Error cargando RAs:', e);
-    }
-
-    document.getElementById('modalGestionarRA').style.display = 'flex';
 };
 
 window.abrirModalExportarTodo = function() {

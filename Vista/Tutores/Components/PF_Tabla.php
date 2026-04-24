@@ -51,7 +51,7 @@ validarAcceso('tutor');
     </div>
 
     <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
-        BUSCAR
+        BUSCADO AUTOMÁTICO
     </button>
 </form>
 

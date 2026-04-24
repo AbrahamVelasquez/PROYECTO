@@ -62,6 +62,9 @@ class Tutores_Controlador {
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
         $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
         $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);
+        // Pedimos los datos al modelo
+        $modulosCiclo = $alumnoModelo->obtenerModulosPorTutor($idCicloTutor);
+        $rasExistentes = $alumnoModelo->obtenerRAsPorTutor($idCicloTutor);
 
         // --- CARGA DE VISTA ---
         require_once 'Vista/Tutores/Dashboard_Tutores.php';
@@ -198,26 +201,22 @@ class Tutores_Controlador {
     }
 
     public function firmarAlumno() {
-        // Validamos que vengan los datos necesarios
-        if (isset($_POST['id_asignacion']) && isset($_POST['enviado_estado'])) {
-            $idAsig = (int)$_POST['id_asignacion'];
-            $enviado = (int)$_POST['enviado_estado'];
+        $id_asignacion = $_POST['id_asignacion'] ?? null;
+        $anexo = $_POST['anexo'] ?? null; // Recogemos el anexo del modal
 
-            // Doble check de seguridad
-            if ($enviado === 1) {
-                // No necesitas require_once de nuevo porque ya está arriba en el fichero
-                // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
-                $resultado = $this->alumnoModelo->firmarAsignacion($idAsig);
-                
-                if ($resultado) {
-                    header("Location: index.php?tab=2&res=firmado_ok");
-                } else {
-                    header("Location: index.php?tab=2&res=error_db");
-                }
+        if ($id_asignacion) {
+
+            // Usamos la variable $alumnoModelo directamente para llamar a la función
+            $resultado = $this -> alumnoModelo->firmarAsignacion($id_asignacion, $anexo);
+            
+            if ($resultado) {
+                header("Location: index.php?controlador=Tutores&tab=2&msg=firmado");
+                exit; // Siempre es bueno poner exit después de un header Location
             } else {
-                header("Location: index.php?tab=2&res=error_no_enviado");
+                // Aquí podrías redirigir con un mensaje de error si falla la DB
+                header("Location: index.php?controlador=Tutores&tab=2&msg=error");
+                exit;
             }
-            exit();
         }
     }
 
@@ -290,17 +289,24 @@ class Tutores_Controlador {
     }
 
     public function obtenerRAs() {
-        if (ob_get_length()) ob_clean();
-        header('Content-Type: application/json');
+        // 1. Limpiar cualquier eco o espacio previo
+        if (ob_get_level()) ob_end_clean(); 
+        
+        header('Content-Type: application/json; charset=utf-8');
 
         try {
-            $idCiclo = $_SESSION['id_ciclo'] ?? 0;
-            $ras = $this->alumnoModelo->obtenerResultadosAprendizaje($idCiclo);
-            echo json_encode($ras);
+            $idCicloTutor = $_SESSION['id_ciclo'] ?? 0;
+            $ras = $this -> alumnoModelo->obtenerRAsPorTutor($idCicloTutor);
+
+            // 2. Si no hay datos, enviamos un array vacío legal
+            if (!$ras) $ras = [];
+
+            echo json_encode($ras, JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
-            echo json_encode([]);
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()]);
         }
-        exit();
+        exit; // 3. IMPORTANTE: Detener todo aquí
     }
 
     public function guardarNuevoConvenio() {

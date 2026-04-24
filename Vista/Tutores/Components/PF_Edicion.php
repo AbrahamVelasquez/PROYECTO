@@ -232,15 +232,50 @@ validarAcceso('tutor');
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" id="modulos-tbody-pf">
-                    <?php for($raFila = 1; $raFila <= 14; $raFila++): ?>
-                    <tr>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_periodo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_modulo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_codigo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_numero[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" name="ra_empresa_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-                        <td class="p-2 text-center"><input type="checkbox" name="ra_compartida_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-                    </tr>
+                    <?php 
+                    $totalFilasVisibles = 14;
+                    $filaActual = 0;
+
+                    // 1. Pintamos los RAs que vienen de la base de datos
+                    if (!empty($rasExistentes)): 
+                        foreach ($rasExistentes as $ra): 
+                            $filaActual++;
+                    ?>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['periodo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['nombre_modulo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['id_modulo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-500 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="RA<?= htmlspecialchars($ra['numero_ra']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200 text-center">
+                                <input type="checkbox" disabled <?= $ra['impartido_empresa'] == 1 ? 'checked' : '' ?> class="accent-orange-600 w-4 h-4 cursor-not-allowed">
+                            </td>
+                            <td class="p-2 text-center">
+                                <input type="checkbox" disabled <?= $ra['impartido_empresa'] == 0 ? 'checked' : '' ?> class="accent-orange-600 w-4 h-4 cursor-not-allowed">
+                            </td>
+                        </tr>
+                    <?php 
+                        endforeach; 
+                    endif; 
+
+                    // 2. Rellenamos hasta llegar a 14 filas para mantener el diseño
+                    for($i = $filaActual; $i < $totalFilasVisibles; $i++): 
+                    ?>
+                        <tr>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" disabled class="accent-slate-200 w-4 h-4 opacity-30"></td>
+                            <td class="p-2 text-center"><input type="checkbox" disabled class="accent-slate-200 w-4 h-4 opacity-30"></td>
+                        </tr>
                     <?php endfor; ?>
                 </tbody>
             </table>
