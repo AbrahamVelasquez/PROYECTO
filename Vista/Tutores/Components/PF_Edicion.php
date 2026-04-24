@@ -19,7 +19,12 @@ validarAcceso('tutor');
 
     <form class="p-8">
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">1. Identificación Académica y Temporal</p>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="md:col-span-1">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nº Anexo</label>
+                <input type="number" id="edit_anexo" placeholder="—" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+            </div>
+            
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Régimen</label>
                 <select id="edit_regimen" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
@@ -38,9 +43,7 @@ validarAcceso('tutor');
                         <span class="text-xs font-bold text-slate-400">20</span>
                         <input type="number" id="edit_anio_inicio" class="w-8 py-2.5 bg-transparent text-xs font-bold outline-none text-center" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)">
                     </div>
-                    
                     <span class="text-slate-400 font-bold">-</span>
-                    
                     <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
                         <span class="text-xs font-bold text-slate-400">20</span>
                         <input type="number" id="edit_anio_fin" class="w-8 py-2.5 bg-transparent text-xs font-bold outline-none text-center" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)">
@@ -54,7 +57,7 @@ validarAcceso('tutor');
                     <option value="2">2º CURSO</option>
                 </select>
             </div>
-            <div class="md:col-span-3">
+            <div class="md:col-span-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ciclo / Especialización / Programa</label>
                 <input type="text" id="edit_nombre_ciclo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
@@ -110,7 +113,13 @@ validarAcceso('tutor');
 
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">4. Empresa u Organismo Equiparado</p>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="md:col-span-3">
+            
+            <div class="md:col-span-1">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">ID Convenio</label>
+                <input type="text" id="pf_id_convenio" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
+            </div>
+
+            <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre de la Empresa</label>
                 <input type="text" id="edit_nombre_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
@@ -124,12 +133,10 @@ validarAcceso('tutor');
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico Empresa</label>
                 <input type="email" id="edit_email_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Empresa</label>
                 <input type="text" id="edit_tel_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a de Empresa</label>
                 <input type="text" id="edit_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
@@ -225,15 +232,50 @@ validarAcceso('tutor');
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" id="modulos-tbody-pf">
-                    <?php for($raFila = 1; $raFila <= 14; $raFila++): ?>
-                    <tr>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_periodo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_modulo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_codigo[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" name="ra_numero[]" placeholder="—" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-500 text-center bg-transparent"></td>
-                        <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" name="ra_empresa_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-                        <td class="p-2 text-center"><input type="checkbox" name="ra_compartida_<?= $raFila ?>" class="accent-orange-600 w-4 h-4 cursor-pointer"></td>
-                    </tr>
+                    <?php 
+                    $totalFilasVisibles = 14;
+                    $filaActual = 0;
+
+                    // 1. Pintamos los RAs que vienen de la base de datos
+                    if (!empty($rasExistentes)): 
+                        foreach ($rasExistentes as $ra): 
+                            $filaActual++;
+                    ?>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['periodo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['nombre_modulo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="<?= htmlspecialchars($ra['id_modulo']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold font-mono text-slate-500 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200">
+                                <input type="text" readonly value="RA<?= htmlspecialchars($ra['numero_ra']) ?>" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center bg-transparent cursor-default">
+                            </td>
+                            <td class="p-2 border-r border-slate-200 text-center">
+                                <input type="checkbox" disabled <?= $ra['impartido_empresa'] == 1 ? 'checked' : '' ?> class="accent-orange-600 w-4 h-4 cursor-not-allowed">
+                            </td>
+                            <td class="p-2 text-center">
+                                <input type="checkbox" disabled <?= $ra['impartido_empresa'] == 0 ? 'checked' : '' ?> class="accent-orange-600 w-4 h-4 cursor-not-allowed">
+                            </td>
+                        </tr>
+                    <?php 
+                        endforeach; 
+                    endif; 
+
+                    // 2. Rellenamos hasta llegar a 14 filas para mantener el diseño
+                    for($i = $filaActual; $i < $totalFilasVisibles; $i++): 
+                    ?>
+                        <tr>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200"><input type="text" placeholder="—" readonly class="w-full px-2 py-1 outline-none text-xs text-slate-300 text-center bg-transparent"></td>
+                            <td class="p-2 border-r border-slate-200 text-center"><input type="checkbox" disabled class="accent-slate-200 w-4 h-4 opacity-30"></td>
+                            <td class="p-2 text-center"><input type="checkbox" disabled class="accent-slate-200 w-4 h-4 opacity-30"></td>
+                        </tr>
                     <?php endfor; ?>
                 </tbody>
             </table>

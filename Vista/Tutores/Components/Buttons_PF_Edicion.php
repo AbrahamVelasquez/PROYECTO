@@ -58,6 +58,7 @@ window.exportarYMarcar = async function(idAsignacion) {
     
     // Mapeo de los campos del formulario (IDs de los inputs en PF_Edicion.php)
     const campos = {
+        'anexo': 'edit_anexo',            // <--- AÑADIDO
         'regimen': 'edit_regimen',
         'fecha_plan': 'edit_fecha_plan',
         'anio_inicio': 'edit_anio_inicio',
@@ -70,6 +71,7 @@ window.exportarYMarcar = async function(idAsignacion) {
         'centro_nombre': 'edit_centro_nombre',
         'centro_correo': 'edit_centro_correo',
         'centro_tel': 'edit_centro_tel',
+        'id_convenio': 'pf_id_convenio', // <--- AÑADIDO
         'nombre_empresa': 'edit_nombre_empresa',
         'nif_empresa': 'edit_nif_empresa',
         'email_empresa': 'edit_email_empresa',

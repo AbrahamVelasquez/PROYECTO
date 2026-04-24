@@ -353,8 +353,17 @@ validarAcceso('tutor');
             </h3>
             <button onclick="cerrarModalFirma()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
         </div>
+        
         <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Confirmar que este alumno está firmado?</p>
-        <p id="modalFirmaNombre" class="text-sm font-black text-slate-900 mb-6 text-center uppercase"></p>
+        <p id="modalFirmaNombre" class="text-sm font-black text-slate-900 mb-4 text-center uppercase"></p>
+        
+        <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">
+                ¿Desea introducir el número de anexo? <span class="text-slate-400 font-normal normal-case">(Opcional)</span>
+            </label>
+            <input type="text" id="inputFirmaAnexo" placeholder="Ej: 1" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-center outline-none focus:ring-2 focus:ring-orange-200 transition-all">
+        </div>
+        
         <div class="flex gap-3 justify-center">
             <button onclick="cerrarModalFirma()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
             <button id="btnConfirmarFirmaAccion" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
