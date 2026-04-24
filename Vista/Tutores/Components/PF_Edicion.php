@@ -19,7 +19,12 @@ validarAcceso('tutor');
 
     <form class="p-8">
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">1. Identificación Académica y Temporal</p>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="md:col-span-1">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nº Anexo</label>
+                <input type="number" id="edit_anexo" placeholder="—" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+            </div>
+            
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Régimen</label>
                 <select id="edit_regimen" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
@@ -38,9 +43,7 @@ validarAcceso('tutor');
                         <span class="text-xs font-bold text-slate-400">20</span>
                         <input type="number" id="edit_anio_inicio" class="w-8 py-2.5 bg-transparent text-xs font-bold outline-none text-center" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)">
                     </div>
-                    
                     <span class="text-slate-400 font-bold">-</span>
-                    
                     <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
                         <span class="text-xs font-bold text-slate-400">20</span>
                         <input type="number" id="edit_anio_fin" class="w-8 py-2.5 bg-transparent text-xs font-bold outline-none text-center" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)">
@@ -54,7 +57,7 @@ validarAcceso('tutor');
                     <option value="2">2º CURSO</option>
                 </select>
             </div>
-            <div class="md:col-span-3">
+            <div class="md:col-span-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ciclo / Especialización / Programa</label>
                 <input type="text" id="edit_nombre_ciclo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
@@ -110,7 +113,13 @@ validarAcceso('tutor');
 
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">4. Empresa u Organismo Equiparado</p>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="md:col-span-3">
+            
+            <div class="md:col-span-1">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">ID Convenio</label>
+                <input type="text" id="pf_id_convenio" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
+            </div>
+
+            <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre de la Empresa</label>
                 <input type="text" id="edit_nombre_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
@@ -124,12 +133,10 @@ validarAcceso('tutor');
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico Empresa</label>
                 <input type="email" id="edit_email_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Empresa</label>
                 <input type="text" id="edit_tel_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a de Empresa</label>
                 <input type="text" id="edit_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">

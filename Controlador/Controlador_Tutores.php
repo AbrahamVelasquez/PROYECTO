@@ -100,27 +100,31 @@ class Tutores_Controlador {
     }
 
     public function obtenerAlumno() {
-        // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
+        // 1. Limpiar cualquier eco previo para que el JSON sea puro
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
 
         if (isset($_POST['verificar_firma'])) {
             $idAsig = (int)$_POST['id_asignacion'];
             $yaFirmado = $this->alumnoModelo->comprobarFirmaExistente($idAsig);
-            header('Content-Type: application/json');
             echo json_encode(['yaFirmado' => $yaFirmado]);
             exit();
         }
 
         $idAlumno = isset($_POST['id_alumno']) ? (int)$_POST['id_alumno'] : 0;
+        
+        // Obtenemos los datos del modelo
         $alumno = $this->alumnoModelo->obtenerPorId($idAlumno);
 
-        header('Content-Type: application/json');
-        
         if (!$alumno) {
             echo json_encode(['error' => 'Alumno no encontrado', 'id_recibido' => $idAlumno]);
         } else {
-            // --- Verificar si ya está firmado ---
+            // IMPORTANTE: Nos aseguramos de que id_convenio sea un entero o null, no un string vacío
+            $alumno['id_convenio'] = $alumno['id_convenio'] ? (int)$alumno['id_convenio'] : null;
+            
+            // Verificar firma
             $alumno['yaFirmado'] = $this->alumnoModelo->comprobarFirmaExistente($alumno['id_asignacion'] ?? 0);
-            // -------------------------------------------------------
+            
             echo json_encode($alumno);
         }
         exit();
@@ -245,6 +249,11 @@ class Tutores_Controlador {
         try {
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_asignacion'])) {
                 $idAsignacion = intval($_POST['id_asignacion']);
+
+                // Guardar el anexo si viene informado
+                if (isset($_POST['anexo']) && $_POST['anexo'] !== '') {
+                    $this->alumnoModelo->actualizarAnexo($idAsignacion, $_POST['anexo']);
+                }
                 
                 // Pasamos todo el $_POST al modelo
                 $resultado = $this->alumnoModelo->actualizarTodoYExportar($idAsignacion, $_POST);
@@ -261,6 +270,37 @@ class Tutores_Controlador {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit(); // Importante para que no se imprima nada más después
+    }
+
+    public function guardarRA() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $idCiclo     = $_SESSION['id_ciclo'] ?? 0;
+            $rasNuevos   = json_decode($_POST['ra_nuevos']  ?? '[]', true) ?? [];
+            $raEliminados = json_decode($_POST['ra_eliminar'] ?? '[]', true) ?? [];
+
+            $resultado = $this->alumnoModelo->guardarResultadosAprendizaje($idCiclo, $rasNuevos, $raEliminados);
+            echo json_encode(['success' => $resultado]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
+    public function obtenerRAs() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $idCiclo = $_SESSION['id_ciclo'] ?? 0;
+            $ras = $this->alumnoModelo->obtenerResultadosAprendizaje($idCiclo);
+            echo json_encode($ras);
+        } catch (Exception $e) {
+            echo json_encode([]);
+        }
+        exit();
     }
 
     public function guardarNuevoConvenio() {

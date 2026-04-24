@@ -2,7 +2,7 @@ TFG/ (Raíz del Proyecto)
 │
 ├── 📄 index.php
 ├── 📄 README.md
-├── 📄 TFG_Sebastian_Alain_Abraham.docx
+├── 📄 TFG.docx
 │
 ├── 📁 Controlador/ ────────────────────────── [Lógica de negocio y gestión de peticiones]
 │   ├── .htaccess

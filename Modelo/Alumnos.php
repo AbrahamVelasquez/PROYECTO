@@ -314,15 +314,22 @@ class Alumnos {
     }
 
     public function listarAlumnosFirmados($idCiclo) {
+        // Hemos añadido explícitamente asig.id_convenio y asegurado los JOINs
         $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
                         f.id_asignacion,
-                        conv.nombre_empresa, conv.cif AS nif_empresa,
-                        conv.mail AS email_empresa, conv.telefono AS telefono_empresa,
-                        asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
+                        asig.id_convenio,      /* <--- ESTA ES LA CLAVE */
+                        conv.nombre_empresa, 
+                        conv.cif AS nif_empresa,
+                        conv.mail AS email_empresa, 
+                        conv.telefono AS telefono_empresa,
+                        asig.nombre_tutor_empresa, 
+                        asig.correo_tutor_empresa, 
+                        asig.tel_tutor_empresa,
                         ci.id_ciclo,
                         ci.nombre_ciclo,
                         cu.id_curso,
                         f.exportado,
+                        f.anexo,
                         ca.anio_inicio,
                         ca.anio_fin
                 FROM alumnos a
@@ -335,9 +342,15 @@ class Alumnos {
                 WHERE ca.id_ciclo = :idCiclo
                 ORDER BY a.apellido1 ASC";
         
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['idCiclo' => $idCiclo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(['idCiclo' => $idCiclo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Es bueno añadir un log si falla la consulta
+            // error_log($e->getMessage());
+            return [];
+        }
     }
 
     public function devolverAlumnoAEnvio($idAlumno) {
@@ -396,8 +409,8 @@ class Alumnos {
         }
 
         // 5. Marcar como exportado
-        $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1 WHERE id_asignacion = ?";
-        $this->conn->prepare($sqlExp)->execute([$idAsignacion]);
+        $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
+        $this->conn->prepare($sqlExp)->execute([$datos['anexo'] ?? null, $idAsignacion]);
 
         $this->conn->commit();
         return true;
@@ -406,6 +419,104 @@ class Alumnos {
         return false;
     }
 }
+    public function obtenerModulosPorCiclo($idCiclo) {
+        $sql = "SELECT m.id_modulo, m.nombre_modulo 
+                FROM modulos m 
+                INNER JOIN plan_estudios pe ON m.id_modulo = pe.id_modulo 
+                WHERE pe.id_ciclo = :idCiclo 
+                ORDER BY m.nombre_modulo";
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(['idCiclo' => (int)$idCiclo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function obtenerResultadosAprendizaje($idCiclo) {
+        // Obtenemos los RAs de los módulos que pertenecen al ciclo del tutor
+        $sql = "SELECT ra.id_ra, ra.id_modulo, ra.numero_ra, ra.impartido_empresa, ra.periodo,
+                        m.nombre_modulo
+                FROM resultados_aprendizaje ra
+                INNER JOIN modulos m ON ra.id_modulo = m.id_modulo
+                INNER JOIN plan_estudios pe ON ra.id_modulo = pe.id_modulo
+                WHERE pe.id_ciclo = :idCiclo
+                ORDER BY ra.periodo, m.nombre_modulo, ra.numero_ra";
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(['idCiclo' => (int)$idCiclo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function guardarResultadosAprendizaje($idCiclo, $rasNuevos, $raEliminados) {
+        try {
+            $this->conn->beginTransaction();
+
+            // 1. Eliminar los RAs marcados para borrar (que pertenecen a módulos del ciclo)
+            if (!empty($raEliminados)) {
+                $placeholders = implode(',', array_fill(0, count($raEliminados), '?'));
+                $sqlDel = "DELETE FROM resultados_aprendizaje 
+                           WHERE id_ra IN ($placeholders)
+                           AND id_modulo IN (
+                               SELECT id_modulo FROM plan_estudios WHERE id_ciclo = ?
+                           )";
+                $params = array_merge(array_map('intval', $raEliminados), [(int)$idCiclo]);
+                $this->conn->prepare($sqlDel)->execute($params);
+            }
+
+            // 2. Insertar/actualizar los RAs nuevos
+            foreach ($rasNuevos as $ra) {
+                $idRa    = (int)($ra['id_ra'] ?? 0);
+                $idMod   = (int)($ra['id_modulo'] ?? 0);
+                $periodo = $ra['periodo'] ?? '1';
+                // numero_ra viene como "RA5" → extraemos el número
+                $numRaw  = $ra['numero_ra'] ?? '1';
+                $numero  = (int)preg_replace('/\D/', '', $numRaw);
+                if ($numero < 1) $numero = 1;
+                $empresa = (int)($ra['impartido_empresa'] ?? 0);
+
+                if ($idMod <= 0) continue;
+
+                if ($idRa > 0) {
+                    // UPDATE
+                    $sqlUpd = "UPDATE resultados_aprendizaje 
+                               SET periodo = ?, numero_ra = ?, impartido_empresa = ?
+                               WHERE id_ra = ? AND id_modulo IN (
+                                   SELECT id_modulo FROM plan_estudios WHERE id_ciclo = ?
+                               )";
+                    $this->conn->prepare($sqlUpd)->execute([$periodo, $numero, $empresa, $idRa, (int)$idCiclo]);
+                } else {
+                    // INSERT
+                    $sqlIns = "INSERT INTO resultados_aprendizaje (id_modulo, numero_ra, impartido_empresa, periodo)
+                               VALUES (?, ?, ?, ?)";
+                    $this->conn->prepare($sqlIns)->execute([$idMod, $numero, $empresa, $periodo]);
+                }
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    public function actualizarAnexo($idAsignacion, $anexo) {
+        try {
+            $sql = "UPDATE asignaciones_firmadas SET anexo = ? WHERE id_asignacion = ?";
+            return $this->conn->prepare($sql)->execute([
+                ($anexo !== '' && $anexo !== null) ? (int)$anexo : null,
+                (int)$idAsignacion
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
 } // Llave de la clase
 
 ?>
