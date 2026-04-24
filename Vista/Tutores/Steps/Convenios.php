@@ -11,7 +11,7 @@ validarAcceso('tutor');
 $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
 $id_ciclo = $_SESSION['id_ciclo'] ?? '';
-$urlCompartir = $protocolo . "://" . $host . "/Proyecto/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
+$urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
 
 ?>
 <div class="flex justify-between items-center mb-6">

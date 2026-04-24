@@ -43,8 +43,9 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
 };
 
 // Definimos la función en el objeto window para que sea accesible desde la tabla
-window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa) {
-    const vistaTabla = document.getElementById('vista-tabla');
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa, anexo, idConvenio) {
+    
+const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
 
     if (vistaTabla && vistaEdicion) {
@@ -60,6 +61,7 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         window.prepararCamposAutomaticos(anioInicio, anioFin);
 
         // --- 1. IDENTIFICACIÓN ACADÉMICA ---
+        if(document.getElementById('edit_anexo')) document.getElementById('edit_anexo').value = anexo ?? '';
         if(document.getElementById('edit_nombre_ciclo')) document.getElementById('edit_nombre_ciclo').value = nombreCiclo;
         if(document.getElementById('edit_codigo_ciclo')) document.getElementById('edit_codigo_ciclo').value = idCicloOriginal;
         
@@ -81,6 +83,7 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         document.getElementById('edit_tutor_centro_tel').value = telTutorActual;
 
         // --- 4. DATOS DE LA EMPRESA ---
+        if(document.getElementById('pf_id_convenio')) document.getElementById('pf_id_convenio').value = idConvenio;
         if(document.getElementById('edit_nombre_empresa')) document.getElementById('edit_nombre_empresa').value = empresa;
         if(document.getElementById('edit_nif_empresa')) document.getElementById('edit_nif_empresa').value = nif;
         if(document.getElementById('edit_email_empresa')) document.getElementById('edit_email_empresa').value = emailEmpresa;

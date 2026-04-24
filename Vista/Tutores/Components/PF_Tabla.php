@@ -51,7 +51,7 @@ validarAcceso('tutor');
     </div>
 
     <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
-        BUSCAR
+        BUSCADO AUTOMÁTICO
     </button>
 </form>
 
@@ -91,7 +91,14 @@ validarAcceso('tutor');
                 ?>
                 <tr class="hover:bg-slate-50/50 transition-colors"
                     data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
-                    data-exportado="<?= $al['exportado'] ? '1' : '0' ?>">
+                    data-exportado="<?= $al['exportado'] ? '1' : '0' ?>"
+                    data-id-convenio="<?= intval($al['id_convenio'] ?? 0) ?>"
+                    data-nombre-empresa="<?= htmlspecialchars($al['nombre_empresa'] ?? '') ?>"
+                    data-cif="<?= htmlspecialchars($al['nif_empresa'] ?? '') ?>"
+                    data-anexo="<?= intval($al['anexo'] ?? 0) ?>"
+                    data-anio-inicio="<?= intval($al['anio_inicio'] ?? 0) ?>"
+                    data-anio-fin="<?= intval($al['anio_fin'] ?? 0) ?>"
+                    data-id-curso="<?= intval($al['id_curso'] ?? 0) ?>">
                     <td class="p-3 text-center">
                         <button type="button" 
                             onclick="window.mostrarEdicion(
@@ -114,7 +121,9 @@ validarAcceso('tutor');
                                 <?= intval($al['id_asignacion']) ?>,
                                 '<?= addslashes($al['nombre_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
-                                '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>'
+                                '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>',
+                                <?= intval($al['anexo'] ?? 0) ?>,      
+                                <?= intval($al['id_convenio'] ?? 0) ?>
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
