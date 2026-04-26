@@ -16,7 +16,7 @@ class Alumnos {
         // Base de la consulta - Se añade asig.enviado
         $query = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
                                 asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
-                                asig.horario, asig.horas_dia, asig.enviado,
+                                asig.horario, asig.horas_dia, asig.num_total_horas, asig.enviado,
                                 conv.nombre_empresa, conv.municipio, conv.direccion,
                                 (f.id_firmada IS NOT NULL) as firmado 
                         FROM alumnos a
@@ -127,7 +127,7 @@ class Alumnos {
     public function obtenerPorId($idAlumno) {
         $query = "SELECT a.*,
                         asig.id_asignacion, asig.id_convenio, asig.fecha_inicio,
-                        asig.fecha_final, asig.horario, asig.horas_dia,
+                        asig.fecha_final, asig.horario, asig.horas_dia, asig.num_total_horas,
                         IFNULL(asig.enviado, 0) as enviado,
                         asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa
                 FROM alumnos a
@@ -186,7 +186,7 @@ class Alumnos {
     }
 
     public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono,
-                                $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $enviado = 0,
+                                $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $horasTotales = null, $enviado = 0,
                                 $nombreTutorEmpresa = null, $correoTutorEmpresa = null, $telTutorEmpresa = null) {
         try {
             $this->conn->beginTransaction(); // Iniciamos transacción por seguridad
@@ -215,14 +215,14 @@ class Alumnos {
             if ($asignacion) {
                 // UPDATE asignación existente
                 $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
-                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, enviado=:enviado,
-                        nombre_tutor_empresa=:nombreTutorEmpresa, correo_tutor_empresa=:correoTutorEmpresa,
+                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, num_total_horas=:horasTotales, 
+                        enviado=:enviado, nombre_tutor_empresa=:nombreTutorEmpresa, correo_tutor_empresa=:correoTutorEmpresa,
                         tel_tutor_empresa=:telTutorEmpresa
                         WHERE id_alumno=:idAlumno";
             } else {
                 // INSERT nueva asignación
-                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa)
-                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :enviado, :nombreTutorEmpresa, :correoTutorEmpresa, :telTutorEmpresa)";
+                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, num_total_horas, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa)
+                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :horasTotales, :enviado, :nombreTutorEmpresa, :correoTutorEmpresa, :telTutorEmpresa)";
             }
 
             $stmt2 = $this->conn->prepare($q2);
@@ -233,6 +233,7 @@ class Alumnos {
                 'fechaFinal'           => $fechaFinal ?: null,
                 'horario'              => $horario ?: null,
                 'horasDia'             => $horasDia ?: null,
+                'horasTotales'         => $horasTotales ?: null,
                 'enviado'              => $enviado,
                 'nombreTutorEmpresa'   => $nombreTutorEmpresa ?: null,
                 'correoTutorEmpresa'   => $correoTutorEmpresa ?: null,
