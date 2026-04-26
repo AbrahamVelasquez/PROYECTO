@@ -43,9 +43,13 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
 };
 
 // Definimos la función en el objeto window para que sea accesible desde la tabla
-window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa, anexo, idConvenio) {
-    
-const vistaTabla = document.getElementById('vista-tabla');
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, 
+                                telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, 
+                                correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, 
+                                nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa, anexo, idConvenio,
+                                horario, horasTotales, fechaInicio, fechaFinal) {
+
+    const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
 
     if (vistaTabla && vistaEdicion) {
@@ -92,6 +96,19 @@ const vistaTabla = document.getElementById('vista-tabla');
         if(document.getElementById('edit_email_tutor_emp')) document.getElementById('edit_email_tutor_emp').value = correoTutorEmpresa ?? '';
         if(document.getElementById('edit_tel_tutor_emp')) document.getElementById('edit_tel_tutor_emp').value = telTutorEmpresa ?? '';
         
+        // --- 5. NUEVOS: HORARIO, HORAS Y CALENDARIO ---
+        if (document.getElementById('pf_edit_horario'))
+            document.getElementById('pf_edit_horario').value = horario ?? '';
+
+        if (document.getElementById('pf_edit_horas_totales'))
+            document.getElementById('pf_edit_horas_totales').value = horasTotales ?? '';
+
+        // Calendario: concatenación "fecha_inicio / fecha_final"
+        if (document.getElementById('pf_edit_fecha_inicio'))
+            document.getElementById('pf_edit_fecha_inicio').value = fechaInicio ?? '';
+        if (document.getElementById('pf_edit_fecha_final'))
+            document.getElementById('pf_edit_fecha_final').value = fechaFinal ?? '';
+
         // Botón devolver (sigue usando el ID de alumno original si es necesario)
         const btnDevolver = document.getElementById('btn-devolver-alumno');
         if (btnDevolver) btnDevolver.setAttribute('onclick', `abrirModalDevolver(${id}, '${nombre}')`);

@@ -194,9 +194,23 @@ validarAcceso('tutor');
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr>
-                        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="1" class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600 text-center"></td>
-                        <td class="p-2 border-r border-slate-200"><input type="text" placeholder="Octubre 2024 - Junio 2025" class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600"></td>
-                        <td class="p-2"><input type="text" placeholder="08:00 - 15:00" class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600"></td>
+                        <td class="p-2 border-r border-slate-200">
+                            <input type="text" placeholder="1" 
+                                class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600 text-center">
+                        </td>
+                        <td class="p-2 border-r border-slate-200">
+                            <div class="flex items-center gap-1">
+                                <input type="date" id="pf_edit_fecha_inicio" 
+                                    class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent">
+                                <span class="text-slate-300 font-bold">/</span>
+                                <input type="date" id="pf_edit_fecha_final" 
+                                    class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent">
+                            </div>
+                        </td>
+                        <td class="p-2">
+                            <input type="text" id="pf_edit_horario" placeholder="08:00 - 15:00" 
+                                class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600">
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -205,10 +219,10 @@ validarAcceso('tutor');
         <div class="flex justify-end mb-10">
             <div class="w-full md:w-64">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 text-right">Total Horas:</label>
-                <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+                <input type="number" id="pf_edit_horas_totales"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
             </div>
         </div>
-
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">7. Resultados de Aprendizaje Profesionales</p>
 
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 flex items-center gap-3">

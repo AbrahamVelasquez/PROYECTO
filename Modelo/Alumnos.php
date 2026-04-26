@@ -322,10 +322,14 @@ class Alumnos {
     }
 
     public function listarAlumnosFirmados($idCiclo) {
-        // Hemos añadido explícitamente asig.id_convenio y asegurado los JOINs
+
         $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
                         f.id_asignacion,
-                        asig.id_convenio,      /* <--- ESTA ES LA CLAVE */
+                        asig.id_convenio,
+                        asig.horario,
+                        asig.num_total_horas,
+                        asig.fecha_inicio,
+                        asig.fecha_final,
                         conv.nombre_empresa, 
                         conv.cif AS nif_empresa,
                         conv.mail AS email_empresa, 
@@ -412,13 +416,39 @@ class Alumnos {
                 $this->conn->prepare($sqlConv)->execute([$datos['nombre_empresa'] ?? null, $datos['nif_empresa'] ?? null, $datos['email_empresa'] ?? null, $datos['tel_empresa'] ?? null, $idConv]);
 
                 // 4. Actualizar ASIGNACIONES (Tutor empresa)
-                $sqlAsig = "UPDATE asignaciones SET nombre_tutor_empresa = ?, correo_tutor_empresa = ?, tel_tutor_empresa = ? WHERE id_asignacion = ?";
-                $this->conn->prepare($sqlAsig)->execute([$datos['tutor_empresa'] ?? null, $datos['email_tutor_emp'] ?? null, $datos['tel_tutor_emp'] ?? null, $idAsignacion]);
+                $sqlAsig = "UPDATE asignaciones SET 
+                                nombre_tutor_empresa = ?, 
+                                correo_tutor_empresa = ?, 
+                                tel_tutor_empresa = ?, 
+                                horario = ?, 
+                                num_total_horas = ?,
+                                fecha_inicio = ?,
+                                fecha_final = ?
+                            WHERE id_asignacion = ?";
+
+                $this->conn->prepare($sqlAsig)->execute([
+                    $datos['tutor_empresa']   ?? null,
+                    $datos['email_tutor_emp'] ?? null,
+                    $datos['tel_tutor_emp']   ?? null,
+                    $datos['horario']         ?? null,
+                    $datos['horas_totales'] !== '' ? ($datos['horas_totales'] ?? null) : null,
+                    $datos['fecha_inicio']    ?? null,
+                    $datos['fecha_final']     ?? null,
+                    $idAsignacion
+                ]);
             }
 
             // 5. Marcar como exportado
-            $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
-            $this->conn->prepare($sqlExp)->execute([$datos['anexo'] ?? null, $idAsignacion]);
+            if (empty($datos['solo_borrador'])) {
+                $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
+                $this->conn->prepare($sqlExp)->execute([$datos['anexo'] ?? null, $idAsignacion]);
+            } else {
+                // Solo actualiza el anexo si viene informado, sin tocar exportado
+                if (!empty($datos['anexo'])) {
+                    $sqlExp = "UPDATE asignaciones_firmadas SET anexo = ? WHERE id_asignacion = ?";
+                    $this->conn->prepare($sqlExp)->execute([$datos['anexo'], $idAsignacion]);
+                }
+            }
 
             $this->conn->commit();
             return true;
