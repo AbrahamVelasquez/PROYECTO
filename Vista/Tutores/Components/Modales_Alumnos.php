@@ -184,9 +184,13 @@ validarAcceso('tutor');
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Horario</label>
                     <input type="text" name="horario" id="edit_horario" placeholder="08:00-15:00" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
-                <div class="w-28">
+                <div class="w-20">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">H/DÍA</label>
                     <input type="number" name="horas_dia" id="edit_horas_dia" min="0" max="24" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                </div>
+                <div class="w-24">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">H. TOTAL</label>
+                    <input type="number" name="num_total_horas" id="edit_horas_totales" min="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all" placeholder="400">
                 </div>
             </div>
 

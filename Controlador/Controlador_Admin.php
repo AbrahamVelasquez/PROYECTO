@@ -92,7 +92,7 @@ class Admin_Controlador {
     }
 
     public function mostrarConveniosPendientes() {
-        // Obtenemos los convenios aprobados pero no agregados todavía
+        // Obtenemos los convenios aprobados pero no validados todavía
         $pendientes = $this->admin->obtenerConveniosPendientes();
         
         // Definimos la nueva vista
