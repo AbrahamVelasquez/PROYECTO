@@ -533,7 +533,7 @@ function pintarFilaEnTablaModal(ra) {
              <span class="bg-slate-100 px-1 rounded text-slate-500">${_esc(ra.id_modulo)}</span>
         </td>
         <td class="p-2 border-r border-slate-200 text-center text-xs font-bold text-slate-600">
-            RA${_esc(ra.numero_ra)}
+            ${_esc(ra.numero_ra)}
             <input type="hidden" class="val-numero" value="${_esc(ra.numero_ra)}">
         </td>
         <td class="p-2 border-r border-slate-200 text-center">

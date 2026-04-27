@@ -297,6 +297,7 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
+        document.getElementById('edit_horas_totales').value = al.num_total_horas ?? '';
         document.getElementById('edit_nombre_tutor_empresa').value = al.nombre_tutor_empresa ?? '';
         document.getElementById('edit_correo_tutor_empresa').value = al.correo_tutor_empresa ?? '';
         document.getElementById('edit_tel_tutor_empresa').value = al.tel_tutor_empresa ?? '';

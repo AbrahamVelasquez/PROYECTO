@@ -150,7 +150,7 @@ class Tutores_Controlador {
                 strtoupper(trim($_POST['dni'])),
                 $_POST['sexo'],
                 trim($_POST['correo'] ?? ''),
-                trim($_POST['telefono'] ?? '') // <-- AÑADE ESTO SI TU MODELO LO PIDE
+                trim($_POST['telefono'] ?? '') 
             );
             header('Location: index.php?tab=2&res=limpiado');
             exit();
@@ -171,6 +171,7 @@ class Tutores_Controlador {
             $_POST['fecha_final'] ?: null,
             trim($_POST['horario'] ?? ''),
             $_POST['horas_dia'] ?: null,
+            $_POST['num_total_horas'] ?? null,
             $enviado,
             trim($_POST['nombre_tutor_empresa'] ?? ''),
             trim($_POST['correo_tutor_empresa'] ?? ''),

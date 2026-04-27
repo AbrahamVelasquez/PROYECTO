@@ -232,11 +232,11 @@ class Admin {
 
     public function obtenerConveniosPendientes() {
         // Seleccionamos los datos de la empresa de convenios_nuevos
-        // Uniendo con convenios_aprobados donde agregado = 0
+        // Uniendo con convenios_aprobados donde validado = 0
         $sql = "SELECT cn.*, ca.id_convenio_aprobado, ca.fecha_aprobacion 
                 FROM convenios_nuevos cn
                 INNER JOIN convenios_aprobados ca ON cn.id_convenio_nuevo = ca.id_convenio_nuevo
-                WHERE ca.agregado = 0
+                WHERE ca.validado = 0
                 ORDER BY ca.fecha_aprobacion DESC";
                 
         $stmt = $this->conn->prepare($sql);
@@ -268,8 +268,8 @@ class Admin {
                 ':cargo'   => $d['cargo']
             ]);
 
-            // 2. Marcamos como agregado en convenios_aprobados para que desaparezca de pendientes
-            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            // 2. Marcamos como validado en convenios_aprobados para que desaparezca de pendientes
+            $sqlUpd = "UPDATE convenios_aprobados SET validado = 1 WHERE id_convenio_nuevo = :id";
             $stmtUpd = $this->conn->prepare($sqlUpd);
             $stmtUpd->execute([':id' => $d['id_convenio_nuevo']]);
 
@@ -316,8 +316,8 @@ class Admin {
                 ':cargo'   => $datos['cargo']
             ]);
 
-            // 3. Marcamos como agregado
-            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            // 3. Marcamos como validado
+            $sqlUpd = "UPDATE convenios_aprobados SET validado = 1 WHERE id_convenio_nuevo = :id";
             $stmtUpd = $this->conn->prepare($sqlUpd);
             $stmtUpd->execute([':id' => $id]);
 
