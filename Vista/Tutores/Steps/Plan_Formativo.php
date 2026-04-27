@@ -27,8 +27,8 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
     // --- 1. LÓGICA DE CURSO ACADÉMICO (Usando datos de BD) ---
     // Si recibimos los años de la BD, sacamos los últimos 2 dígitos
     if (anioInicioDB && anioFinDB) {
-        document.getElementById('edit_anio_inicio').value = String(anioInicioDB).slice(-2);
-        document.getElementById('edit_anio_fin').value = String(anioFinDB).slice(-2);
+        document.getElementById('pf_edit_anio_inicio').value = String(anioInicioDB).slice(-2);
+        document.getElementById('pf_edit_anio_fin').value = String(anioFinDB).slice(-2);
     }
 
     // --- 2. LÓGICA DE FECHA DE EMISIÓN (Hoy) ---
@@ -37,8 +37,8 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
     const anio = ahora.getFullYear();
     const fechaHoy = `${anio}-${mes}-${dia}`;
     
-    if(document.getElementById('edit_fecha_plan')) {
-        document.getElementById('edit_fecha_plan').value = fechaHoy;
+    if(document.getElementById('pf_edit_fecha_plan')) {
+        document.getElementById('pf_edit_fecha_plan').value = fechaHoy;
     }
 };
 
@@ -65,36 +65,36 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
         window.prepararCamposAutomaticos(anioInicio, anioFin);
 
         // --- 1. IDENTIFICACIÓN ACADÉMICA ---
-        if(document.getElementById('edit_anexo')) document.getElementById('edit_anexo').value = anexo ?? '';
-        if(document.getElementById('edit_nombre_ciclo')) document.getElementById('edit_nombre_ciclo').value = nombreCiclo;
-        if(document.getElementById('edit_codigo_ciclo')) document.getElementById('edit_codigo_ciclo').value = idCicloOriginal;
+        if(document.getElementById('pf_edit_anexo')) document.getElementById('pf_edit_anexo').value = anexo ?? '';
+        if(document.getElementById('pf_edit_nombre_ciclo')) document.getElementById('pf_edit_nombre_ciclo').value = nombreCiclo;
+        if(document.getElementById('pf_edit_codigo_ciclo')) document.getElementById('pf_edit_codigo_ciclo').value = idCicloOriginal;
         
-        const selectorCurso = document.getElementById('edit_curso_selector');
+        const selectorCurso = document.getElementById('pf_edit_curso_selector');
         if(selectorCurso) selectorCurso.value = idCurso;
 
         // --- 2. DATOS DEL ALUMNO ---
-        if(document.getElementById('edit_nombre_completo')) document.getElementById('edit_nombre_completo').value = nombre;
-        if(document.getElementById('edit_email_alumno')) document.getElementById('edit_email_alumno').value = email;
-        if(document.getElementById('edit_tel_alumno')) document.getElementById('edit_tel_alumno').value = telefono;
+        if(document.getElementById('pf_edit_nombre_completo')) document.getElementById('pf_edit_nombre_completo').value = nombre;
+        if(document.getElementById('pf_edit_email_alumno')) document.getElementById('pf_edit_email_alumno').value = email;
+        if(document.getElementById('pf_edit_tel_alumno')) document.getElementById('pf_edit_tel_alumno').value = telefono;
         
         // --- 3. DATOS DEL CENTRO Y TUTOR ---
-        document.getElementById('edit_centro_nombre').value = "IES CIUDAD ESCOLAR";
-        document.getElementById('edit_centro_correo').value = "ies.ciudadescolar@educa.madrid.org";
-        document.getElementById('edit_centro_tel').value = "917341244";
+        document.getElementById('pf_edit_centro_nombre').value = "IES CIUDAD ESCOLAR";
+        document.getElementById('pf_edit_centro_correo').value = "ies.ciudadescolar@educa.madrid.org";
+        document.getElementById('pf_edit_centro_tel').value = "917341244";
 
-        document.getElementById('edit_tutor_centro_nombre').value = nombreTutorActual;
-        document.getElementById('edit_tutor_centro_correo').value = correoTutorActual;
-        document.getElementById('edit_tutor_centro_tel').value = telTutorActual;
+        document.getElementById('pf_edit_tutor_centro_nombre').value = nombreTutorActual;
+        document.getElementById('pf_edit_tutor_centro_correo').value = correoTutorActual;
+        document.getElementById('pf_edit_tutor_centro_tel').value = telTutorActual;
 
         // --- 4. DATOS DE LA EMPRESA ---
         if(document.getElementById('pf_id_convenio')) document.getElementById('pf_id_convenio').value = idConvenio;
-        if(document.getElementById('edit_nombre_empresa')) document.getElementById('edit_nombre_empresa').value = empresa;
-        if(document.getElementById('edit_nif_empresa')) document.getElementById('edit_nif_empresa').value = nif;
-        if(document.getElementById('edit_email_empresa')) document.getElementById('edit_email_empresa').value = emailEmpresa;
-        if(document.getElementById('edit_tel_empresa')) document.getElementById('edit_tel_empresa').value = telEmpresa;
-        if(document.getElementById('edit_tutor_empresa')) document.getElementById('edit_tutor_empresa').value = nombreTutorEmpresa ?? '';
-        if(document.getElementById('edit_email_tutor_emp')) document.getElementById('edit_email_tutor_emp').value = correoTutorEmpresa ?? '';
-        if(document.getElementById('edit_tel_tutor_emp')) document.getElementById('edit_tel_tutor_emp').value = telTutorEmpresa ?? '';
+        if(document.getElementById('pf_edit_nombre_empresa')) document.getElementById('pf_edit_nombre_empresa').value = empresa;
+        if(document.getElementById('pf_edit_nif_empresa')) document.getElementById('pf_edit_nif_empresa').value = nif;
+        if(document.getElementById('pf_edit_email_empresa')) document.getElementById('pf_edit_email_empresa').value = emailEmpresa;
+        if(document.getElementById('pf_edit_tel_empresa')) document.getElementById('pf_edit_tel_empresa').value = telEmpresa;
+        if(document.getElementById('pf_edit_tutor_empresa')) document.getElementById('pf_edit_tutor_empresa').value = nombreTutorEmpresa ?? '';
+        if(document.getElementById('pf_edit_email_tutor_emp')) document.getElementById('pf_edit_email_tutor_emp').value = correoTutorEmpresa ?? '';
+        if(document.getElementById('pf_edit_tel_tutor_emp')) document.getElementById('pf_edit_tel_tutor_emp').value = telTutorEmpresa ?? '';
         
         // --- 5. NUEVOS: HORARIO, HORAS Y CALENDARIO ---
         if (document.getElementById('pf_edit_horario'))
@@ -121,7 +121,7 @@ window.volverALista = function() {
     document.getElementById('vista-edicion').classList.add('hidden');
     
     // 2. Opcional: Limpiar los campos para que no se queden datos viejos
-    const camposALimpiar = ['edit_nombre_completo', 'edit_email_alumno', 'edit_tel_alumno'];
+    const camposALimpiar = ['pf_edit_nombre_completo', 'pf_edit_email_alumno', 'pf_edit_tel_alumno'];
     camposALimpiar.forEach(id => {
         if(document.getElementById(id)) document.getElementById(id).value = '';
     });
