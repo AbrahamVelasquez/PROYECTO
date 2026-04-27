@@ -3,6 +3,8 @@ TFG/ (Raíz del Proyecto)
 ├── 📄 index.php
 ├── 📄 README.md
 ├── 📄 TFG.docx
+├── 📄 composer.lock
+├── 📄 composer.json
 │
 ├── 📁 Controlador/ ────────────────────────── [Lógica de negocio y gestión de peticiones]
 │   ├── .htaccess
@@ -11,6 +13,7 @@ TFG/ (Raíz del Proyecto)
 │   ├── Controlador_Convenios.php
 │   ├── Controlador_Tutores.php
 │   ├── Controlador_Usuarios.php
+│   ├── Exportar_PF.php
 │   └── Logout.php
 │
 ├── 📁 Convenios/ ──────────────────────────── [Módulo autónomo para registro externo]
@@ -48,10 +51,15 @@ TFG/ (Raíz del Proyecto)
 │   ├── TFG_Estructura.txt
 │   │
 │   └── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
+│   └── 📁 Exportar/
+│       └── plantilla_ffe.xlsx
 │
 ├── 📁 Seguridad/ ──────────────────────────── [Capa de protección y validación de sesiones]
 │   ├── .htaccess
 │   └── Control_Accesos.php
+│
+├── 📁 Vendor/ ─────────────────────────────── [Activos de la librería]
+│
 │
 └── 📁 Vista/ ──────────────────────────────── [Capa de presentación e interfaz]
     ├── .htaccess

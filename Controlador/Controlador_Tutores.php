@@ -340,6 +340,10 @@ class Tutores_Controlador {
         exit();
     }
 
+    public function exportarExcelPF() {
+        require_once 'Controlador/Exportar_PF.php';
+    }
+
 } // Llave de la clase
 
 ?>
