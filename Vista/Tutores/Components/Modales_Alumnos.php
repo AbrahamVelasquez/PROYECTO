@@ -413,6 +413,73 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<div id="modalCargarAlumnos" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-700 text-white text-xs">📥</span>
+                CARGAR ALUMNOS
+            </h3>
+            <button onclick="cerrarModalCargar()" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
+        </div>
+
+        <!-- Estado: seleccionar fichero -->
+        <div id="cargar_estado_inicial">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Formato esperado</p>
+                <p class="text-[10px] font-bold text-slate-400 leading-relaxed">
+                    El fichero debe ser <span class="text-slate-700">.xlsx</span> o <span class="text-slate-700">.xls</span> con tres columnas en este orden:
+                </p>
+                <div class="mt-2 flex gap-2">
+                    <span class="px-2 py-1 bg-slate-200 rounded text-[9px] font-black text-slate-600 uppercase">Nombre</span>
+                    <span class="px-2 py-1 bg-slate-200 rounded text-[9px] font-black text-slate-600 uppercase">Apellido(s)</span>
+                    <span class="px-2 py-1 bg-slate-200 rounded text-[9px] font-black text-slate-600 uppercase">Dirección de correo</span>
+                </div>
+            </div>
+
+            <label class="block w-full cursor-pointer">
+                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all">
+                    <p class="text-2xl mb-2">📂</p>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Haz clic para seleccionar</p>
+                    <p class="text-[9px] text-slate-400 font-bold mt-1" id="nombreFicheroSeleccionado">Ningún fichero seleccionado</p>
+                </div>
+                <input type="file" id="inputFicheroAlumnos" accept=".xlsx,.xls" class="hidden" onchange="onFicheroSeleccionado(this)">
+            </label>
+
+            <div class="flex gap-3 justify-end mt-6">
+                <button type="button" onclick="cerrarModalCargar()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+                <button type="button" id="btnSubirFichero" onclick="importarAlumnosExcel()" disabled
+                    class="px-5 py-2.5 rounded-xl bg-slate-700 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wide">
+                    Cargar Alumnos
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado: cargando -->
+        <div id="cargar_estado_cargando" style="display:none" class="text-center py-8">
+            <div class="inline-block w-8 h-8 border-4 border-slate-200 border-t-orange-600 rounded-full animate-spin mb-4"></div>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Procesando fichero...</p>
+        </div>
+
+        <!-- Estado: resultado -->
+        <div id="cargar_estado_resultado" style="display:none">
+            <div id="cargar_resultado_ok" style="display:none" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-center">
+                <p class="text-2xl mb-2">✅</p>
+                <p class="text-sm font-black text-emerald-700" id="cargar_texto_ok"></p>
+            </div>
+            <div id="cargar_resultado_errores" style="display:none" class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <p class="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-2">Filas omitidas</p>
+                <ul id="cargar_lista_errores" class="text-[10px] text-amber-600 font-bold space-y-1"></ul>
+            </div>
+            <div class="flex justify-center mt-4">
+                <button onclick="cerrarModalCargarYRecargar()" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 cursor-pointer uppercase tracking-widest">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function exportarAlumnosWord() {
     // Recoge los checkboxes seleccionados del formExportar
@@ -448,4 +515,80 @@ function exportarAlumnosWord() {
         // Cerramos el modal de confirmación
         document.getElementById('modalConfirmarExportar').style.display = 'none';
     }
+    function onFicheroSeleccionado(input) {
+    const btn   = document.getElementById('btnSubirFichero');
+    const label = document.getElementById('nombreFicheroSeleccionado');
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+        btn.disabled = false;
+    } else {
+        label.textContent = 'Ningún fichero seleccionado';
+        btn.disabled = true;
+    }
+}
+
+function cerrarModalCargar() {
+    document.getElementById('modalCargarAlumnos').style.display = 'none';
+    // Resetear estado
+    document.getElementById('cargar_estado_inicial').style.display   = 'block';
+    document.getElementById('cargar_estado_cargando').style.display  = 'none';
+    document.getElementById('cargar_estado_resultado').style.display = 'none';
+    document.getElementById('inputFicheroAlumnos').value = '';
+    document.getElementById('nombreFicheroSeleccionado').textContent = 'Ningún fichero seleccionado';
+    document.getElementById('btnSubirFichero').disabled = true;
+}
+
+function cerrarModalCargarYRecargar() {
+    cerrarModalCargar();
+    window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=2';
+}
+
+async function importarAlumnosExcel() {
+    const input = document.getElementById('inputFicheroAlumnos');
+    if (!input.files || !input.files[0]) return;
+
+    // Mostrar spinner
+    document.getElementById('cargar_estado_inicial').style.display  = 'none';
+    document.getElementById('cargar_estado_cargando').style.display = 'block';
+
+    const formData = new FormData();
+    formData.append('fichero_alumnos', input.files[0]);
+
+    try {
+        const res  = await fetch('index.php?controlador=Tutores&accion=importarAlumnos', {
+            method: 'POST',
+            body:   formData,
+        });
+        const data = await res.json();
+
+        // Ocultar spinner, mostrar resultado
+        document.getElementById('cargar_estado_cargando').style.display  = 'none';
+        document.getElementById('cargar_estado_resultado').style.display = 'block';
+
+        if (data.success) {
+            const okDiv  = document.getElementById('cargar_resultado_ok');
+            const txtOk  = document.getElementById('cargar_texto_ok');
+            okDiv.style.display = 'block';
+            txtOk.textContent   = `${data.insertados} alumno${data.insertados !== 1 ? 's' : ''} importado${data.insertados !== 1 ? 's' : ''} correctamente.`;
+
+            if (data.errores && data.errores.length > 0) {
+                const errDiv  = document.getElementById('cargar_resultado_errores');
+                const errList = document.getElementById('cargar_lista_errores');
+                errDiv.style.display = 'block';
+                errList.innerHTML = data.errores.map(e => `<li>• ${e}</li>`).join('');
+            }
+        } else {
+            const okDiv = document.getElementById('cargar_resultado_ok');
+            okDiv.style.display = 'block';
+            okDiv.className = okDiv.className.replace('emerald', 'red');
+            document.getElementById('cargar_texto_ok').textContent = 'Error: ' + (data.error ?? 'desconocido');
+        }
+    } catch (err) {
+        document.getElementById('cargar_estado_cargando').style.display  = 'none';
+        document.getElementById('cargar_estado_resultado').style.display = 'block';
+        const okDiv = document.getElementById('cargar_resultado_ok');
+        okDiv.style.display = 'block';
+        document.getElementById('cargar_texto_ok').textContent = 'Error de conexión con el servidor.';
+    }
+}
 </script>

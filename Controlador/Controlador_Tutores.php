@@ -329,6 +329,10 @@ class Tutores_Controlador {
         require_once 'Controlador/Exportar_Alumnos_Word.php';
     }
 
+    public function importarAlumnos() {
+        require_once 'Controlador/Importar_Alumnos.php';
+    }
+
 /*
     public function exportarAlumnos() {
         // Verificamos si llegan IDs por POST
