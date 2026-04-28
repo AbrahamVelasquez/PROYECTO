@@ -408,7 +408,35 @@ validarAcceso('tutor');
         <p class="text-xs font-bold text-slate-500 mb-6 text-center uppercase tracking-widest leading-relaxed">¿Seguro que quieres exportar los alumnos seleccionados?</p>
         <div class="flex gap-3 justify-center">
             <button onclick="document.getElementById('modalConfirmarExportar').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
-            <button onclick="document.getElementById('formExportar').submit()" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Sí, exportar</button>
+            <button onclick="exportarAlumnosWord()" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Sí, exportar</button>
         </div>
     </div>
 </div>
+
+<script>
+function exportarAlumnosWord() {
+    // Recoge los checkboxes seleccionados del formExportar
+    const seleccionados = document.querySelectorAll('#formExportar input[name="exportar_ids[]"]:checked');
+    if (seleccionados.length === 0) return;
+
+    // Crea un form temporal apuntando a la nueva acción Word
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?controlador=Tutores&accion=exportarAlumnosWord';
+    form.style.display = 'none';
+
+    seleccionados.forEach(cb => {
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = 'exportar_ids[]';
+        input.value = cb.value;
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => document.body.removeChild(form), 3000);
+
+    document.getElementById('modalConfirmarExportar').style.display = 'none';
+}
+</script>

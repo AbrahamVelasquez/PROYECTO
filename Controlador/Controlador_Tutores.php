@@ -344,6 +344,10 @@ class Tutores_Controlador {
         require_once 'Controlador/Exportar_PF.php';
     }
 
+    public function exportarAlumnosWord() {
+        require_once 'Controlador/Exportar_Alumnos_Word.php';
+    }
+
 } // Llave de la clase
 
 ?>
