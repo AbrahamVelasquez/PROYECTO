@@ -347,6 +347,10 @@ class Tutores_Controlador {
         exit;
     }
 
+    public function exportarTodoPF() {
+        require_once 'Controlador/Exportar_PF_Todo.php';
+    }
+
 /*
     public function exportarAlumnos() {
         // Verificamos si llegan IDs por POST

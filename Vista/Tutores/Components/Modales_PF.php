@@ -731,22 +731,24 @@ window.abrirModalExportarTodo = function() {
 
 window.exportarTodoHandler = async function() {
     const filas = Array.from(document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]'));
-
+ 
     if (filas.length === 0) {
         document.getElementById('modalExportarTodo').style.display = 'none';
         return;
     }
-
+ 
     // Bloquear botones y mostrar progreso
     document.getElementById('exportarTodoBotones').style.display = 'none';
     document.getElementById('exportarTodoProgreso').style.display = 'block';
     document.getElementById('btnEjecutarExportarTodo').disabled = true;
-
+ 
+    const idsAsignacion = [];
     let completados = 0;
-
+ 
+    // 1. Marcar todos en BD primero
     for (const fila of filas) {
         const idAsignacion = fila.getAttribute('data-id-asignacion');
-
+ 
         try {
             const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
                 method: 'POST',
@@ -755,20 +757,49 @@ window.exportarTodoHandler = async function() {
             });
             const texto = await res.text();
             const inicio = texto.indexOf('{');
-            const fin = texto.lastIndexOf('}') + 1;
-            const data = JSON.parse(texto.substring(inicio, fin));
-
-            if (data.success) completados++;
+            const fin    = texto.lastIndexOf('}') + 1;
+            const data   = JSON.parse(texto.substring(inicio, fin));
+ 
+            if (data.success) {
+                completados++;
+                idsAsignacion.push(idAsignacion);
+            }
         } catch (e) {
-            console.error('Error exportando ID ' + idAsignacion, e);
+            console.error('Error marcando ID ' + idAsignacion, e);
         }
-
+ 
         const pct = Math.round(((filas.indexOf(fila) + 1) / filas.length) * 100);
         document.getElementById('barraProgreso').style.width = pct + '%';
-        document.getElementById('textoProgreso').textContent = (filas.indexOf(fila) + 1) + ' de ' + filas.length + ' procesados';
+        document.getElementById('textoProgreso').textContent =
+            (filas.indexOf(fila) + 1) + ' de ' + filas.length + ' procesados';
     }
-
-    window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+ 
+    // 2. Generar Excel(s) — uno o ZIP según cantidad
+    if (idsAsignacion.length > 0) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'index.php?controlador=Tutores&accion=exportarTodoPF';
+        form.style.display = 'none';
+ 
+        idsAsignacion.forEach(id => {
+            const input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = 'ids_asignacion[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+ 
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => {
+            if (document.body.contains(form)) document.body.removeChild(form);
+        }, 3000);
+    }
+ 
+    // 3. Redirigir al listado tras un breve delay
+    setTimeout(() => {
+        window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+    }, 1500);
 };
 
 </script>
