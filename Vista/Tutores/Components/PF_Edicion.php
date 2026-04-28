@@ -116,19 +116,19 @@ validarAcceso('tutor');
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre de la Empresa</label>
-                <input type="text" id="pf_edit_nombre_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_nombre_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">N.I.F.</label>
-                <input type="text" id="pf_edit_nif_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+                <input type="text" id="pf_edit_nif_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed  focus:ring-orange-100 transition-all text-center">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico Empresa</label>
-                <input type="email" id="pf_edit_email_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="email" id="pf_edit_email_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Empresa</label>
-                <input type="text" id="pf_edit_tel_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_tel_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a de Empresa</label>

@@ -182,25 +182,6 @@ class Tutores_Controlador {
         exit();
     }
 
-    public function exportarAlumnos() {
-        // Verificamos si llegan IDs por POST
-        if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
-            // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
-
-            foreach ($_POST['exportar_ids'] as $idAlumno) {
-                // Importante: castear a int para seguridad
-                $this->alumnoModelo->marcarComoEnviado((int)$idAlumno);
-            }
-
-            // Redirigimos para ver los cambios
-            header('Location: index.php?tab=2&status=success');
-        } else {
-            // Si no llega nada, redirigimos igual para no quedar en blanco
-            header('Location: index.php?tab=2&status=error');
-        }
-        exit();
-    }
-
     public function firmarAlumno() {
         $id_asignacion = $_POST['id_asignacion'] ?? null;
         $anexo = $_POST['anexo'] ?? null; // Recogemos el anexo del modal
@@ -347,6 +328,27 @@ class Tutores_Controlador {
     public function exportarAlumnosWord() {
         require_once 'Controlador/Exportar_Alumnos_Word.php';
     }
+
+/*
+    public function exportarAlumnos() {
+        // Verificamos si llegan IDs por POST
+        if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
+            // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
+
+            foreach ($_POST['exportar_ids'] as $idAlumno) {
+                // Importante: castear a int para seguridad
+                $this->alumnoModelo->marcarComoEnviado((int)$idAlumno);
+            }
+
+            // Redirigimos para ver los cambios
+            header('Location: index.php?tab=2&status=success');
+        } else {
+            // Si no llega nada, redirigimos igual para no quedar en blanco
+            header('Location: index.php?tab=2&status=error');
+        }
+        exit();
+    }
+*/
 
 } // Llave de la clase
 

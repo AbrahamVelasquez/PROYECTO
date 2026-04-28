@@ -248,20 +248,6 @@ class Alumnos {
             return false; 
         }
     }
-            
-    public function marcarComoEnviado($idAlumno) {
-        try {
-            // Usamos id_alumno porque es tu clave foránea en la tabla asignaciones
-            $sql = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno = :id";
-            $stmt = $this->conn->prepare($sql);
-            $resultado = $stmt->execute(['id' => (int)$idAlumno]);
-            
-            // Debug opcional: Si no funciona, podrías verificar si el rowCount es > 0
-            return $resultado;
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
 
     public function firmarAsignacion($idAsignacion, $anexo = null) {
         try {
@@ -581,6 +567,22 @@ class Alumnos {
         $stmt->execute([$idCiclo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+   
+/*
+    public function marcarComoEnviado($idAlumno) {
+        try {
+            // Usamos id_alumno porque es tu clave foránea en la tabla asignaciones
+            $sql = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno = :id";
+            $stmt = $this->conn->prepare($sql);
+            $resultado = $stmt->execute(['id' => (int)$idAlumno]);
+            
+            // Debug opcional: Si no funciona, podrías verificar si el rowCount es > 0
+            return $resultado;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+*/
 
 } // Llave de la clase
 

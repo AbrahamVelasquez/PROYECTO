@@ -14,6 +14,7 @@ TFG/ (Raíz del Proyecto)
 │   ├── Controlador_Tutores.php
 │   ├── Controlador_Usuarios.php
 │   ├── Exportar_PF.php
+│   ├── Exportar_Alumnos_Word.php
 │   └── Logout.php
 │
 ├── 📁 Convenios/ ──────────────────────────── [Módulo autónomo para registro externo]
@@ -50,8 +51,10 @@ TFG/ (Raíz del Proyecto)
 │   ├── Diseño.png
 │   ├── TFG_Estructura.txt
 │   │
-│   └── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
+│   │── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
+│   │
 │   └── 📁 Exportar/
+│       ├── plantilla_word.docx
 │       └── plantilla_ffe.xlsx
 │
 ├── 📁 Seguridad/ ──────────────────────────── [Capa de protección y validación de sesiones]

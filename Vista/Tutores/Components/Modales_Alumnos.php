@@ -434,9 +434,18 @@ function exportarAlumnosWord() {
     });
 
     document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => document.body.removeChild(form), 3000);
+        form.submit();
 
-    document.getElementById('modalConfirmarExportar').style.display = 'none';
-}
+        // Limpiamos el DOM
+        setTimeout(() => {
+            if (document.body.contains(form)) {
+                document.body.removeChild(form);
+            }
+            // RECARGA LA PÁGINA para ver los cambios (los checks verdes)
+            window.location.href = "index.php?tab=2&status=success";
+        }, 1500); // 1.5 segundos es suficiente para que inicie la descarga
+
+        // Cerramos el modal de confirmación
+        document.getElementById('modalConfirmarExportar').style.display = 'none';
+    }
 </script>
