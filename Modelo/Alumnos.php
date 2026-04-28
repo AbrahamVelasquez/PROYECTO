@@ -145,7 +145,7 @@ class Alumnos {
         }
     }
 
-    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono, $idCiclo) {
+    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni = '', $sexo  = '', $correo, $telefono  = '', $idCiclo) {
         try {
             $this->conn->beginTransaction();
 
@@ -185,7 +185,7 @@ class Alumnos {
         }
     }
 
-    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono,
+    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni  = '', $sexo  = '', $correo, $telefono  = '',
                                 $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $horasTotales = null, $enviado = 0,
                                 $nombreTutorEmpresa = null, $correoTutorEmpresa = null, $telTutorEmpresa = null) {
         try {

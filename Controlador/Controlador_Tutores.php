@@ -333,6 +333,20 @@ class Tutores_Controlador {
         require_once 'Controlador/Importar_Alumnos.php';
     }
 
+    public function descargarPlantillaAlumnos() {
+        $ruta = ROOT_PATH . 'Recursos/Importar/plantilla_listadoAlumnos.xlsx';
+        if (!file_exists($ruta)) {
+            http_response_code(404);
+            exit('Plantilla no encontrada.');
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="plantilla_listadoAlumnos.xlsx"');
+        header('Content-Length: ' . filesize($ruta));
+        header('Cache-Control: no-cache');
+        readfile($ruta);
+        exit;
+    }
+
 /*
     public function exportarAlumnos() {
         // Verificamos si llegan IDs por POST

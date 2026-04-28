@@ -67,8 +67,8 @@ validarAcceso('tutor');
                 <input type="text" name="apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
-                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido</label>
-                <input type="text" name="apellido2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido <span class="text-red-500">*</span></label>
+                <input type="text" name="apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
@@ -76,12 +76,12 @@ validarAcceso('tutor');
             </div>
             <div class="flex gap-3 mb-4">
                 <div class="flex-1">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE <span class="text-red-500">*</span></label>
-                    <input type="text" name="dni" required maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE</label>
+                    <input type="text" name="dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
                 <div class="w-28">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo <span class="text-red-500">*</span></label>
-                    <select name="sexo" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo</span></label>
+                    <select name="sexo" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
                         <option value="">--</option><option value="H">H</option><option value="M">M</option>
                     </select>
                 </div>
@@ -123,8 +123,8 @@ validarAcceso('tutor');
                 <input type="text" name="apellido1" id="edit_apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
-                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido</label>
-                <input type="text" name="apellido2" id="edit_apellido2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido <span class="text-red-500">*</span></label>
+                <input type="text" name="apellido2" id="edit_apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
@@ -133,12 +133,12 @@ validarAcceso('tutor');
             
             <div class="flex gap-3 mb-4">
                 <div class="flex-1">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE <span class="text-red-500">*</span></label>
-                    <input type="text" name="dni" id="edit_dni" required maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE</label>
+                    <input type="text" name="dni" id="edit_dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
                 <div class="w-28">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo <span class="text-red-500">*</span></label>
-                    <select name="sexo" id="edit_sexo" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo</label>
+                    <select name="sexo" id="edit_sexo" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
                         <option value="">--</option><option value="H">H</option><option value="M">M</option>
                     </select>
                 </div>
@@ -422,7 +422,7 @@ validarAcceso('tutor');
             </h3>
             <button onclick="cerrarModalCargar()" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
         </div>
-
+ 
         <!-- Estado: seleccionar fichero -->
         <div id="cargar_estado_inicial">
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
@@ -435,8 +435,13 @@ validarAcceso('tutor');
                     <span class="px-2 py-1 bg-slate-200 rounded text-[9px] font-black text-slate-600 uppercase">Apellido(s)</span>
                     <span class="px-2 py-1 bg-slate-200 rounded text-[9px] font-black text-slate-600 uppercase">Dirección de correo</span>
                 </div>
+                <a href="index.php?controlador=Tutores&accion=descargarPlantillaAlumnos" download
+                   class="mt-3 inline-flex items-center gap-2 text-[10px] font-black text-slate-600 hover:text-orange-600 transition-colors uppercase tracking-widest">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Descargar Plantilla
+                </a>
             </div>
-
+ 
             <label class="block w-full cursor-pointer">
                 <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all">
                     <p class="text-2xl mb-2">📂</p>
@@ -445,7 +450,7 @@ validarAcceso('tutor');
                 </div>
                 <input type="file" id="inputFicheroAlumnos" accept=".xlsx,.xls" class="hidden" onchange="onFicheroSeleccionado(this)">
             </label>
-
+ 
             <div class="flex gap-3 justify-end mt-6">
                 <button type="button" onclick="cerrarModalCargar()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
                 <button type="button" id="btnSubirFichero" onclick="importarAlumnosExcel()" disabled
@@ -454,13 +459,13 @@ validarAcceso('tutor');
                 </button>
             </div>
         </div>
-
+ 
         <!-- Estado: cargando -->
         <div id="cargar_estado_cargando" style="display:none" class="text-center py-8">
             <div class="inline-block w-8 h-8 border-4 border-slate-200 border-t-orange-600 rounded-full animate-spin mb-4"></div>
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Procesando fichero...</p>
         </div>
-
+ 
         <!-- Estado: resultado -->
         <div id="cargar_estado_resultado" style="display:none">
             <div id="cargar_resultado_ok" style="display:none" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-center">
@@ -515,7 +520,8 @@ function exportarAlumnosWord() {
         // Cerramos el modal de confirmación
         document.getElementById('modalConfirmarExportar').style.display = 'none';
     }
-    function onFicheroSeleccionado(input) {
+
+function onFicheroSeleccionado(input) {
     const btn   = document.getElementById('btnSubirFichero');
     const label = document.getElementById('nombreFicheroSeleccionado');
     if (input.files && input.files[0]) {
@@ -526,7 +532,7 @@ function exportarAlumnosWord() {
         btn.disabled = true;
     }
 }
-
+ 
 function cerrarModalCargar() {
     document.getElementById('modalCargarAlumnos').style.display = 'none';
     // Resetear estado
@@ -537,40 +543,40 @@ function cerrarModalCargar() {
     document.getElementById('nombreFicheroSeleccionado').textContent = 'Ningún fichero seleccionado';
     document.getElementById('btnSubirFichero').disabled = true;
 }
-
+ 
 function cerrarModalCargarYRecargar() {
     cerrarModalCargar();
     window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=2';
 }
-
+ 
 async function importarAlumnosExcel() {
     const input = document.getElementById('inputFicheroAlumnos');
     if (!input.files || !input.files[0]) return;
-
+ 
     // Mostrar spinner
     document.getElementById('cargar_estado_inicial').style.display  = 'none';
     document.getElementById('cargar_estado_cargando').style.display = 'block';
-
+ 
     const formData = new FormData();
     formData.append('fichero_alumnos', input.files[0]);
-
+ 
     try {
         const res  = await fetch('index.php?controlador=Tutores&accion=importarAlumnos', {
             method: 'POST',
             body:   formData,
         });
         const data = await res.json();
-
+ 
         // Ocultar spinner, mostrar resultado
         document.getElementById('cargar_estado_cargando').style.display  = 'none';
         document.getElementById('cargar_estado_resultado').style.display = 'block';
-
+ 
         if (data.success) {
             const okDiv  = document.getElementById('cargar_resultado_ok');
             const txtOk  = document.getElementById('cargar_texto_ok');
             okDiv.style.display = 'block';
             txtOk.textContent   = `${data.insertados} alumno${data.insertados !== 1 ? 's' : ''} importado${data.insertados !== 1 ? 's' : ''} correctamente.`;
-
+ 
             if (data.errores && data.errores.length > 0) {
                 const errDiv  = document.getElementById('cargar_resultado_errores');
                 const errList = document.getElementById('cargar_lista_errores');
