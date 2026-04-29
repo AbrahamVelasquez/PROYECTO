@@ -23,6 +23,10 @@ validarAcceso('admin');
                 <span class="transition-transform group-hover:-translate-x-1">←</span> Volver al inicio
             </button>
         </form>
+        <button onclick="document.getElementById('modalImportarConvenios').style.display='flex'"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-all shadow-md cursor-pointer uppercase tracking-wide">
+            📥 Importar Convenios
+        </button>
     </div>
 </div>
 

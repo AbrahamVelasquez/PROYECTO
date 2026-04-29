@@ -17,6 +17,7 @@ TFG/ (Raíz del Proyecto)
 │   ├── Exportar_PF_Todo.php
 │   ├── Exportar_Alumnos_Word.php
 │   ├── Importar_Alumnos.php
+│   ├── Importar_Convenios.php
 │   └── Logout.php
 │
 ├── 📁 Convenios/ ──────────────────────────── [Módulo autónomo para registro externo]
