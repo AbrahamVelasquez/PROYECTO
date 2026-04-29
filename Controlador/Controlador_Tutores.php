@@ -351,6 +351,32 @@ class Tutores_Controlador {
         require_once 'Controlador/Exportar_PF_Todo.php';
     }
 
+    public function cambiarEstadoExportacion() {
+        // Verificamos seguridad básica y método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            return;
+        }
+
+        // Decodificamos el JSON que enviamos desde el JS
+        $idsRaw = $_POST['ids_asignacion'] ?? '[]';
+        $idsAsignacion = json_decode($idsRaw, true);
+        $nuevoEstado = isset($_POST['nuevo_estado']) ? (int)$_POST['nuevo_estado'] : 0;
+
+        if (empty($idsAsignacion)) {
+            echo json_encode(['success' => false, 'error' => 'No se recibieron IDs para actualizar']);
+            return;
+        }
+        
+        $resultado = $this->alumnoModelo->reiniciarEstadoExportacion($idsAsignacion, $nuevoEstado);
+
+        if ($resultado) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Error al actualizar la base de datos']);
+        }
+    }
+
 /*
     public function exportarAlumnos() {
         // Verificamos si llegan IDs por POST

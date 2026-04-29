@@ -567,6 +567,29 @@ class Alumnos {
         $stmt->execute([$idCiclo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function reiniciarEstadoExportacion($ids, $estado) {
+        try {
+            $conn = Conexion::getConexion();
+            
+            // Creamos los marcadores de posición (?,?,?) para el array de IDs
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            
+            $sql = "UPDATE asignaciones_firmadas 
+                    SET exportado = ? 
+                    WHERE id_asignacion IN ($placeholders)";
+            
+            $stmt = $conn->prepare($sql);
+            
+            // El primer parámetro es el estado, los siguientes son los IDs
+            $params = array_merge([$estado], $ids);
+            
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log("Error en reiniciarEstadoExportacion: " . $e->getMessage());
+            return false;
+        }
+    }
    
 /*
     public function marcarComoEnviado($idAlumno) {
