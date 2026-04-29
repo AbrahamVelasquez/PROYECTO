@@ -56,7 +56,8 @@ TFG/ (Raíz del Proyecto)
 │   │── 📁 Versiones_Anteriores/ ────────────── [Historial de archivos y esquemas antiguos]
 │   │
 │   │── 📁 Importar/   
-│   │   └── plantilla_listadoAlumnos.xlsx
+│       ├── plantilla_listadoAlumnos.xlsx
+│   │   └── plantilla_listadoConvenios.xlsx
 │   │
 │   └── 📁 Exportar/
 │       ├── plantilla_ffe.xlsx
