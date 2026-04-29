@@ -426,13 +426,13 @@ class Alumnos {
 
             // 5. Marcar como exportado
             if (empty($datos['solo_borrador'])) {
-                $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
-                $this->conn->prepare($sqlExp)->execute([$datos['anexo'] ?? null, $idAsignacion]);
-            } else {
-                // Solo actualiza el anexo si viene informado, sin tocar exportado
-                if (!empty($datos['anexo'])) {
-                    $sqlExp = "UPDATE asignaciones_firmadas SET anexo = ? WHERE id_asignacion = ?";
+                // Si viene anexo en el POST lo actualizamos, si no, dejamos el que ya hay en BD
+                if (isset($datos['anexo']) && $datos['anexo'] !== '') {
+                    $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
                     $this->conn->prepare($sqlExp)->execute([$datos['anexo'], $idAsignacion]);
+                } else {
+                    $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1 WHERE id_asignacion = ?";
+                    $this->conn->prepare($sqlExp)->execute([$idAsignacion]);
                 }
             }
 

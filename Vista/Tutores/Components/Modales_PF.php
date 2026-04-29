@@ -398,6 +398,15 @@ validarAcceso('tutor');
             <p id="textoProgreso" class="text-[9px] text-slate-400 text-center mt-1 font-bold"></p>
         </div>
 
+        <div id="exportarTodoSinPendientes" style="display:none" class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
+            <span class="text-slate-400 text-sm">📋</span>
+            <p class="text-[10px] text-slate-500 font-bold leading-relaxed">
+                No hay planes pendientes de exportar. Si desea exportar un plan formativo concreto, 
+                puede hacerlo de manera <span class="text-slate-700 font-black">individual</span> 
+                desde el botón de edición de cada alumno.
+            </p>
+        </div>
+
         <div id="exportarTodoBotones" class="flex gap-3 justify-center">
             <button onclick="document.getElementById('modalExportarTodo').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
                 Cancelar
@@ -719,13 +728,16 @@ window.abrirModalExportarPF = function(idAsignacion) {
 };
 
 window.abrirModalExportarTodo = function() {
-    const filas = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]');
-    document.getElementById('contadorPendientes').textContent = filas.length;
+    const count = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]').length;
+    document.getElementById('contadorPendientes').textContent = count;
     document.getElementById('exportarTodoProgreso').style.display = 'none';
-    document.getElementById('exportarTodoBotones').style.display = 'flex';
     document.getElementById('barraProgreso').style.width = '0%';
     document.getElementById('textoProgreso').textContent = '';
     document.getElementById('btnEjecutarExportarTodo').disabled = false;
+
+    document.getElementById('exportarTodoBotones').style.display       = count > 0 ? 'flex' : 'none';
+    document.getElementById('exportarTodoSinPendientes').style.display = count === 0 ? 'flex' : 'none';
+
     document.getElementById('modalExportarTodo').style.display = 'flex';
 };
 

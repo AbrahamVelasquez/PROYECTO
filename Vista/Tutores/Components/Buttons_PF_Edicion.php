@@ -55,7 +55,7 @@ function recogerDatosFormulario(idAsignacion) {
         // Identificación académica
         'anio_inicio':          document.getElementById('pf_edit_anio_inicio')?.value      ?? '',
         'anio_fin':             document.getElementById('pf_edit_anio_fin')?.value         ?? '',
-        'regimen':              document.getElementById('pf_edit_regimen')?.value          ?? 'General',
+        'regimen':              document.getElementById('pf_edit_regimen')?.value          ?? '',
         'nombre_ciclo':         document.getElementById('pf_edit_nombre_ciclo')?.value     ?? '',
         'codigo_ciclo':         document.getElementById('pf_edit_codigo_ciclo')?.value     ?? '',
         'curso_selector':       document.getElementById('pf_edit_curso_selector')?.value   ?? '1',
@@ -65,7 +65,7 @@ function recogerDatosFormulario(idAsignacion) {
         'email_alumno':         document.getElementById('pf_edit_email_alumno')?.value     ?? '',
         'tel_alumno':           document.getElementById('pf_edit_tel_alumno')?.value       ?? '',
         // Centro
-        'centro_nombre':        document.getElementById('pf_edit_centro_nombre')?.value    ?? 'IES CIUDAD ESCOLAR',
+        'centro_nombre':        document.getElementById('pf_edit_centro_nombre')?.value    ?? '',
         'centro_correo':        document.getElementById('pf_edit_centro_correo')?.value    ?? '',
         'centro_tel':           document.getElementById('pf_edit_centro_tel')?.value       ?? '',
         'tutor_centro_nombre':  document.getElementById('pf_edit_tutor_centro_nombre')?.value  ?? '',

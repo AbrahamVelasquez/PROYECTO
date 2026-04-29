@@ -135,8 +135,24 @@ function generarExcelAsignacion(array $d, string $plantilla): string {
     $idCiclo = (int)($d['id_ciclo'] ?? 0);
     $ras     = obtenerRAsCicloT($idCiclo);
 
+    // Deducir el periodo dominante de los RAs (el más frecuente)
+    $contadorPeriodos = [];
+    foreach ($ras as $ra) {
+        $p = (string)$ra['periodo'];
+        $contadorPeriodos[$p] = ($contadorPeriodos[$p] ?? 0) + 1;
+    }
+
+    // El periodo con más RAs es el seleccionado, el resto van a Off
+    $periodoDominante = '';
+    if (!empty($contadorPeriodos)) {
+        arsort($contadorPeriodos);
+        $periodoDominante = array_key_first($contadorPeriodos);
+    }
+
     $periodosActivos = [];
-    foreach ($ras as $ra) $periodosActivos[(string)$ra['periodo']] = true;
+    if ($periodoDominante !== '') {
+        $periodosActivos[$periodoDominante] = true;
+    }
 
     // ── Hoja datos fijos ──────────────────────────────────────────────────────
     $wsFijos = $spreadsheet->getSheetByName('datos fijos');
