@@ -2,9 +2,7 @@
 
 // Vista/Tutores/Components/PF_Edicion.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-
 validarAcceso('tutor'); 
 
 ?>
@@ -24,7 +22,6 @@ validarAcceso('tutor');
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nº Anexo</label>
                 <input type="number" id="pf_edit_anexo" placeholder="—" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
             </div>
-            
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Régimen</label>
                 <select id="pf_edit_regimen" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
@@ -113,29 +110,25 @@ validarAcceso('tutor');
 
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">4. Empresa u Organismo Equiparado</p>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">ID Convenio</label>
                 <input type="text" id="pf_id_convenio" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre de la Empresa</label>
-                <input type="text" id="pf_edit_nombre_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_nombre_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
-
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">N.I.F.</label>
-                <input type="text" id="pf_edit_nif_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
+                <input type="text" id="pf_edit_nif_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed  focus:ring-orange-100 transition-all text-center">
             </div>
-
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico Empresa</label>
-                <input type="email" id="pf_edit_email_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="email" id="pf_edit_email_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Empresa</label>
-                <input type="text" id="pf_edit_tel_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_tel_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a de Empresa</label>
@@ -175,11 +168,21 @@ validarAcceso('tutor');
         <div class="mb-4 flex flex-wrap gap-6 items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
             <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Intervalo:</span>
             <div class="flex gap-4">
-                <?php foreach(['Diario', 'Semanal', 'Mensual', 'Otros', 'Varias empresas'] as $int): ?>
-                    <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
-                        <input type="checkbox" class="rounded accent-orange-600" <?= $int === 'Diario' ? 'checked' : '' ?>> <?= strtoupper($int) ?>
-                    </label>
-                <?php endforeach; ?>
+                <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                    <input type="checkbox" id="inter_diario" data-tipo="diario" class="check-intervalo rounded accent-orange-600" checked> DIARIO
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                    <input type="checkbox" id="inter_semanal" data-tipo="semanal" class="check-intervalo rounded accent-orange-600"> SEMANAL
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                    <input type="checkbox" id="inter_mensual" data-tipo="mensual" class="check-intervalo rounded accent-orange-600"> MENSUAL
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                    <input type="checkbox" id="inter_otros" data-tipo="otros" class="check-intervalo rounded accent-orange-600"> OTROS
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-[10px] font-black text-slate-600">
+                    <input type="checkbox" id="inter_varias" data-tipo="varias" class="check-intervalo rounded accent-orange-600"> VARIAS EMPRESAS
+                </label>
             </div>
         </div>
 
@@ -195,27 +198,30 @@ validarAcceso('tutor');
                 <tbody class="divide-y divide-slate-100">
                     <tr>
                         <td class="p-2 border-r border-slate-200">
-                            <input type="text" placeholder="1" 
-                                class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600 text-center">
+                            <select id="pf_edit_periodo_planificacion" class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 text-center bg-transparent cursor-pointer focus:ring-2 focus:ring-orange-100 rounded-lg border border-slate-200">
+                                <option value="1">1º</option>
+                                <option value="2">2º</option>
+                                <option value="3">3º</option>
+                            </select>
                         </td>
                         <td class="p-2 border-r border-slate-200">
                             <div class="flex items-center gap-1">
-                                <input type="date" id="pf_edit_fecha_inicio" 
+                                <input type="date" id="pf_edit_fecha_inicio"
                                     class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent">
                                 <span class="text-slate-300 font-bold">/</span>
-                                <input type="date" id="pf_edit_fecha_final" 
+                                <input type="date" id="pf_edit_fecha_final"
                                     class="w-full px-2 py-1 outline-none text-xs font-bold text-slate-600 bg-transparent">
                             </div>
                         </td>
                         <td class="p-2">
-                            <input type="text" id="pf_edit_horario" placeholder="08:00 - 15:00" 
+                            <input type="text" id="pf_edit_horario" placeholder="08:00 - 15:00"
                                 class="w-full px-2 py-1 outline-none text-xs font-bold uppercase text-slate-600">
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        
+
         <div class="flex justify-end mb-10">
             <div class="w-full md:w-64">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 text-right">Total Horas:</label>
@@ -223,6 +229,7 @@ validarAcceso('tutor');
                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all text-center">
             </div>
         </div>
+
         <p class="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">7. Resultados de Aprendizaje Profesionales</p>
 
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 flex items-center gap-3">
@@ -301,4 +308,3 @@ validarAcceso('tutor');
 
     </form>
 </div>
-
