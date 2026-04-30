@@ -182,25 +182,6 @@ class Tutores_Controlador {
         exit();
     }
 
-    public function exportarAlumnos() {
-        // Verificamos si llegan IDs por POST
-        if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
-            // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
-
-            foreach ($_POST['exportar_ids'] as $idAlumno) {
-                // Importante: castear a int para seguridad
-                $this->alumnoModelo->marcarComoEnviado((int)$idAlumno);
-            }
-
-            // Redirigimos para ver los cambios
-            header('Location: index.php?tab=2&status=success');
-        } else {
-            // Si no llega nada, redirigimos igual para no quedar en blanco
-            header('Location: index.php?tab=2&status=error');
-        }
-        exit();
-    }
-
     public function firmarAlumno() {
         $id_asignacion = $_POST['id_asignacion'] ?? null;
         $anexo = $_POST['anexo'] ?? null; // Recogemos el anexo del modal
@@ -339,6 +320,83 @@ class Tutores_Controlador {
         header('Location: index.php?tab=1');
         exit();
     }
+
+    public function exportarExcelPF() {
+        require_once 'Controlador/Exportar_PF.php';
+    }
+
+    public function exportarAlumnosWord() {
+        require_once 'Controlador/Exportar_Alumnos_Word.php';
+    }
+
+    public function importarAlumnos() {
+        require_once 'Controlador/Importar_Alumnos.php';
+    }
+
+    public function descargarPlantillaAlumnos() {
+        $ruta = ROOT_PATH . 'Recursos/Importar/plantilla_listadoAlumnos.xlsx';
+        if (!file_exists($ruta)) {
+            http_response_code(404);
+            exit('Plantilla no encontrada.');
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="plantilla_listadoAlumnos.xlsx"');
+        header('Content-Length: ' . filesize($ruta));
+        header('Cache-Control: no-cache');
+        readfile($ruta);
+        exit;
+    }
+
+    public function exportarTodoPF() {
+        require_once 'Controlador/Exportar_PF_Todo.php';
+    }
+
+    public function cambiarEstadoExportacion() {
+        // Verificamos seguridad básica y método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            return;
+        }
+
+        // Decodificamos el JSON que enviamos desde el JS
+        $idsRaw = $_POST['ids_asignacion'] ?? '[]';
+        $idsAsignacion = json_decode($idsRaw, true);
+        $nuevoEstado = isset($_POST['nuevo_estado']) ? (int)$_POST['nuevo_estado'] : 0;
+
+        if (empty($idsAsignacion)) {
+            echo json_encode(['success' => false, 'error' => 'No se recibieron IDs para actualizar']);
+            return;
+        }
+        
+        $resultado = $this->alumnoModelo->reiniciarEstadoExportacion($idsAsignacion, $nuevoEstado);
+
+        if ($resultado) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Error al actualizar la base de datos']);
+        }
+    }
+
+/*
+    public function exportarAlumnos() {
+        // Verificamos si llegan IDs por POST
+        if (isset($_POST['exportar_ids']) && is_array($_POST['exportar_ids'])) {
+            // $alumnoModelo = new Alumnos(); // <-- ELIMINADO
+
+            foreach ($_POST['exportar_ids'] as $idAlumno) {
+                // Importante: castear a int para seguridad
+                $this->alumnoModelo->marcarComoEnviado((int)$idAlumno);
+            }
+
+            // Redirigimos para ver los cambios
+            header('Location: index.php?tab=2&status=success');
+        } else {
+            // Si no llega nada, redirigimos igual para no quedar en blanco
+            header('Location: index.php?tab=2&status=error');
+        }
+        exit();
+    }
+*/
 
 } // Llave de la clase
 

@@ -145,7 +145,7 @@ class Alumnos {
         }
     }
 
-    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono, $idCiclo) {
+    public function agregarAlumno($nombre, $apellido1, $apellido2, $dni = '', $sexo  = '', $correo, $telefono  = '', $idCiclo) {
         try {
             $this->conn->beginTransaction();
 
@@ -185,7 +185,7 @@ class Alumnos {
         }
     }
 
-    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni, $sexo, $correo, $telefono,
+    public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni  = '', $sexo  = '', $correo, $telefono  = '',
                                 $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $horasTotales = null, $enviado = 0,
                                 $nombreTutorEmpresa = null, $correoTutorEmpresa = null, $telTutorEmpresa = null) {
         try {
@@ -246,20 +246,6 @@ class Alumnos {
         } catch (PDOException $e) { 
             $this->conn->rollBack(); // Si algo falla, deshacemos todo
             return false; 
-        }
-    }
-            
-    public function marcarComoEnviado($idAlumno) {
-        try {
-            // Usamos id_alumno porque es tu clave foránea en la tabla asignaciones
-            $sql = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno = :id";
-            $stmt = $this->conn->prepare($sql);
-            $resultado = $stmt->execute(['id' => (int)$idAlumno]);
-            
-            // Debug opcional: Si no funciona, podrías verificar si el rowCount es > 0
-            return $resultado;
-        } catch (PDOException $e) {
-            return false;
         }
     }
 
@@ -440,13 +426,13 @@ class Alumnos {
 
             // 5. Marcar como exportado
             if (empty($datos['solo_borrador'])) {
-                $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
-                $this->conn->prepare($sqlExp)->execute([$datos['anexo'] ?? null, $idAsignacion]);
-            } else {
-                // Solo actualiza el anexo si viene informado, sin tocar exportado
-                if (!empty($datos['anexo'])) {
-                    $sqlExp = "UPDATE asignaciones_firmadas SET anexo = ? WHERE id_asignacion = ?";
+                // Si viene anexo en el POST lo actualizamos, si no, dejamos el que ya hay en BD
+                if (isset($datos['anexo']) && $datos['anexo'] !== '') {
+                    $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1, anexo = ? WHERE id_asignacion = ?";
                     $this->conn->prepare($sqlExp)->execute([$datos['anexo'], $idAsignacion]);
+                } else {
+                    $sqlExp = "UPDATE asignaciones_firmadas SET exportado = 1 WHERE id_asignacion = ?";
+                    $this->conn->prepare($sqlExp)->execute([$idAsignacion]);
                 }
             }
 
@@ -581,6 +567,45 @@ class Alumnos {
         $stmt->execute([$idCiclo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function reiniciarEstadoExportacion($ids, $estado) {
+        try {
+            $conn = Conexion::getConexion();
+            
+            // Creamos los marcadores de posición (?,?,?) para el array de IDs
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            
+            $sql = "UPDATE asignaciones_firmadas 
+                    SET exportado = ? 
+                    WHERE id_asignacion IN ($placeholders)";
+            
+            $stmt = $conn->prepare($sql);
+            
+            // El primer parámetro es el estado, los siguientes son los IDs
+            $params = array_merge([$estado], $ids);
+            
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log("Error en reiniciarEstadoExportacion: " . $e->getMessage());
+            return false;
+        }
+    }
+   
+/*
+    public function marcarComoEnviado($idAlumno) {
+        try {
+            // Usamos id_alumno porque es tu clave foránea en la tabla asignaciones
+            $sql = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno = :id";
+            $stmt = $this->conn->prepare($sql);
+            $resultado = $stmt->execute(['id' => (int)$idAlumno]);
+            
+            // Debug opcional: Si no funciona, podrías verificar si el rowCount es > 0
+            return $resultado;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+*/
 
 } // Llave de la clase
 

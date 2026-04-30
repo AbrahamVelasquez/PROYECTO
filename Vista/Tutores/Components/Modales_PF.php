@@ -398,6 +398,15 @@ validarAcceso('tutor');
             <p id="textoProgreso" class="text-[9px] text-slate-400 text-center mt-1 font-bold"></p>
         </div>
 
+        <div id="exportarTodoSinPendientes" style="display:none" class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
+            <span class="text-slate-400 text-sm">📋</span>
+            <p class="text-[10px] text-slate-500 font-bold leading-relaxed">
+                No hay planes pendientes de exportar. Si desea exportar un plan formativo concreto, 
+                puede hacerlo de manera <span class="text-slate-700 font-black">individual</span> 
+                desde el botón de edición de cada alumno.
+            </p>
+        </div>
+
         <div id="exportarTodoBotones" class="flex gap-3 justify-center">
             <button onclick="document.getElementById('modalExportarTodo').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
                 Cancelar
@@ -438,6 +447,111 @@ validarAcceso('tutor');
             <button onclick="document.getElementById('modalLimiteRA').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all cursor-pointer uppercase tracking-widest">
                 Entendido
             </button>
+        </div>
+    </div>
+</div>
+
+<div id="modalReiniciarEstado" style="display:none" class="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+        
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 text-white text-xs">🔄</span>
+                Reiniciar Estados
+            </h3>
+            <button onclick="document.getElementById('modalReiniciarEstado').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Planes formativos ya exportados</p>
+
+        <div class="flex justify-between items-center px-4 py-2 bg-slate-50 rounded-t-xl border border-slate-100 text-[9px] font-black text-slate-600 uppercase tracking-tighter">
+            <span>Alumno</span>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-red-600 transition-colors select-none">
+                <span>Marcar todos</span>
+                <input type="checkbox" id="checkReiniciarTodos" onclick="toggleTodosReiniciar(this)" class="w-4 h-4 rounded border-slate-300 accent-red-600 cursor-pointer">
+            </label>
+        </div>
+
+        <div class="max-h-60 overflow-y-auto mb-6 border-x border-b border-slate-100 rounded-b-xl custom-scrollbar">
+            <?php
+            $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($_SESSION['id_ciclo']); 
+            $hayExportados = false;
+            // IMPORTANTE: $listaAsignaciones debe ser la variable que contiene los datos de la tabla principal
+            foreach ($alumnosFirmados as $alFir): 
+                if ($alFir['exportado'] == 1): 
+                    $hayExportados = true;
+            ?>
+                <div class="flex justify-between items-center px-4 py-3 hover:bg-red-50/50 transition-colors border-b border-slate-50 last:border-0">
+                    <span class="text-xs font-bold text-slate-700 uppercase truncate pr-4">
+                        <?= htmlspecialchars($alFir['nombre']) . " " .  htmlspecialchars($alFir['apellido1']) ?>
+                    </span>
+                    <input type="checkbox" name="reiniciar_ids[]" value="<?= $alFir['id_asignacion'] ?>" class="check-reiniciar w-5 h-5 rounded border-slate-300 accent-red-600 cursor-pointer">
+                </div>
+            <?php endif; endforeach; ?>
+
+            <?php if (!$hayExportados): ?>
+                <div class="py-10 text-center text-slate-400 text-xs italic font-medium">No hay planes marcados como exportados.</div>
+            <?php endif; ?>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-6 flex items-start gap-2">
+            <span class="text-amber-500 text-sm">⚠️</span>
+            <p class="text-[10px] text-amber-700 font-bold leading-tight">
+                Al reiniciar, los planes volverán al estado <span class="text-red-600">NO EXPORTADO</span>. 
+                Esto será en caso de que haya la necesidad de volver a editar la estructura conjunta del plan formativo, 
+                o simplemente como marcador visual de que se volvió a editar algún plan formativo, y volver a exportarlo.
+            </p>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalReiniciarEstado').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Cancelar
+            </button>
+            <?php if ($hayExportados): ?>
+                <button onclick="ejecutarReiniciarEstados()" class="px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-red-600 shadow-md cursor-pointer transition-all uppercase tracking-wide">
+                    Confirmar Reinicio
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<div id="modalErrorSeleccionReiniciar" style="display:none" class="fixed inset-0 bg-black/50 z-[120] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white text-xs">⚠️</span>
+                SIN SELECCIÓN
+            </h3>
+            <button onclick="document.getElementById('modalErrorSeleccionReiniciar').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <div class="flex flex-col items-center mb-6">
+            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Ningún alumno seleccionado</p>
+            <p class="text-xs font-bold text-slate-600 text-center leading-relaxed">
+                Debes seleccionar al menos un alumno antes de proceder con el reinicio de estado.
+            </p>
+        </div>
+        <div class="flex justify-center">
+            <button onclick="document.getElementById('modalErrorSeleccionReiniciar').style.display='none'" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors cursor-pointer uppercase">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirmarFinalReiniciar" style="display:none" class="fixed inset-0 bg-black/50 z-[120] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 text-white text-xs">🔄</span>
+                Confirmar Reinicio
+            </h3>
+            <button onclick="document.getElementById('modalConfirmarFinalReiniciar').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <p class="text-xs font-bold text-slate-500 mb-6 text-center uppercase tracking-widest leading-relaxed">
+            ¿Seguro que quieres reiniciar el estado de los alumnos seleccionados?
+        </p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalConfirmarFinalReiniciar').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all uppercase">Cancelar</button>
+            <button onclick="procederConReinicioFinal()" class="px-5 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all shadow-md cursor-pointer uppercase">Sí, reiniciar</button>
         </div>
     </div>
 </div>
@@ -719,34 +833,39 @@ window.abrirModalExportarPF = function(idAsignacion) {
 };
 
 window.abrirModalExportarTodo = function() {
-    const filas = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]');
-    document.getElementById('contadorPendientes').textContent = filas.length;
+    const count = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]').length;
+    document.getElementById('contadorPendientes').textContent = count;
     document.getElementById('exportarTodoProgreso').style.display = 'none';
-    document.getElementById('exportarTodoBotones').style.display = 'flex';
     document.getElementById('barraProgreso').style.width = '0%';
     document.getElementById('textoProgreso').textContent = '';
     document.getElementById('btnEjecutarExportarTodo').disabled = false;
+
+    document.getElementById('exportarTodoBotones').style.display       = count > 0 ? 'flex' : 'none';
+    document.getElementById('exportarTodoSinPendientes').style.display = count === 0 ? 'flex' : 'none';
+
     document.getElementById('modalExportarTodo').style.display = 'flex';
 };
 
 window.exportarTodoHandler = async function() {
     const filas = Array.from(document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]'));
-
+ 
     if (filas.length === 0) {
         document.getElementById('modalExportarTodo').style.display = 'none';
         return;
     }
-
+ 
     // Bloquear botones y mostrar progreso
     document.getElementById('exportarTodoBotones').style.display = 'none';
     document.getElementById('exportarTodoProgreso').style.display = 'block';
     document.getElementById('btnEjecutarExportarTodo').disabled = true;
-
+ 
+    const idsAsignacion = [];
     let completados = 0;
-
+ 
+    // 1. Marcar todos en BD primero
     for (const fila of filas) {
         const idAsignacion = fila.getAttribute('data-id-asignacion');
-
+ 
         try {
             const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
                 method: 'POST',
@@ -755,20 +874,111 @@ window.exportarTodoHandler = async function() {
             });
             const texto = await res.text();
             const inicio = texto.indexOf('{');
-            const fin = texto.lastIndexOf('}') + 1;
-            const data = JSON.parse(texto.substring(inicio, fin));
-
-            if (data.success) completados++;
+            const fin    = texto.lastIndexOf('}') + 1;
+            const data   = JSON.parse(texto.substring(inicio, fin));
+ 
+            if (data.success) {
+                completados++;
+                idsAsignacion.push(idAsignacion);
+            }
         } catch (e) {
-            console.error('Error exportando ID ' + idAsignacion, e);
+            console.error('Error marcando ID ' + idAsignacion, e);
         }
-
+ 
         const pct = Math.round(((filas.indexOf(fila) + 1) / filas.length) * 100);
         document.getElementById('barraProgreso').style.width = pct + '%';
-        document.getElementById('textoProgreso').textContent = (filas.indexOf(fila) + 1) + ' de ' + filas.length + ' procesados';
+        document.getElementById('textoProgreso').textContent =
+            (filas.indexOf(fila) + 1) + ' de ' + filas.length + ' procesados';
+    }
+ 
+    // 2. Generar Excel(s) — uno o ZIP según cantidad
+    if (idsAsignacion.length > 0) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'index.php?controlador=Tutores&accion=exportarTodoPF';
+        form.style.display = 'none';
+ 
+        idsAsignacion.forEach(id => {
+            const input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = 'ids_asignacion[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+ 
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => {
+            if (document.body.contains(form)) document.body.removeChild(form);
+        }, 3000);
+    }
+ 
+    // 3. Redirigir al listado tras un breve delay
+    setTimeout(() => {
+        window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+    }, 1500);
+};
+
+// Abre el modal de reinicio
+function abrirModalReiniciarEstados() {
+    document.getElementById('modalReiniciarEstado').style.display = 'flex';
+}
+
+// Checkbox de "Seleccionar todos"
+function toggleTodosReiniciar(source) {
+    const checkboxes = document.querySelectorAll('.check-reiniciar');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+
+// Ejecuta la llamada al servidor para cambiar de 1 a 0
+// Variable global temporal para guardar los IDs seleccionados
+let _idsParaReiniciar = [];
+
+function ejecutarReiniciarEstados() {
+    // 1. Obtener los IDs seleccionados
+    const checkboxes = document.querySelectorAll('.check-reiniciar:checked');
+    _idsParaReiniciar = Array.from(checkboxes).map(cb => cb.value);
+
+    // 2. Validar si hay selección
+    if (_idsParaReiniciar.length === 0) {
+        document.getElementById('modalErrorSeleccionReiniciar').style.display = 'flex';
+        return;
     }
 
-    window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
-};
+    // 3. Mostrar confirmación final
+    document.getElementById('modalConfirmarFinalReiniciar').style.display = 'flex';
+}
+
+async function procederConReinicioFinal() {
+    // Cerramos los modales de confirmación
+    document.getElementById('modalConfirmarFinalReiniciar').style.display = 'none';
+    document.getElementById('modalReiniciarEstado').style.display = 'none';
+
+    // Mostramos un aviso de carga (opcional, puedes usar el estilo de exportar todo)
+    console.log("Reiniciando IDs:", _idsParaReiniciar);
+
+    const formData = new URLSearchParams();
+    formData.append('ids_asignacion', JSON.stringify(_idsParaReiniciar));
+    formData.append('nuevo_estado', 0);
+
+    try {
+        const res = await fetch('index.php?controlador=Tutores&accion=cambiarEstadoExportacion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            // Recarga limpia a la pestaña correspondiente
+            window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+        } else {
+            alert("Error al procesar: " + (data.error || "Desconocido"));
+        }
+    } catch (e) {
+        console.error("Error Ajax:", e);
+    }
+}
 
 </script>

@@ -204,6 +204,21 @@ class Admin_Controlador {
         }
     }
 
+    public function importarConvenios() {
+        require_once 'Controlador/Importar_Convenios.php';
+    }
+
+    public function descargarPlantillaConvenios() {
+        $ruta = ROOT_PATH . 'Recursos/Importar/plantilla_listadoConvenios.xlsx';
+        if (!file_exists($ruta)) { http_response_code(404); exit('Plantilla no encontrada.'); }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="plantilla_listadoConvenios.xlsx"');
+        header('Content-Length: ' . filesize($ruta));
+        header('Cache-Control: no-cache');
+        readfile($ruta);
+        exit;
+    }
+
 } // Llave de la clase
 
 ?>
