@@ -93,17 +93,21 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 <?php endif; ?>
 
 <div class="mt-12">
-    <h3 class="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] mb-4">Mi Listado Personal</h3>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">Mi Listado Personal</h3>
+        <span id="lp-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+    </div>
     <div class="overflow-hidden rounded-2xl border-2 border-orange-100 bg-white">
-        <table class="w-full text-left border-collapse table-fixed"> <thead class="bg-orange-500 text-white">
+        <table class="w-full text-left border-collapse table-fixed">
+            <thead class="bg-orange-500 text-white">
                 <tr>
                     <th class="px-6 py-3 text-[10px] font-black uppercase tracking-widest">Empresa Seleccionada</th>
                     <th class="w-48 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-center">Gestión</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-orange-50">
+            <tbody id="lp-tbody" class="divide-y divide-orange-50">
                 <?php if (!empty($misConvenios)): foreach ($misConvenios as $mc): ?>
-                    <tr class="hover:bg-orange-50/50 transition-colors">
+                    <tr class="lp-fila hover:bg-orange-50/50 transition-colors">
                         <td class="px-6 py-5">
                             <div class="font-bold text-slate-900 uppercase text-sm"><?= $mc['nombre_empresa'] ?></div>
                             <div class="text-xs text-slate-400 font-bold"><?= $mc['municipio'] ?></div>
@@ -111,11 +115,8 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                         <td class="px-6 py-5 text-center">
                             <form action="index.php" method="POST" class="flex justify-center">
                                 <input type="hidden" name="id_convenio_eliminar" value="<?= $mc['id_convenio'] ?>">
-                                
                                 <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
-                                
                                 <input type="hidden" name="btnEliminarFav" value="1">
-
                                 <button type="button" onclick="abrirConfirmarEliminar(<?= $mc['id_convenio'] ?>, '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
                                         class="group flex items-center gap-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all border border-red-100 shadow-sm cursor-pointer">
                                     <span class="text-[10px] font-black uppercase">Eliminar</span>
@@ -131,6 +132,23 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Controles de paginación -->
+    <div id="lp-paginacion" class="flex items-center justify-between mt-3 hidden">
+        <button id="lp-prev" onclick="lpCambiarPagina(lpPaginaActual - 1)"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Anterior
+        </button>
+
+        <div id="lp-paginas" class="flex items-center gap-1.5"></div>
+
+        <button id="lp-next" onclick="lpCambiarPagina(lpPaginaActual + 1)"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+            Siguiente
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
     </div>
 </div>
 
@@ -200,6 +218,80 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 </div>
 
 <script>
+// ─── PAGINACIÓN: MI LISTADO PERSONAL ─────────────────────────────────────────
+const LP_POR_PAGINA = 6;
+let lpPaginaActual = 1;
+
+function lpInicializar() {
+    const filas = document.querySelectorAll('#lp-tbody .lp-fila');
+    const total = filas.length;
+
+    if (total <= LP_POR_PAGINA) return; // Sin paginación si caben todas
+
+    document.getElementById('lp-paginacion').classList.remove('hidden');
+    lpRenderizar();
+}
+
+function lpCambiarPagina(nuevaPagina) {
+    const filas = document.querySelectorAll('#lp-tbody .lp-fila');
+    const totalPaginas = Math.ceil(filas.length / LP_POR_PAGINA);
+    if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
+    lpPaginaActual = nuevaPagina;
+    lpRenderizar();
+}
+
+function lpRenderizar() {
+    const filas = Array.from(document.querySelectorAll('#lp-tbody .lp-fila'));
+    const total = filas.length;
+    const totalPaginas = Math.ceil(total / LP_POR_PAGINA);
+    const inicio = (lpPaginaActual - 1) * LP_POR_PAGINA;
+    const fin    = Math.min(inicio + LP_POR_PAGINA, total);
+
+    // Mostrar/ocultar filas
+    filas.forEach((fila, i) => {
+        fila.style.display = (i >= inicio && i < fin) ? '' : 'none';
+    });
+
+    // Contador "Mostrando X–Y de Z"
+    const contador = document.getElementById('lp-contador');
+    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
+
+    // Botones prev/next
+    document.getElementById('lp-prev').disabled = lpPaginaActual === 1;
+    document.getElementById('lp-next').disabled = lpPaginaActual === totalPaginas;
+
+    // Números de página
+    const contenedor = document.getElementById('lp-paginas');
+    contenedor.innerHTML = '';
+
+    // Lógica: mostrar siempre primera, última y ±1 de la actual, con "…" entre saltos
+    const pagsMostrar = new Set([1, totalPaginas, lpPaginaActual, lpPaginaActual - 1, lpPaginaActual + 1]
+        .filter(p => p >= 1 && p <= totalPaginas));
+    const pagsOrdenadas = [...pagsMostrar].sort((a, b) => a - b);
+
+    let anterior = null;
+    pagsOrdenadas.forEach(p => {
+        if (anterior !== null && p - anterior > 1) {
+            const sep = document.createElement('span');
+            sep.className = 'text-slate-300 text-xs font-bold px-1';
+            sep.textContent = '···';
+            contenedor.appendChild(sep);
+        }
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = p;
+        btn.onclick = () => lpCambiarPagina(p);
+        btn.className = p === lpPaginaActual
+            ? 'w-8 h-8 rounded-lg bg-orange-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
+            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer';
+        contenedor.appendChild(btn);
+        anterior = p;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', lpInicializar);
+// ─────────────────────────────────────────────────────────────────────────────
+
     function copiarUrlRegistro(url, elemento) {
         // Copiar al portapapeles
         navigator.clipboard.writeText(url).then(() => {
