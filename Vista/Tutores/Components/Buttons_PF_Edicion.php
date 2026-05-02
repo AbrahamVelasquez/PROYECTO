@@ -86,6 +86,7 @@ function recogerDatosFormulario(idAsignacion) {
         'fecha_inicio':         document.getElementById('pf_edit_fecha_inicio')?.value     ?? '',
         'fecha_final':          document.getElementById('pf_edit_fecha_final')?.value      ?? '',
         'horario':              document.getElementById('pf_edit_horario')?.value          ?? '',
+        'horario_excepciones':  document.getElementById('pf_edit_horario_excepciones')?.value ?? '',
         // Periodo del select (nuevo)
         'periodo_planificacion': document.getElementById('pf_edit_periodo_planificacion')?.value ?? '1',
         // Intervalos (con id directos)

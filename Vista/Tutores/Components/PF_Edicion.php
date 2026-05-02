@@ -222,6 +222,13 @@ validarAcceso('tutor');
             </table>
         </div>
 
+        <input type="hidden" id="pf_edit_horario_excepciones" name="horario_excepciones">
+
+        <div id="pf_excepciones_contenedor" class="mb-6 hidden">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Excepciones de horario por día</p>
+            <div id="pf_excepciones_tags" class="flex flex-wrap gap-2"></div>
+        </div>
+
         <div class="flex justify-end mb-10">
             <div class="w-full md:w-64">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 text-right">Total Horas:</label>
@@ -308,3 +315,28 @@ validarAcceso('tutor');
 
     </form>
 </div>
+
+<script>
+const PF_HA_NOMBRES = { L:'Lunes', M:'Martes', X:'Miércoles', J:'Jueves', V:'Viernes', S:'Sábado', D:'Domingo' };
+
+window.pfRenderizarExcepciones = function(jsonStr) {
+    const contenedor = document.getElementById('pf_excepciones_contenedor');
+    const tags = document.getElementById('pf_excepciones_tags');
+    if (!contenedor || !tags) return;
+    try {
+        const bloques = jsonStr ? JSON.parse(jsonStr) : [];
+        const activos = bloques.filter(b => b.dias && b.dias.length > 0);
+        if (activos.length === 0) { contenedor.classList.add('hidden'); return; }
+        contenedor.classList.remove('hidden');
+        tags.innerHTML = activos.map(b => {
+            const diasTexto = b.dias.map(d => PF_HA_NOMBRES[d] || d).join(', ');
+            return `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-[10px] font-black">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                ${diasTexto}: ${b.inicio}–${b.fin}
+            </span>`;
+        }).join('');
+    } catch(e) {
+        contenedor.classList.add('hidden');
+    }
+};
+</script>

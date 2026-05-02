@@ -84,7 +84,8 @@ CREATE TABLE `asignaciones` (
   `enviado` tinyint(1) NOT NULL DEFAULT 0,
   `nombre_tutor_empresa` varchar(150) DEFAULT NULL,
   `correo_tutor_empresa` varchar(150) DEFAULT NULL,
-  `tel_tutor_empresa` varchar(20) DEFAULT NULL
+  `tel_tutor_empresa` varchar(20) DEFAULT NULL,
+  `horario_excepciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --

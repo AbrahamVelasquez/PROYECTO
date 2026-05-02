@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Read(//c/xampp/**)",
+      "Bash(mysql/bin/mysql.exe -u root -e \"ALTER TABLE citye.asignaciones ADD COLUMN horario_excepciones TEXT DEFAULT NULL;\")",
+      "Bash(mysql -u root -e \"ALTER TABLE citye.asignaciones ADD COLUMN horario_excepciones TEXT DEFAULT NULL;\")",
+      "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u root -e \"ALTER TABLE citye.asignaciones ADD COLUMN horario_excepciones TEXT DEFAULT NULL;\" 2>&1)",
+      "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u root -e \"SHOW COLUMNS FROM citye.asignaciones LIKE 'horario_excepciones';\" 2>&1)",
+      "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" -u root -e \"SHOW COLUMNS FROM citye.asignaciones LIKE 'horario_excepciones';\")"
+    ]
+  }
+}
