@@ -302,6 +302,10 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_correo_tutor_empresa').value = al.correo_tutor_empresa ?? '';
         document.getElementById('edit_tel_tutor_empresa').value = al.tel_tutor_empresa ?? '';
 
+        const excepcionesJson = al.horario_excepciones ?? '';
+        document.getElementById('edit_horario_excepciones').value = excepcionesJson;
+        if (typeof haRestaurarResumenEdicion === 'function') haRestaurarResumenEdicion(excepcionesJson);
+
         const bloque = document.getElementById('bloque_enviado');
         const checkbox = document.getElementById('edit_enviado');
 

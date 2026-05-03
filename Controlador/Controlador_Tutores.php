@@ -157,6 +157,7 @@ class Tutores_Controlador {
         }
 
         // Lógica normal de edición
+        $horarioExcepciones = trim($_POST['horario_excepciones'] ?? '');
         $this->alumnoModelo->editarAlumno(
             $idAlumno,
             trim($_POST['nombre']),
@@ -175,7 +176,8 @@ class Tutores_Controlador {
             $enviado,
             trim($_POST['nombre_tutor_empresa'] ?? ''),
             trim($_POST['correo_tutor_empresa'] ?? ''),
-            trim($_POST['tel_tutor_empresa'] ?? '')
+            trim($_POST['tel_tutor_empresa'] ?? ''),
+            $horarioExcepciones ?: null
         );
         
         header('Location: index.php?tab=2');

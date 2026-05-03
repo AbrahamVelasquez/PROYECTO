@@ -179,7 +179,7 @@ validarAcceso('tutor');
                 </div>
             </div>
             
-            <div class="flex gap-3 mb-6">
+            <div class="flex gap-3 mb-3">
                 <div class="flex-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Horario</label>
                     <input type="text" name="horario" id="edit_horario" placeholder="08:00-15:00" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
@@ -192,6 +192,16 @@ validarAcceso('tutor');
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">H. TOTAL</label>
                     <input type="number" name="num_total_horas" id="edit_horas_totales" min="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all" placeholder="400">
                 </div>
+            </div>
+
+            <input type="hidden" name="horario_excepciones" id="edit_horario_excepciones">
+
+            <div class="mb-6">
+                <button type="button" onclick="abrirModalHorarioAvanzado()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span id="btn_horario_avanzado_label">Configurar horario avanzado</span>
+                </button>
+                <div id="resumen_excepciones_editar" class="mt-2 hidden"></div>
             </div>
 
             <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Tutor de Empresa</p>
@@ -484,6 +494,300 @@ validarAcceso('tutor');
         </div>
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MODAL: HORARIO AVANZADO (z-60, sobre modalEditarAlumno z-50)  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<style>
+.ha-dia-btn {
+    width: 2.75rem; height: 2.75rem;
+    border-radius: 0.625rem;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1px;
+    user-select: none;
+}
+.ha-dia-btn:hover { border-color: #f97316; color: #ea580c; background: #fff7ed; }
+.ha-dia-btn.activo {
+    background: #ea580c;
+    border-color: #ea580c;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(234,88,12,.35);
+}
+.ha-dia-btn .ha-dia-letra { font-size: 13px; font-weight: 900; line-height: 1; }
+.ha-dia-btn .ha-dia-nombre { font-size: 7px; font-weight: 700; opacity: .75; line-height: 1; }
+.ha-hora-input {
+    width: 100%; padding: .45rem .75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: .625rem;
+    font-size: 14px; font-weight: 800;
+    text-align: center; outline: none;
+    transition: border-color .15s;
+    color: #1e293b;
+}
+.ha-hora-input:focus { border-color: #f97316; }
+</style>
+
+<div id="modalHorarioAvanzado" style="display:none" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-100 max-h-[92vh] flex flex-col">
+
+        <!-- Cabecera -->
+        <div class="flex items-center justify-between px-7 pt-6 pb-4 border-b border-slate-100">
+            <h3 class="text-base font-black text-slate-900 flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-600 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
+                Horario por días
+            </h3>
+            <button onclick="cerrarModalHorarioAvanzado()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer leading-none">✕</button>
+        </div>
+
+        <!-- Aviso informativo -->
+        <div class="mx-7 mt-4 mb-1 flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <span class="text-amber-500 text-base leading-none mt-0.5">💡</span>
+            <p class="text-[10px] font-bold text-amber-700 leading-relaxed">
+                Aquí defines a qué hora entra y sale el alumno cada día. <strong>Las 8 horas oficiales no cambian</strong> en la base de datos, pero este horario aparecerá en el Plan Formativo y en las exportaciones.
+            </p>
+        </div>
+
+        <!-- Lista de bloques (scrollable) -->
+        <div class="flex-1 overflow-y-auto px-7 py-4 space-y-4" id="ha_bloques_lista"></div>
+
+        <!-- Botón añadir -->
+        <div class="px-7 pb-3">
+            <button type="button" onclick="haAnyadirBloque()"
+                class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-200 text-[11px] font-black text-slate-400 uppercase tracking-wider hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Añadir otro grupo de días
+            </button>
+        </div>
+
+        <!-- Resumen -->
+        <div id="ha_resumen_semanal" class="mx-7 mb-3 hidden">
+            <div class="bg-slate-50 rounded-xl border border-slate-200 px-4 py-3">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Resumen configurado</p>
+                <div id="ha_resumen_contenido" class="space-y-1.5"></div>
+            </div>
+        </div>
+
+        <!-- Pie -->
+        <div class="flex items-center justify-between px-7 pb-6 pt-3 border-t border-slate-100">
+            <button type="button" onclick="haBorrarTodo()"
+                class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest cursor-pointer transition-colors">
+                Borrar todo
+            </button>
+            <div class="flex gap-3">
+                <button type="button" onclick="cerrarModalHorarioAvanzado()"
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" onclick="haGuardarYCerrar()"
+                    class="px-6 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Guardar horario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── HORARIO AVANZADO ─────────────────────────────────────────────────────────
+let haBloques = [];
+const HA_DIAS  = ['L','M','X','J','V','S','D'];
+const HA_LETRAS = { L:'L', M:'M', X:'X', J:'J', V:'V', S:'S', D:'D' };
+const HA_NOMBRES = { L:'Lunes', M:'Martes', X:'Miér', J:'Jueves', V:'Viernes', S:'Sábado', D:'Domingo' };
+const HA_CORTOS  = { L:'Lun', M:'Mar', X:'Mié', J:'Jue', V:'Vie', S:'Sáb', D:'Dom' };
+
+function abrirModalHorarioAvanzado() {
+    const raw = document.getElementById('edit_horario_excepciones').value.trim();
+    try { haBloques = raw ? JSON.parse(raw) : []; } catch(e) { haBloques = []; }
+    if (haBloques.length === 0) haBloques.push({ dias: ['L','M','X','J'], inicio: '08:00', fin: '17:00' });
+    haRenderizar();
+    document.getElementById('modalHorarioAvanzado').style.display = 'flex';
+}
+
+function cerrarModalHorarioAvanzado() {
+    document.getElementById('modalHorarioAvanzado').style.display = 'none';
+}
+
+function haAnyadirBloque() {
+    haBloques.push({ dias: [], inicio: '08:00', fin: '15:00' });
+    haRenderizar();
+}
+
+function haEliminarBloque(idx) {
+    haBloques.splice(idx, 1);
+    haRenderizar();
+}
+
+function haBorrarTodo() {
+    haBloques = [];
+    haRenderizar();
+}
+
+// Toggle de día: actualiza datos y re-renderiza completo → visual siempre correcto
+function haToggleDia(idx, dia) {
+    const pos = haBloques[idx].dias.indexOf(dia);
+    if (pos === -1) {
+        haBloques[idx].dias.push(dia);
+    } else {
+        haBloques[idx].dias.splice(pos, 1);
+    }
+    haRenderizar();
+}
+
+function haActualizarHora(idx, campo, valor) {
+    haBloques[idx][campo] = valor;
+    haActualizarResumen();
+}
+
+function haRenderizar() {
+    const lista = document.getElementById('ha_bloques_lista');
+    lista.innerHTML = '';
+
+    if (haBloques.length === 0) {
+        lista.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-4xl mb-3">🗓️</div>
+                <p class="text-[11px] font-bold text-slate-400">Sin bloques configurados.</p>
+                <p class="text-[10px] text-slate-300 mt-1">Usa el botón de abajo para añadir uno.</p>
+            </div>`;
+        haActualizarResumen();
+        return;
+    }
+
+    haBloques.forEach((bloque, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl border-2 border-slate-100 p-4 shadow-sm';
+
+        // Cabecera del bloque
+        const hayDias = bloque.dias.length > 0;
+        const diasLabel = hayDias
+            ? bloque.dias.map(d => HA_CORTOS[d]).join(', ')
+            : '<span class="text-red-400">Selecciona al menos un día</span>';
+
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-md bg-orange-100 text-orange-600 text-[9px] font-black">${idx + 1}</span>
+                    <span class="text-[10px] font-black text-slate-600">${diasLabel}</span>
+                </div>
+                <button type="button" onclick="haEliminarBloque(${idx})"
+                    class="text-[9px] font-black text-slate-300 hover:text-red-500 uppercase tracking-widest cursor-pointer transition-colors flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    Eliminar
+                </button>
+            </div>
+
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Qué días aplica?</p>
+            <div class="flex gap-2 mb-4 flex-wrap">
+                ${HA_DIAS.map(d => `
+                    <button type="button"
+                        onclick="haToggleDia(${idx},'${d}')"
+                        class="ha-dia-btn${bloque.dias.includes(d) ? ' activo' : ''}"
+                        title="${HA_NOMBRES[d]}">
+                        <span class="ha-dia-letra">${d}</span>
+                        <span class="ha-dia-nombre">${HA_CORTOS[d]}</span>
+                    </button>
+                `).join('')}
+            </div>
+
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Horario ese día</p>
+            <div class="flex items-center gap-3">
+                <div class="flex-1">
+                    <label class="block text-[9px] text-slate-400 font-bold mb-1">Entrada</label>
+                    <input type="time" value="${bloque.inicio}"
+                        oninput="haActualizarHora(${idx},'inicio',this.value)"
+                        class="ha-hora-input">
+                </div>
+                <div class="flex flex-col items-center justify-end pb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[9px] text-slate-400 font-bold mb-1">Salida</label>
+                    <input type="time" value="${bloque.fin}"
+                        oninput="haActualizarHora(${idx},'fin',this.value)"
+                        class="ha-hora-input">
+                </div>
+            </div>
+        `;
+        lista.appendChild(card);
+    });
+
+    haActualizarResumen();
+}
+
+function haActualizarResumen() {
+    const resumen  = document.getElementById('ha_resumen_semanal');
+    const contenido = document.getElementById('ha_resumen_contenido');
+    const activos = haBloques.filter(b => b.dias.length > 0);
+
+    if (activos.length === 0) { resumen.classList.add('hidden'); return; }
+    resumen.classList.remove('hidden');
+
+    contenido.innerHTML = activos.map(b => {
+        const diasTexto = b.dias.map(d => HA_NOMBRES[d]).join(', ');
+        return `<div class="flex items-center justify-between gap-4">
+            <span class="text-[10px] font-bold text-slate-600">${diasTexto}</span>
+            <span class="text-[11px] font-black text-orange-600 shrink-0">${b.inicio} → ${b.fin}</span>
+        </div>`;
+    }).join('');
+}
+
+function haGuardarYCerrar() {
+    const validos = haBloques.filter(b => b.dias.length > 0 && b.inicio && b.fin);
+    const json = validos.length > 0 ? JSON.stringify(validos) : '';
+
+    // Guardar en el campo oculto del formulario principal
+    document.getElementById('edit_horario_excepciones').value = json;
+
+    // Actualizar el botón y el resumen visual dentro de modalEditarAlumno
+    haRefrescarBadgeEditar(json);
+    cerrarModalHorarioAvanzado();
+}
+
+function haRefrescarBadgeEditar(jsonStr) {
+    const labelBtn  = document.getElementById('btn_horario_avanzado_label');
+    const resumenDiv = document.getElementById('resumen_excepciones_editar');
+    try {
+        const bloques = jsonStr ? JSON.parse(jsonStr) : [];
+        if (bloques.length > 0) {
+            labelBtn.textContent = `✓ Horario configurado — ${bloques.length} grupo${bloques.length > 1 ? 's' : ''}`;
+            resumenDiv.className = 'mt-2 flex flex-wrap gap-1.5';
+            resumenDiv.innerHTML = bloques.map(b => {
+                const dias = b.dias.map(d => HA_CORTOS[d]).join(' · ');
+                return `<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-100 text-orange-700 rounded-lg text-[9px] font-black border border-orange-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    ${dias}: ${b.inicio}–${b.fin}
+                </span>`;
+            }).join('');
+        } else {
+            labelBtn.textContent = 'Configurar horario avanzado';
+            resumenDiv.className = 'mt-2 hidden';
+            resumenDiv.innerHTML = '';
+        }
+    } catch(e) {
+        labelBtn.textContent = 'Configurar horario avanzado';
+        resumenDiv.className = 'mt-2 hidden';
+    }
+}
+
+// Llamado al abrir modalEditarAlumno para restaurar el badge
+function haRestaurarResumenEdicion(jsonStr) {
+    haRefrescarBadgeEditar(jsonStr);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+</script>
 
 <script>
 function exportarAlumnosWord() {

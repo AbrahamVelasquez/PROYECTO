@@ -43,11 +43,11 @@ window.prepararCamposAutomaticos = function(anioInicioDB, anioFinDB) {
 };
 
 // Definimos la función en el objeto window para que sea accesible desde la tabla
-window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa, 
-                                telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual, 
-                                correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal, 
+window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emailEmpresa,
+                                telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual,
+                                correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal,
                                 nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa, anexo, idConvenio,
-                                horario, horasTotales, fechaInicio, fechaFinal) {
+                                horario, horasTotales, fechaInicio, fechaFinal, horarioExcepciones) {
 
     const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
@@ -108,6 +108,12 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
             document.getElementById('pf_edit_fecha_inicio').value = fechaInicio ?? '';
         if (document.getElementById('pf_edit_fecha_final'))
             document.getElementById('pf_edit_fecha_final').value = fechaFinal ?? '';
+
+        // --- Horario avanzado (excepciones) ---
+        if (document.getElementById('pf_edit_horario_excepciones'))
+            document.getElementById('pf_edit_horario_excepciones').value = horarioExcepciones ?? '';
+        if (typeof pfRenderizarExcepciones === 'function')
+            pfRenderizarExcepciones(horarioExcepciones ?? '');
 
         // Botón devolver (sigue usando el ID de alumno original si es necesario)
         const btnDevolver = document.getElementById('btn-devolver-alumno');

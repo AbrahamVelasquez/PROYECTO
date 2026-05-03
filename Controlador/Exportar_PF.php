@@ -222,6 +222,21 @@ $setVar('fecha_fin',               $fechaFin);
 $setVar('fecha_ini-fecha_fin_1',   ($fechaIni && $fechaFin) ? "$fechaIni - $fechaFin" : '');
 $setVar('horario_cada_dia_1',      $p['horario']        ?? '');
 
+// Excepciones de horario → texto legible
+$excepcionesRaw = trim($p['horario_excepciones'] ?? '');
+if ($excepcionesRaw) {
+    $excBloques = json_decode($excepcionesRaw, true) ?? [];
+    $nombresDias = ['L'=>'Lunes','M'=>'Martes','X'=>'Miércoles','J'=>'Jueves','V'=>'Viernes','S'=>'Sábado','D'=>'Domingo'];
+    $lineas = [];
+    foreach ($excBloques as $b) {
+        if (empty($b['dias'])) continue;
+        $diasTexto = implode(', ', array_map(fn($d) => $nombresDias[$d] ?? $d, $b['dias']));
+        $lineas[] = "$diasTexto: {$b['inicio']}–{$b['fin']}";
+    }
+    $excepcionesTexto = implode(' | ', $lineas);
+    $setVar('horario_excepciones', $excepcionesTexto);
+}
+
 // Intervalos (Y → AC)
 $setVar('inter_diario',   $interDiario);
 $setVar('inter_semanal',  $interSemanal);

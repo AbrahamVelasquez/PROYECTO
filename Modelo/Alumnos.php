@@ -129,7 +129,8 @@ class Alumnos {
                         asig.id_asignacion, asig.id_convenio, asig.fecha_inicio,
                         asig.fecha_final, asig.horario, asig.horas_dia, asig.num_total_horas,
                         IFNULL(asig.enviado, 0) as enviado,
-                        asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa
+                        asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
+                        asig.horario_excepciones
                 FROM alumnos a
                 LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
                 WHERE a.id_alumno = :idAlumno";
@@ -187,7 +188,8 @@ class Alumnos {
 
     public function editarAlumno($idAlumno, $nombre, $apellido1, $apellido2, $dni  = '', $sexo  = '', $correo, $telefono  = '',
                                 $idConvenio, $fechaInicio, $fechaFinal, $horario, $horasDia, $horasTotales = null, $enviado = 0,
-                                $nombreTutorEmpresa = null, $correoTutorEmpresa = null, $telTutorEmpresa = null) {
+                                $nombreTutorEmpresa = null, $correoTutorEmpresa = null, $telTutorEmpresa = null,
+                                $horarioExcepciones = null) {
         try {
             $this->conn->beginTransaction(); // Iniciamos transacción por seguridad
 
@@ -215,14 +217,14 @@ class Alumnos {
             if ($asignacion) {
                 // UPDATE asignación existente
                 $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
-                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, num_total_horas=:horasTotales, 
+                        fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, num_total_horas=:horasTotales,
                         enviado=:enviado, nombre_tutor_empresa=:nombreTutorEmpresa, correo_tutor_empresa=:correoTutorEmpresa,
-                        tel_tutor_empresa=:telTutorEmpresa
+                        tel_tutor_empresa=:telTutorEmpresa, horario_excepciones=:horarioExcepciones
                         WHERE id_alumno=:idAlumno";
             } else {
                 // INSERT nueva asignación
-                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, num_total_horas, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa)
-                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :horasTotales, :enviado, :nombreTutorEmpresa, :correoTutorEmpresa, :telTutorEmpresa)";
+                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, num_total_horas, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa, horario_excepciones)
+                        VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :horasTotales, :enviado, :nombreTutorEmpresa, :correoTutorEmpresa, :telTutorEmpresa, :horarioExcepciones)";
             }
 
             $stmt2 = $this->conn->prepare($q2);
@@ -238,6 +240,7 @@ class Alumnos {
                 'nombreTutorEmpresa'   => $nombreTutorEmpresa ?: null,
                 'correoTutorEmpresa'   => $correoTutorEmpresa ?: null,
                 'telTutorEmpresa'      => $telTutorEmpresa ?: null,
+                'horarioExcepciones'   => $horarioExcepciones ?: null,
             ]);
 
             $this->conn->commit(); // Si todo salió bien, guardamos cambios
@@ -313,6 +316,7 @@ class Alumnos {
                         f.id_asignacion,
                         asig.id_convenio,
                         asig.horario,
+                        asig.horario_excepciones,
                         asig.num_total_horas,
                         asig.fecha_inicio,
                         asig.fecha_final,
