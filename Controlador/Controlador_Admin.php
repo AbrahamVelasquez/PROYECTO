@@ -219,6 +219,19 @@ class Admin_Controlador {
         exit;
     }
 
+    public function mostrarAlumnos() {
+        $alumnos  = $this->admin->obtenerAlumnosPendientesFirma();
+        $subVista = 'Admin/Sections/Listado_Alumnos.php';
+        require 'Vista/Admin/Dashboard_Admin.php';
+    }
+
+    public function firmarAlumnoAdmin() {
+        if (isset($_POST['id_asignacion'])) {
+            $this->admin->firmarAsignacion($_POST['id_asignacion'], $_POST['anexo']);
+        }
+        $this->mostrarAlumnos();
+    }
+
 } // Llave de la clase
 
 ?>
