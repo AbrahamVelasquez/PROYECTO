@@ -221,7 +221,6 @@ function prepararFirma(idAsig, enviado, nombre, elemento) {
     .then(r => r.json())
     .then(res => {
         if (res.yaFirmado) {
-            // Caso 1: Ya está firmado en la DB
             if (elemento) {
                 elemento.checked = true;
                 elemento.disabled = true;
@@ -229,13 +228,19 @@ function prepararFirma(idAsig, enviado, nombre, elemento) {
             document.getElementById('nombreAlumnoFirmado').innerText = nombre;
             document.getElementById('modalYaFirmado').style.display = 'flex';
         } else {
-            // Caso 2: No está firmado, procedemos al modal naranja
             document.getElementById('modalFirmaNombre').innerText = nombre;
+            
+            // --- CAMBIO AQUÍ: Limpiamos el input del anexo antes de mostrar el modal ---
+            document.getElementById('inputFirmaAnexo').value = ''; 
+            
             document.getElementById('modalConfirmarFirma').style.display = 'flex';
             window.checkboxActual = elemento; 
 
             const btnConfirmar = document.getElementById('btnConfirmarFirmaAccion');
             btnConfirmar.onclick = function() {
+                // --- CAMBIO AQUÍ: Capturamos el valor que el usuario escribió ---
+                const valorAnexo = document.getElementById('inputFirmaAnexo').value;
+
                 const f = document.createElement('form');
                 f.method = 'POST';
                 f.action = 'index.php';
@@ -243,6 +248,7 @@ function prepararFirma(idAsig, enviado, nombre, elemento) {
                     <input type="hidden" name="accion" value="firmarAlumno">
                     <input type="hidden" name="id_asignacion" value="${idAsig}">
                     <input type="hidden" name="enviado_estado" value="${enviado}">
+                    <input type="hidden" name="anexo" value="${valorAnexo}">
                 `;
                 document.body.appendChild(f);
                 f.submit();
@@ -255,6 +261,8 @@ function prepararFirma(idAsig, enviado, nombre, elemento) {
 // Función para cerrar y limpiar si cancelan
 function cerrarModalFirma() {
     document.getElementById('modalConfirmarFirma').style.display = 'none';
+    // --- CAMBIO AQUÍ: También limpiamos el input al cerrar por seguridad ---
+    document.getElementById('inputFirmaAnexo').value = ''; 
     if (window.checkboxActual) window.checkboxActual.checked = false;
 }
 
@@ -289,9 +297,14 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
         document.getElementById('edit_horas_dia').value = al.horas_dia ?? '';
+        document.getElementById('edit_horas_totales').value = al.num_total_horas ?? '';
         document.getElementById('edit_nombre_tutor_empresa').value = al.nombre_tutor_empresa ?? '';
         document.getElementById('edit_correo_tutor_empresa').value = al.correo_tutor_empresa ?? '';
         document.getElementById('edit_tel_tutor_empresa').value = al.tel_tutor_empresa ?? '';
+
+        const excepcionesJson = al.horario_excepciones ?? '';
+        document.getElementById('edit_horario_excepciones').value = excepcionesJson;
+        if (typeof haRestaurarResumenEdicion === 'function') haRestaurarResumenEdicion(excepcionesJson);
 
         const bloque = document.getElementById('bloque_enviado');
         const checkbox = document.getElementById('edit_enviado');

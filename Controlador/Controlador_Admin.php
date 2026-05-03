@@ -15,7 +15,7 @@ class Admin_Controlador {
 
     // Acción por defecto: muestra el "Home" del admin
     public function mostrarPanel() {
-        $subVista = '../Components/Dashboard_Sections.php'; // Una pequeña vista con los botones
+        $subVista = 'Admin/Components/Dashboard_Sections.php'; // Una pequeña vista con los botones
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -30,7 +30,7 @@ class Admin_Controlador {
         $ciclosLibres = $this->admin->obtenerCiclosLibres(); // <--- Preparar aquí
         $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
 
-        $subVista = '../Sections/Tabla_Tutores.php';
+        $subVista = 'Admin/Sections/Tabla_Tutores.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -87,16 +87,16 @@ class Admin_Controlador {
         
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         
-        $subVista = '../Sections/Tabla_Convenios.php';
+        $subVista = 'Admin/Sections/Tabla_Convenios.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
     public function mostrarConveniosPendientes() {
-        // Obtenemos los convenios aprobados pero no agregados todavía
+        // Obtenemos los convenios aprobados pero no validados todavía
         $pendientes = $this->admin->obtenerConveniosPendientes();
         
         // Definimos la nueva vista
-        $subVista = '../Sections/Tabla_Convenios_Pendientes.php';
+        $subVista = 'Admin/Sections/Tabla_Convenios_Pendientes.php';
         require 'Vista/Admin/Dashboard_Admin.php';
     }
 
@@ -202,6 +202,34 @@ class Admin_Controlador {
             }
             exit();
         }
+    }
+
+    public function importarConvenios() {
+        require_once 'Controlador/Importar_Convenios.php';
+    }
+
+    public function descargarPlantillaConvenios() {
+        $ruta = ROOT_PATH . 'Recursos/Importar/plantilla_listadoConvenios.xlsx';
+        if (!file_exists($ruta)) { http_response_code(404); exit('Plantilla no encontrada.'); }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="plantilla_listadoConvenios.xlsx"');
+        header('Content-Length: ' . filesize($ruta));
+        header('Cache-Control: no-cache');
+        readfile($ruta);
+        exit;
+    }
+
+    public function mostrarAlumnos() {
+        $alumnos  = $this->admin->obtenerAlumnosPendientesFirma();
+        $subVista = 'Admin/Sections/Listado_Alumnos.php';
+        require 'Vista/Admin/Dashboard_Admin.php';
+    }
+
+    public function firmarAlumnoAdmin() {
+        if (isset($_POST['id_asignacion'])) {
+            $this->admin->firmarAsignacion($_POST['id_asignacion'], $_POST['anexo']);
+        }
+        $this->mostrarAlumnos();
     }
 
 } // Llave de la clase

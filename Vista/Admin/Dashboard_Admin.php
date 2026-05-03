@@ -36,10 +36,13 @@ validarAcceso('admin');
 
             <div class="p-10 min-h-[550px]">
                 <?php 
-                    if (isset($subVista) && file_exists("Vista/Admin/Dashboard_Sections/" . $subVista)) {
-                        include "Vista/Admin/Dashboard_Sections/" . $subVista;
+                    // Como index.php es la raíz, buscamos dentro de la carpeta Vista/
+                    $rutaFinal = "Vista/" . $subVista;
+                    
+                    if (isset($subVista) && file_exists($rutaFinal)) {
+                        include $rutaFinal;
                     } else {
-                        echo "<p class='text-center text-slate-400'>Error: No se pudo cargar el contenido.</p>";
+                        echo "<p class='text-center text-slate-400'>Error: No se pudo cargar la vista [{$rutaFinal}].</p>";
                     }
                 ?>
             </div>

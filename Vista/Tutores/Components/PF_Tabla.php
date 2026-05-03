@@ -13,10 +13,19 @@ validarAcceso('tutor');
         <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white text-sm">📋</span>
         Gestión de Planes de Formación
     </h2>
-    <button onclick="abrirModalExportarTodo()" class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Exportar Todo
-    </button>
+    <div class="flex gap-3">
+        <button type="button" onclick="document.getElementById('modalGestionarRA').style.display='flex'" class="bg-slate-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
+            <span>📋</span> Resultados de Aprendizaje
+        </button>
+        <button onclick="abrirModalExportarTodo()" class="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md flex items-center gap-2 cursor-pointer uppercase tracking-wide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar Todo
+        </button>
+        <button onclick="abrirModalReiniciarEstados()" class="group flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-red-600 hover:border-red-100 hover:bg-red-50 transition-all font-bold text-xs uppercase tracking-widest shadow-sm">
+            <span class="text-lg">🔄</span>
+            Reiniciar Estados
+        </button>
+    </div>
 </div>
 
 <form id="formFiltros" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
@@ -46,7 +55,7 @@ validarAcceso('tutor');
     </div>
 
     <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
-        BUSCAR
+        BUSCADO AUTOMÁTICO
     </button>
 </form>
 
@@ -86,7 +95,19 @@ validarAcceso('tutor');
                 ?>
                 <tr class="hover:bg-slate-50/50 transition-colors"
                     data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
-                    data-exportado="<?= $al['exportado'] ? '1' : '0' ?>">
+                    data-exportado="<?= $al['exportado'] ? '1' : '0' ?>"
+                    data-id-convenio="<?= intval($al['id_convenio'] ?? 0) ?>"
+                    data-nombre-empresa="<?= htmlspecialchars($al['nombre_empresa'] ?? '') ?>"
+                    data-cif="<?= htmlspecialchars($al['nif_empresa'] ?? '') ?>"
+                    data-anexo="<?= intval($al['anexo'] ?? 0) ?>"
+                    data-anio-inicio="<?= intval($al['anio_inicio'] ?? 0) ?>"
+                    data-anio-fin="<?= intval($al['anio_fin'] ?? 0) ?>"
+                    data-id-curso="<?= intval($al['id_curso'] ?? 0) ?>"
+                    data-horario="<?= htmlspecialchars($al['horario'] ?? '') ?>"
+                    data-horas-totales="<?= intval($al['num_total_horas'] ?? 0) ?>"
+                    data-fecha-inicio="<?= htmlspecialchars($al['fecha_inicio'] ?? '') ?>"
+                    data-fecha-final="<?= htmlspecialchars($al['fecha_final'] ?? '') ?>"
+                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>">
                     <td class="p-3 text-center">
                         <button type="button" 
                             onclick="window.mostrarEdicion(
@@ -109,7 +130,14 @@ validarAcceso('tutor');
                                 <?= intval($al['id_asignacion']) ?>,
                                 '<?= addslashes($al['nombre_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
-                                '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>'
+                                '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>',
+                                <?= intval($al['anexo'] ?? 0) ?>,      
+                                <?= intval($al['id_convenio'] ?? 0) ?>,
+                                '<?= addslashes($al['horario'] ?? '') ?>',
+                                <?= intval($al['num_total_horas'] ?? 0) ?>,
+                                '<?= addslashes($al['fecha_inicio'] ?? '') ?>',
+                                '<?= addslashes($al['fecha_final'] ?? '') ?>',
+                                '<?= addslashes($al['horario_excepciones'] ?? '') ?>'
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
