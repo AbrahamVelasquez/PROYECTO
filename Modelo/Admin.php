@@ -232,11 +232,11 @@ class Admin {
 
     public function obtenerConveniosPendientes() {
         // Seleccionamos los datos de la empresa de convenios_nuevos
-        // Uniendo con convenios_aprobados donde agregado = 0
+        // Uniendo con convenios_aprobados donde validado = 0
         $sql = "SELECT cn.*, ca.id_convenio_aprobado, ca.fecha_aprobacion 
                 FROM convenios_nuevos cn
                 INNER JOIN convenios_aprobados ca ON cn.id_convenio_nuevo = ca.id_convenio_nuevo
-                WHERE ca.agregado = 0
+                WHERE ca.validado = 0
                 ORDER BY ca.fecha_aprobacion DESC";
                 
         $stmt = $this->conn->prepare($sql);
@@ -268,8 +268,8 @@ class Admin {
                 ':cargo'   => $d['cargo']
             ]);
 
-            // 2. Marcamos como agregado en convenios_aprobados para que desaparezca de pendientes
-            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            // 2. Marcamos como validado en convenios_aprobados para que desaparezca de pendientes
+            $sqlUpd = "UPDATE convenios_aprobados SET validado = 1 WHERE id_convenio_nuevo = :id";
             $stmtUpd = $this->conn->prepare($sqlUpd);
             $stmtUpd->execute([':id' => $d['id_convenio_nuevo']]);
 
@@ -316,8 +316,8 @@ class Admin {
                 ':cargo'   => $datos['cargo']
             ]);
 
-            // 3. Marcamos como agregado
-            $sqlUpd = "UPDATE convenios_aprobados SET agregado = 1 WHERE id_convenio_nuevo = :id";
+            // 3. Marcamos como validado
+            $sqlUpd = "UPDATE convenios_aprobados SET validado = 1 WHERE id_convenio_nuevo = :id";
             $stmtUpd = $this->conn->prepare($sqlUpd);
             $stmtUpd->execute([':id' => $id]);
 
@@ -454,6 +454,52 @@ class Admin {
             $this->conn->rollBack();
             return false;
         }
+    }
+
+    public function obtenerAlumnosPendientesFirma() {
+        $sql = "
+            SELECT
+                al.id_alumno,
+                al.nombre,
+                al.apellido1,
+                al.apellido2,
+                al.dni,
+                al.sexo,
+                al.correo,
+                asig.id_asignacion,
+                asig.id_convenio,
+                asig.fecha_inicio,
+                asig.fecha_final,
+                asig.horario,
+                asig.horas_dia,
+                asig.num_total_horas,
+                conv.nombre_empresa,
+                conv.direccion,
+                conv.municipio,
+                ci.nombre_ciclo,
+                ci.grado,
+                cu.nombre_curso
+            FROM asignaciones asig
+            JOIN alumnos al         ON asig.id_alumno   = al.id_alumno
+            JOIN convenios conv     ON asig.id_convenio = conv.id_convenio
+            JOIN curso_academico ca ON ca.id_alumno     = al.id_alumno
+            JOIN ciclos ci          ON ca.id_ciclo      = ci.id_ciclo
+            JOIN cursos cu          ON ci.id_curso      = cu.id_curso
+            WHERE asig.enviado = 1
+            AND asig.id_asignacion NOT IN (
+                SELECT id_asignacion FROM asignaciones_firmadas
+            )
+            ORDER BY ci.nombre_ciclo ASC, al.apellido1 ASC
+        ";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function firmarAsignacion($id_asignacion, $anexo) {
+        $sql = "INSERT INTO asignaciones_firmadas (id_asignacion, anexo) VALUES (:id, :anexo)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $id_asignacion, ':anexo' => $anexo]);
     }
 
 } // Llave de la clase
