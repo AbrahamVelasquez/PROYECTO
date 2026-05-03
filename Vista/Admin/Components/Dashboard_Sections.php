@@ -14,7 +14,7 @@ validarAcceso('admin');
         <p class="text-slate-500 mt-1">Seleccione una categoría para gestionar la información de las FCT.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl px-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-6xl px-4">
         
         <form action="index.php" method="POST" class="group">
             <input type="hidden" name="accion" value="mostrarTutores">
@@ -51,5 +51,15 @@ validarAcceso('admin');
             </button>
         </form>
 
+        <form action="index.php" method="POST" class="group">
+            <input type="hidden" name="accion" value="mostrarAlumnos">
+            <button type="submit" class="w-full h-full text-left p-8 rounded-3xl border-2 border-slate-100 bg-white hover:border-violet-600 hover:shadow-xl hover:shadow-violet-100 transition-all cursor-pointer">
+                <div class="w-14 h-14 bg-violet-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-violet-600 transition-colors">
+                    <span class="text-2xl">🎓</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 group-hover:text-violet-600 transition-colors">Listado de Alumnos</h3>
+                <p class="text-slate-500 text-xs mt-2 leading-relaxed">Consulta y gestión del alumnado registrado en el sistema.</p>
+            </button>
+        </form>
     </div>
 </div>
