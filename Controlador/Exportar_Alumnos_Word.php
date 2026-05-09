@@ -22,6 +22,7 @@ if (empty($ids) || !is_array($ids)) {
     exit;
 }
 $ids = array_map('intval', $ids);
+$exportarTodo = isset($_POST['exportar_todo']) && $_POST['exportar_todo'] === '1';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 2. CONSULTAS A BD
@@ -201,7 +202,17 @@ for ($i = 0; $i < $faltantes; $i++) {
 
 $templateProcessor->setComplexBlock('tablaAlumnos', $table);
 
-$nombreArchivo = 'RelacionAlumnos_' . date('Ymd') . '.docx';
+// Extraer número de curso (1, 2, 3) y ciclo (DAW, DAM...)
+$numCurso = match(true) {
+    str_contains($nombreCurso, 'primero') => '1',
+    str_contains($nombreCurso, 'segundo') => '2',
+    str_contains($nombreCurso, 'tercero') => '3',
+    default                               => '1',
+};
+$cicloSafe  = preg_replace('/[^A-Za-z0-9]/', '', strtoupper($tutor['nombre_ciclo'] ?? 'CICLO'));
+$fechaHoy   = date('dmy'); // ej: 270126
+$sufijo     = $exportarTodo ? ' - Todos' : '';
+$nombreArchivo = "Tabla resumen - Relación de alumnos (anexo 11) - {$numCurso}{$cicloSafe} - {$fechaHoy}{$sufijo}.docx";
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
