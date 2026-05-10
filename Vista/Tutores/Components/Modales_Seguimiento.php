@@ -149,21 +149,25 @@ async function cargarListaDocumentos() {
             return;
         }
 
-        lista.innerHTML = data.archivos.map(nombre => `
-            <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div class="flex items-center gap-2 overflow-hidden">
+        lista.innerHTML = data.archivos.map(nombre => {
+            const urlDescarga = `index.php?controlador=Tutores&accion=seguimientoDescargar&tipo=${encodeURIComponent(_docTipo)}&ciclo=${encodeURIComponent(_docCiclo)}&alumno=${encodeURIComponent(_docAlumno)}&nombre=${encodeURIComponent(nombre)}`;
+            return `
+            <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100 group">
+                <a href="${urlDescarga}" download
+                   class="flex items-center gap-2 overflow-hidden flex-1 min-w-0 hover:text-orange-600 transition-colors"
+                   title="Descargar ${nombre}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500 shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    <span class="text-[10px] font-bold text-slate-700 truncate">${nombre}</span>
-                </div>
+                    <span class="text-[10px] font-bold text-slate-700 truncate group-hover:text-orange-600 transition-colors">${nombre}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 shrink-0 group-hover:text-orange-500 transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </a>
                 <button type="button"
-                    data-nombre="${nombre}"
-                    onclick='pedirConfirmacionEliminar(this)'
+                    onclick='pedirConfirmacionEliminar(${JSON.stringify(nombre)})'
                     class="ml-3 text-[9px] font-black text-slate-300 hover:text-red-500 uppercase tracking-widest cursor-pointer transition-colors shrink-0 flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                     Eliminar
                 </button>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
 
     } catch (e) {
         lista.innerHTML = '<div class="text-center py-8 text-red-400 text-xs font-bold">Error de conexión.</div>';
@@ -216,7 +220,7 @@ async function subirDocumento() {
             setTimeout(() => {
                 document.getElementById('docProgreso').style.display = 'none';
                 cargarListaDocumentos();
-                location.reload();
+                location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=4';
             }, 900);
         } else {
             document.getElementById('docTextoProgreso').textContent = '✗ Error: ' + (data.error ?? 'desconocido');
@@ -230,14 +234,12 @@ async function subirDocumento() {
 }
 
 // ─── Eliminar documento ──────────────────────────────────────────────────────
-function pedirConfirmacionEliminar(boton) {
-    // Extraemos el valor que guardamos en 'data-nombre'
-    const nombre = boton.dataset.nombre; 
-    
+function pedirConfirmacionEliminar(nombre) {
     _archivoAEliminar = nombre;
     document.getElementById('segEliminarNombreArchivo').textContent = nombre;
     document.getElementById('segModalConfirmarEliminar').style.display = 'flex';
 
+    // Asignar handler en cada apertura para que tenga el nombre correcto
     document.getElementById('segBtnConfirmarEliminar').onclick = segConfirmarEliminarDoc;
 }
 
@@ -262,7 +264,7 @@ async function segConfirmarEliminarDoc() {
 
         if (data.success) {
             cargarListaDocumentos();
-            location.reload();
+            location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=4';
         } else {
             alert('Error al eliminar: ' + (data.error ?? 'desconocido'));
         }

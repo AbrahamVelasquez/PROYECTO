@@ -413,4 +413,8 @@ class Tutores_Controlador {
         require_once 'Controlador/Seguimiento_Eliminar.php';
     }
 
+    public function seguimientoDescargar() {
+        require_once 'Controlador/Seguimiento_Descargar.php';
+    }
+
 }
