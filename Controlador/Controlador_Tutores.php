@@ -400,6 +400,17 @@ class Tutores_Controlador {
     }
 */
 
-} // Llave de la clase
 
-?>
+    public function seguimientoListar() {
+        require_once 'Controlador/Seguimiento_Listar.php';
+    }
+
+    public function seguimientoSubir() {
+        require_once 'Controlador/Seguimiento_Subir.php';
+    }
+
+    public function seguimientoEliminar() {
+        require_once 'Controlador/Seguimiento_Eliminar.php';
+    }
+
+}
