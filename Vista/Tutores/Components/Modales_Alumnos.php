@@ -285,11 +285,12 @@ validarAcceso('tutor');
                     <div class="py-10 text-center text-slate-400 text-xs italic font-medium">No hay alumnos pendientes de exportar.</div>
                 <?php endif; ?>
             </div>
-            <div class="flex gap-3 justify-end">
+            <div class="flex gap-3 justify-end flex-wrap">
                 <button type="button" onclick="document.getElementById('modalSeleccionarExportar').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">Cancelar</button>
                 <?php if ($hayCandidatos): ?>
                     <button type="button" onclick="abrirConfirmacionFinal()" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Exportar Selección</button>
                 <?php endif; ?>
+                <button type="button" onclick="abrirModalExportarTodoAlumnos()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition-all shadow-md cursor-pointer">Exportar Todo</button>
             </div>
         </form>
     </div>
@@ -381,6 +382,44 @@ validarAcceso('tutor');
         <div class="flex gap-3 justify-center">
             <button onclick="cerrarModalFirma()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
             <button id="btnConfirmarFirmaAccion" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalExportarTodoAlumnos" style="display:none" class="fixed inset-0 bg-black/50 z-[120] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white text-xs">📤</span>
+                Exportar Todos
+            </h3>
+            <button onclick="document.getElementById('modalExportarTodoAlumnos').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 mb-6 space-y-3">
+            <div class="flex items-start gap-3">
+                <span class="text-slate-600 mt-0.5">•</span>
+                <p class="text-xs font-bold text-slate-600 leading-relaxed">
+                    Se exportarán <span class="text-slate-900">todos los alumnos con estado <span class="text-emerald-600">COMPLETADO</span></span>, independientemente de si han sido enviados o firmados.
+                </p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="text-slate-600 mt-0.5">•</span>
+                <p class="text-xs font-bold text-slate-600 leading-relaxed">
+                    Un alumno está en estado <span class="text-emerald-600 font-black">COMPLETADO</span> cuando tiene empresa asignada, dirección, fechas de inicio y fin, y horario definido.
+                </p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="text-slate-600 mt-0.5">•</span>
+                <p class="text-xs font-bold text-slate-600 leading-relaxed">
+                    El archivo descargado incluirá el sufijo <span class="text-slate-900 font-black">- Todos</span> al final del nombre.
+                </p>
+            </div>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 text-center">¿Deseas continuar con la exportación completa?</p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalExportarTodoAlumnos').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+            <button onclick="ejecutarExportarTodoAlumnos()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition-all shadow-md cursor-pointer">Sí, exportar todo</button>
         </div>
     </div>
 </div>
@@ -901,4 +940,50 @@ async function importarAlumnosExcel() {
         document.getElementById('cargar_texto_ok').textContent = 'Error de conexión con el servidor.';
     }
 }
+
+function abrirModalExportarTodoAlumnos() {
+    document.getElementById('modalSeleccionarExportar').style.display = 'none';
+    document.getElementById('modalExportarTodoAlumnos').style.display = 'flex';
+}
+
+function ejecutarExportarTodoAlumnos() {
+    // Recoge los IDs de la tabla principal filtrando data-estado="COMPLETADO"
+    // (incluye enviados, no enviados, firmados y no firmados)
+    const filas = document.querySelectorAll('tr[data-estado="COMPLETADO"][data-id-alumno]');
+    if (filas.length === 0) {
+        alert('No hay alumnos con estado COMPLETADO para exportar.');
+        document.getElementById('modalExportarTodoAlumnos').style.display = 'none';
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?controlador=Tutores&accion=exportarAlumnosWord';
+    form.style.display = 'none';
+
+    // Indicar al PHP que es exportación total (sufijo "- Todos" en el nombre)
+    const inputTodo = document.createElement('input');
+    inputTodo.type  = 'hidden';
+    inputTodo.name  = 'exportar_todo';
+    inputTodo.value = '1';
+    form.appendChild(inputTodo);
+
+    filas.forEach(fila => {
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = 'exportar_ids[]';
+        input.value = fila.getAttribute('data-id-alumno');
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => {
+        if (document.body.contains(form)) document.body.removeChild(form);
+    }, 3000);
+
+    document.getElementById('modalExportarTodoAlumnos').style.display = 'none';
+}
+
 </script>

@@ -366,19 +366,19 @@ validarAcceso('tutor');
             <div class="flex items-start gap-3">
                 <span class="text-orange-500 mt-0.5">•</span>
                 <p class="text-xs font-bold text-slate-600 leading-relaxed">
-                    Se marcarán como <span class="text-orange-600">EXPORTADOS</span> todos los planes de formación que aún figuren como pendientes.
+                    Se generará un único archivo <span class="text-orange-600">datos_ffe.xlsx</span> con <span id="contadorTotales" class="text-slate-900 font-black">—</span> alumno(s).
                 </p>
             </div>
             <div class="flex items-start gap-3">
                 <span class="text-orange-500 mt-0.5">•</span>
                 <p class="text-xs font-bold text-slate-600 leading-relaxed">
-                    Planes pendientes encontrados: <span id="contadorPendientes" class="text-slate-900 font-black">—</span>
+                    Las hojas <span class="text-slate-900">datos fijos</span> y <span class="text-slate-900">constantes</span> se mantienen igual. En <span class="text-slate-900">datos variables</span> aparecerá una fila por alumno.
                 </p>
             </div>
             <div class="flex items-start gap-3">
                 <span class="text-orange-500 mt-0.5">•</span>
                 <p class="text-xs font-bold text-slate-600 leading-relaxed">
-                    Los planes ya exportados <span class="text-slate-900">no se verán afectados</span>.
+                    Pendientes de exportar: <span id="contadorPendientes" class="text-slate-900 font-black">—</span>. Se marcarán como <span class="text-orange-600">EXPORTADOS</span> automáticamente.
                 </p>
             </div>
         </div>
@@ -401,9 +401,7 @@ validarAcceso('tutor');
         <div id="exportarTodoSinPendientes" style="display:none" class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
             <span class="text-slate-400 text-sm">📋</span>
             <p class="text-[10px] text-slate-500 font-bold leading-relaxed">
-                No hay planes pendientes de exportar. Si desea exportar un plan formativo concreto, 
-                puede hacerlo de manera <span class="text-slate-700 font-black">individual</span> 
-                desde el botón de edición de cada alumno.
+                No hay alumnos firmados disponibles para exportar.
             </p>
         </div>
 
@@ -833,85 +831,55 @@ window.abrirModalExportarPF = function(idAsignacion) {
 };
 
 window.abrirModalExportarTodo = function() {
-    const count = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]').length;
-    document.getElementById('contadorPendientes').textContent = count;
+    const totalCount   = document.querySelectorAll('#tablaCuerpo tr[data-id-asignacion]').length;
+    const pendingCount = document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]').length;
+    document.getElementById('contadorTotales').textContent    = totalCount;
+    document.getElementById('contadorPendientes').textContent = pendingCount;
     document.getElementById('exportarTodoProgreso').style.display = 'none';
     document.getElementById('barraProgreso').style.width = '0%';
     document.getElementById('textoProgreso').textContent = '';
     document.getElementById('btnEjecutarExportarTodo').disabled = false;
 
-    document.getElementById('exportarTodoBotones').style.display       = count > 0 ? 'flex' : 'none';
-    document.getElementById('exportarTodoSinPendientes').style.display = count === 0 ? 'flex' : 'none';
+    document.getElementById('exportarTodoBotones').style.display       = totalCount > 0 ? 'flex' : 'none';
+    document.getElementById('exportarTodoSinPendientes').style.display = totalCount === 0 ? 'flex' : 'none';
 
     document.getElementById('modalExportarTodo').style.display = 'flex';
 };
 
-window.exportarTodoHandler = async function() {
-    const filas = Array.from(document.querySelectorAll('#tablaCuerpo tr[data-exportado="0"]'));
- 
+window.exportarTodoHandler = function() {
+    const filas = Array.from(document.querySelectorAll('#tablaCuerpo tr[data-id-asignacion]'));
+
     if (filas.length === 0) {
         document.getElementById('modalExportarTodo').style.display = 'none';
         return;
     }
- 
-    // Bloquear botones y mostrar progreso
+
+    // Mostrar progreso
     document.getElementById('exportarTodoBotones').style.display = 'none';
     document.getElementById('exportarTodoProgreso').style.display = 'block';
     document.getElementById('btnEjecutarExportarTodo').disabled = true;
- 
-    const idsAsignacion = [];
-    let completados = 0;
- 
-    // 1. Marcar todos en BD primero
-    for (const fila of filas) {
-        const idAsignacion = fila.getAttribute('data-id-asignacion');
- 
-        try {
-            const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id_asignacion=${encodeURIComponent(idAsignacion)}`
-            });
-            const texto = await res.text();
-            const inicio = texto.indexOf('{');
-            const fin    = texto.lastIndexOf('}') + 1;
-            const data   = JSON.parse(texto.substring(inicio, fin));
- 
-            if (data.success) {
-                completados++;
-                idsAsignacion.push(idAsignacion);
-            }
-        } catch (e) {
-            console.error('Error marcando ID ' + idAsignacion, e);
-        }
- 
-        const pct = Math.round(((filas.indexOf(fila) + 1) / filas.length) * 100);
-        document.getElementById('barraProgreso').style.width = pct + '%';
-        document.getElementById('textoProgreso').textContent =
-            (filas.indexOf(fila) + 1) + ' de ' + filas.length + ' procesados';
-    }
- 
-    // 2. Generar Excel(s) — uno o ZIP según cantidad
-    if (idsAsignacion.length > 0) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'index.php?controlador=Tutores&accion=exportarTodoPF';
-        form.style.display = 'none';
- 
-        idsAsignacion.forEach(id => {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = 'ids_asignacion[]';
-            input.value = id;
-            form.appendChild(input);
-        });
- 
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(() => {
-            if (document.body.contains(form)) document.body.removeChild(form);
-        }, 3000);
-    }
+    document.getElementById('barraProgreso').style.width = '100%';
+    document.getElementById('textoProgreso').textContent = filas.length + ' alumnos incluidos';
+
+    // Enviar TODOS los IDs al PHP (el PHP se encarga de marcar como exportado los pendientes)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?controlador=Tutores&accion=exportarTodoPF';
+    form.style.display = 'none';
+
+    filas.forEach(fila => {
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = 'ids_asignacion[]';
+        input.value = fila.getAttribute('data-id-asignacion');
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => {
+        if (document.body.contains(form)) document.body.removeChild(form);
+    }, 3000);
  
     // 3. Redirigir al listado tras un breve delay
     setTimeout(() => {
