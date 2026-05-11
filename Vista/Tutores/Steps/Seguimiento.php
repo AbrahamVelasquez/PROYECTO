@@ -111,6 +111,11 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
     </select>
 </div>
 
+<!-- Contador de registros -->
+<div class="flex items-center justify-end mb-2">
+    <span id="seg-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+</div>
+
 <!-- Tabla -->
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
     <table class="w-full text-left border-collapse bg-white">
@@ -186,10 +191,30 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
     </div>
 </div>
 
+<!-- Controles de paginación -->
+<div id="seg-paginacion" class="flex items-center justify-between mt-3 hidden">
+    <button id="seg-prev" onclick="segPagCambiar(segPagActual - 1)"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+    </button>
+    <div id="seg-paginas" class="flex items-center gap-1.5"></div>
+    <button id="seg-next" onclick="segPagCambiar(segPagActual + 1)"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+        Siguiente
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+</div>
+
 <?php endif; ?>
 
 <script>
 window.SEGUIMIENTO_CICLO = '<?= htmlspecialchars($carpetaCiclo, ENT_QUOTES) ?>';
+
+// ─── Paginación + filtros ────────────────────────────────────────────────────
+const SEG_POR_PAGINA = 6;
+let segPagActual = 1;
+let _segFilasVis = [];
 
 function segAplicarFiltros() {
     const busqueda = document.getElementById('segBuscador').value.trim().toUpperCase();
@@ -215,23 +240,84 @@ function segAplicarFiltros() {
         if (orden === 'nombre') {
             return (a.dataset.nombre || '').localeCompare(b.dataset.nombre || '');
         } else {
-            // Por estado: Pendiente(1) → Parcial(2) → Completado(3)
             return parseInt(a.dataset.ordenEstado) - parseInt(b.dataset.ordenEstado);
         }
     });
 
-    // 3. Ocultar todas, reordenar y mostrar visibles
+    // 3. Reordenar DOM: ocultar todo, mover visibles al final en orden correcto
     filas.forEach(tr => { tr.style.display = 'none'; });
-    visibles.forEach(tr => {
-        tr.style.display = '';
-        tbody.appendChild(tr); // reordena en el DOM
-    });
+    visibles.forEach(tr => tbody.appendChild(tr));
 
-    // 4. Mensaje sin resultados
-    document.getElementById('segSinResultados').style.display = visibles.length === 0 ? 'block' : 'none';
+    _segFilasVis = visibles;
+    segPagActual = 1;
+    segPagRenderizar();
 }
 
-// Aplicar orden por estado al cargar
+function segPagCambiar(nueva) {
+    const totalPaginas = Math.ceil(_segFilasVis.length / SEG_POR_PAGINA) || 1;
+    if (nueva < 1 || nueva > totalPaginas) return;
+    segPagActual = nueva;
+    segPagRenderizar();
+}
+
+function segPagRenderizar() {
+    const total        = _segFilasVis.length;
+    const totalPaginas = Math.ceil(total / SEG_POR_PAGINA) || 1;
+    const inicio       = (segPagActual - 1) * SEG_POR_PAGINA;
+    const fin          = Math.min(inicio + SEG_POR_PAGINA, total);
+
+    // Mostrar solo la página actual dentro de las filas visibles
+    _segFilasVis.forEach((tr, i) => {
+        tr.style.display = (i >= inicio && i < fin) ? '' : 'none';
+    });
+
+    document.getElementById('segSinResultados').style.display = total === 0 ? 'block' : 'none';
+
+    const paginacion = document.getElementById('seg-paginacion');
+    const contador   = document.getElementById('seg-contador');
+    if (!paginacion) return;
+
+    if (total <= SEG_POR_PAGINA) {
+        paginacion.classList.add('hidden');
+        if (contador) contador.textContent = total > 0 ? `${total} alumno${total !== 1 ? 's' : ''}` : '';
+        return;
+    }
+
+    paginacion.classList.remove('hidden');
+    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
+
+    document.getElementById('seg-prev').disabled = segPagActual === 1;
+    document.getElementById('seg-next').disabled = segPagActual === totalPaginas;
+
+    const contenedor = document.getElementById('seg-paginas');
+    contenedor.innerHTML = '';
+
+    const pagsMostrar = new Set(
+        [1, totalPaginas, segPagActual, segPagActual - 1, segPagActual + 1]
+        .filter(p => p >= 1 && p <= totalPaginas)
+    );
+    const pagsOrdenadas = [...pagsMostrar].sort((a, b) => a - b);
+
+    let anterior = null;
+    pagsOrdenadas.forEach(p => {
+        if (anterior !== null && p - anterior > 1) {
+            const sep = document.createElement('span');
+            sep.className = 'text-slate-300 text-xs font-bold px-1';
+            sep.textContent = '···';
+            contenedor.appendChild(sep);
+        }
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = p;
+        btn.onclick = () => segPagCambiar(p);
+        btn.className = p === segPagActual
+            ? 'w-8 h-8 rounded-lg bg-orange-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
+            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer';
+        contenedor.appendChild(btn);
+        anterior = p;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', segAplicarFiltros);
 </script>
 

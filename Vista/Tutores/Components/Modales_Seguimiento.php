@@ -90,20 +90,55 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<!-- Modal advertencia archivo duplicado — z MAYOR que todos los anteriores -->
+<div id="segModalDuplicado" style="display:none"
+     class="fixed inset-0 bg-black/60 z-[400] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-white text-xs">⚠</span>
+                ARCHIVO DUPLICADO
+            </h3>
+            <button onclick="cerrarModalDuplicado()"
+                class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+        <p class="text-xs font-bold text-slate-600 leading-relaxed mb-3">
+            Ya existe un archivo con el mismo nombre en esta carpeta:
+        </p>
+        <p id="segDuplicadoNombreArchivo"
+           class="text-xs font-black text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center break-all mb-4"></p>
+        <p class="text-[10px] text-slate-500 leading-relaxed mb-6">
+            Si continúas, el nuevo archivo se guardará con un número añadido al final del nombre para no sobrescribir el existente.
+        </p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="cerrarModalDuplicado()"
+                class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                Cancelar
+            </button>
+            <button id="segBtnConfirmarSubida"
+                class="px-5 py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-all shadow-md cursor-pointer uppercase tracking-wide">
+                Continuar de todas formas
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ─── Estado del modal ────────────────────────────────────────────────────────
-let _docTipo      = '';   // 'plan_formativo' | 'fichas'
-let _docCiclo     = '';   // ej: '2DAW'
-let _docAlumno    = '';   // ej: 'GARCIA_SANCHEZ_JOSUE'
-let _archivoAEliminar = '';
+let _docTipo             = '';   // 'plan_formativo' | 'fichas'
+let _docCiclo            = '';   // ej: '2DAW'
+let _docAlumno           = '';   // ej: 'GARCIA_SANCHEZ_JOSUE'
+let _archivoAEliminar    = '';
+let _docArchivosActuales = [];   // nombres de archivos ya subidos en esta carpeta
 
 // ─── Abrir modal ─────────────────────────────────────────────────────────────
 // tipo: 'plan_formativo' | 'fichas'
 // alumno: nombre saneado del alumno (pasado desde el botón en la tabla)
 function abrirModalDocumentos(tipo, alumno) {
-    _docTipo   = tipo;
-    _docCiclo  = window.SEGUIMIENTO_CICLO || '';
-    _docAlumno = alumno;
+    _docTipo             = tipo;
+    _docCiclo            = window.SEGUIMIENTO_CICLO || '';
+    _docAlumno           = alumno;
+    _docArchivosActuales = [];
 
     const titulo = tipo === 'plan_formativo' ? 'Plan Formativo Firmado' : 'Fichas Firmadas';
     document.getElementById('modalDocTitulo').innerHTML =
@@ -143,6 +178,8 @@ async function cargarListaDocumentos() {
             lista.innerHTML = `<div class="text-center py-8 text-red-400 text-xs font-bold">${data.error ?? 'Error al cargar.'}</div>`;
             return;
         }
+
+        _docArchivosActuales = data.archivos || [];
 
         if (data.archivos.length === 0) {
             lista.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs italic font-bold">No hay documentos subidos todavía.</div>';
@@ -188,11 +225,34 @@ function onDocFicheroSeleccionado(input) {
 }
 
 // ─── Subir documento ─────────────────────────────────────────────────────────
+function _sanitizarNombreArchivo(nombre) {
+    return nombre.replace(/[^a-zA-Z0-9._\-]/g, '_');
+}
+
 async function subirDocumento() {
     const input = document.getElementById('docInputFichero');
     if (!input.files || !input.files[0]) return;
 
-    const btn = document.getElementById('docBtnSubir');
+    const nombreOriginal   = input.files[0].name;
+    const nombreSanitizado = _sanitizarNombreArchivo(nombreOriginal);
+
+    const hayDuplicado = _docArchivosActuales.some(existente =>
+        existente.toLowerCase() === nombreOriginal.toLowerCase() ||
+        existente.toLowerCase() === nombreSanitizado.toLowerCase()
+    );
+
+    if (hayDuplicado) {
+        mostrarModalDuplicado(nombreOriginal);
+        return;
+    }
+
+    await _ejecutarSubida();
+}
+
+async function _ejecutarSubida() {
+    const input = document.getElementById('docInputFichero');
+    const btn   = document.getElementById('docBtnSubir');
+
     btn.disabled = true;
     document.getElementById('docProgreso').style.display = 'block';
     document.getElementById('docBarraProgreso').style.width = '30%';
@@ -231,6 +291,19 @@ async function subirDocumento() {
         document.getElementById('docTextoProgreso').textContent = '✗ Error de conexión.';
         btn.disabled = false;
     }
+}
+
+function mostrarModalDuplicado(nombre) {
+    document.getElementById('segDuplicadoNombreArchivo').textContent = nombre;
+    document.getElementById('segBtnConfirmarSubida').onclick = async () => {
+        cerrarModalDuplicado();
+        await _ejecutarSubida();
+    };
+    document.getElementById('segModalDuplicado').style.display = 'flex';
+}
+
+function cerrarModalDuplicado() {
+    document.getElementById('segModalDuplicado').style.display = 'none';
 }
 
 // ─── Eliminar documento ──────────────────────────────────────────────────────
