@@ -256,8 +256,10 @@ $setVar('autorizacion_extra?', (($p['autorizacion']  ?? 'NO') === 'SI') ? 'si' :
 // ENVIAR COMO DESCARGA
 // ──────────────────────────────────────────────────────────────
 $ape1Safe      = preg_replace('/[^A-Za-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $ape1Alu));
+$ape2Safe      = preg_replace('/[^A-Za-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $ape2Alu));
 $nomSafe       = preg_replace('/[^A-Za-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $nomAlu));
-$nombreArchivo = "PlanFormativo_{$ape1Safe}_{$nomSafe}_" . date('Ymd') . '.xlsx';
+$apellidosSafe = $ape2Safe ? "{$ape1Safe}{$ape2Safe}" : $ape1Safe;
+$nombreArchivo = "datos_ffe_{$apellidosSafe}{$nomSafe}.xlsx";
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
