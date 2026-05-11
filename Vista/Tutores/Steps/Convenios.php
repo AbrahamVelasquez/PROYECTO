@@ -39,6 +39,10 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
         placeholder="CIF O NOMBRE DE EMPRESA..." 
         class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all">
     <button type="submit" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg cursor-pointer">Buscar</button>
+    <button type="button" onclick="this.closest('form').querySelector('[name=busqueda_convenio]').value=''; this.closest('form').submit();"
+        class="flex items-center gap-1.5 px-6 py-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-widest shadow-sm whitespace-nowrap">
+        Mostrar todos
+    </button>
 </form>
 
 <?php if (isset($_POST['busqueda_convenio']) && trim($_POST['busqueda_convenio']) !== ''): ?>

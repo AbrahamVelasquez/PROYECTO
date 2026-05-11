@@ -109,6 +109,11 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
         <option value="Parcial">🟡 Parcial</option>
         <option value="Completado">🟢 Completado</option>
     </select>
+
+    <button type="button" onclick="limpiarFiltrosSeg()"
+        class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        Mostrar todos
+    </button>
 </div>
 
 <!-- Contador de registros -->
@@ -319,6 +324,13 @@ function segPagRenderizar() {
 }
 
 document.addEventListener('DOMContentLoaded', segAplicarFiltros);
+
+function limpiarFiltrosSeg() {
+    document.getElementById('segBuscador').value = '';
+    document.getElementById('segFiltroEstado').value = '';
+    document.getElementById('segOrden').value = 'estado';
+    segAplicarFiltros();
+}
 </script>
 
 <?php include __DIR__ . '/../Components/Modales_Seguimiento.php'; ?>

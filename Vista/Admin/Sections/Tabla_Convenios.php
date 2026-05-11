@@ -39,6 +39,10 @@ validarAcceso('admin');
     <button type="submit" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-[10px] hover:bg-blue-600 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
         BUSCAR
     </button>
+    <button type="button" onclick="this.closest('form').querySelector('[name=busqueda]').value=''; this.closest('form').submit();"
+        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        Mostrar todos
+    </button>
 </form>
 
 <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-slate-700">

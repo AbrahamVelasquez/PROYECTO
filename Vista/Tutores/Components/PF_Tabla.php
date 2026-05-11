@@ -57,6 +57,10 @@ validarAcceso('tutor');
     <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
         BUSCADO AUTOMÁTICO
     </button>
+    <button type="button" onclick="limpiarFiltrosPF()"
+        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        Mostrar todos
+    </button>
 </form>
 
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
@@ -247,5 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
             realizarBusqueda();
         }
     });
+
+    window._realizarBusquedaPF = realizarBusqueda;
 });
+
+function limpiarFiltrosPF() {
+    document.getElementById('busqueda').value = '';
+    document.getElementById('filtroEstado').value = 'todos';
+    document.getElementById('ordenar').value = 'alumno';
+    if (window._realizarBusquedaPF) window._realizarBusquedaPF();
+}
 </script>

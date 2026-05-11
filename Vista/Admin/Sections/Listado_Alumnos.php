@@ -95,6 +95,11 @@ validarAcceso('admin');
             ?>
         </select>
 
+        <button type="button" onclick="limpiarFiltrosAdmin()"
+            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+            Mostrar todos
+        </button>
+
     </div>
 
     <!-- Tabla -->
@@ -279,7 +284,16 @@ validarAcceso('admin');
     buscador?.addEventListener('input', filtrar);
     filtroCiclo?.addEventListener('change', filtrar);
     filtroEmpresa?.addEventListener('change', filtrar);
+
+    window._filtrarAlumnos = filtrar;
 })();
+
+function limpiarFiltrosAdmin() {
+    document.getElementById('buscadorAlumnos').value = '';
+    document.getElementById('filtroCiclo').value = '';
+    document.getElementById('filtroEmpresa').value = '';
+    if (window._filtrarAlumnos) window._filtrarAlumnos();
+}
 
 let _firmaIdAsignacion = null;
 
