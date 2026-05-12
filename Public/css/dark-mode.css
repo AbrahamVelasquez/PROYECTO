@@ -200,11 +200,38 @@ html.dark .help-trigger > span {
 html.dark .help-trigger > span:hover { background-color: #334155 !important; }
 
 /* ── Modales (contenedores internos con bg-white) ── */
-html.dark [id*="modal"] .bg-white,
+html.dark [id*="modal" i] .bg-white,
 html.dark [style*="position: fixed"] .bg-white,
 html.dark [style*="position:fixed"] .bg-white {
     background-color: #1e293b !important;
 }
+
+/* ── Texto dentro de modales — letras blancas con sombra para legibilidad ──
+   [id*="modal" i] captura todos los IDs: modalX, segModalX, etc. (case-insensitive) */
+html.dark [id*="modal" i] .text-slate-400 {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+html.dark [id*="modal" i] .text-slate-500          { color: #f1f5f9 !important; }
+html.dark [id*="modal" i] .text-slate-600          { color: #f1f5f9 !important; }
+html.dark [id*="modal" i] .text-slate-700          { color: #f8fafc !important; }
+html.dark [id*="modal" i] .text-slate-800,
+html.dark [id*="modal" i] .text-slate-900          { color: #ffffff  !important; }
+
+/* Hover de botones "Cancelar" dentro de modales */
+html.dark [id*="modal" i] .hover\:text-slate-600:hover { color: #ffffff !important; }
+
+/* Fondo del área de formulario dentro de modales — más oscuro que el contenedor.
+   Se usa .overflow-y-auto (sin requerir tag form) para mayor compatibilidad. */
+html.dark [id*="modal" i] .overflow-y-auto,
+html.dark [id*="modal" i] [class*="bg-slate-50"]   { background-color: #080e1c !important; }
+
+/* Labels del formulario dentro de modales — blancas independientemente de su clase */
+html.dark [id*="modal" i] label                    { color: #ffffff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+
+/* Bordes internos de modales */
+html.dark [id*="modal" i] .border-slate-100        { border-color: #334155 !important; }
+html.dark [id*="modal" i] .border-slate-200        { border-color: #475569 !important; }
 
 /* ── Dropdown del usuario ── */
 html.dark #userDropdown {

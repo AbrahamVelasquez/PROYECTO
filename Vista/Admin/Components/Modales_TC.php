@@ -206,6 +206,11 @@ validarAcceso('admin');
     </div>
 </div>
 
+<style>
+html.dark #modalEditarConvenio .overflow-y-auto { background-color: #0f172a !important; }
+html.dark #modalEditarConvenio label            { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+</style>
+
 <script>
 function abrirConfirmacionFinal() {
     document.getElementById('modalConfirmacionFinal').style.display = 'flex';
