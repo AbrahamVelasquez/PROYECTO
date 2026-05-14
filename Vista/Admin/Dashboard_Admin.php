@@ -14,6 +14,9 @@ validarAcceso('admin');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración — Ciudad Escolar</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Anti-parpadeo: aplica tema antes de pintar -->
+    <script>if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}</script>
+    <link rel="stylesheet" href="Public/css/dark-mode.css">
     <style>
         .help-trigger { position: relative; display: inline-flex; }
         .tooltip-box {
@@ -59,5 +62,6 @@ validarAcceso('admin');
         btn?.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
         document.addEventListener('click', () => { dropdown?.classList.add('hidden'); });
     </script>
+    <script src="Public/js/dark-mode.js"></script>
 </body>
 </html>

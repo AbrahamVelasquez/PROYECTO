@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"c:\\\\xampp\\\\htdocs\\\\PROYECTO\" -Recurse -File | Select-Object -First 50 | ForEach-Object { $_.FullName })",
+      "Bash(xargs grep -l \"limit\\\\|offset\\\\|LIMIT.*OFFSET\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\xampp\\\\htdocs\\\\PROYECTO\" -Recurse -Include \"*.php\")",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}

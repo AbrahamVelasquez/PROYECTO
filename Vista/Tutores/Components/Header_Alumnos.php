@@ -59,10 +59,22 @@ validarAcceso('tutor');
   <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
     BUSCAR
   </button>
+  <button type="button" onclick="limpiarFormAlumnos(this)"
+      class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+      Mostrar todos
+  </button>
 </form>
 
 
 <script>
+
+function limpiarFormAlumnos(btn) {
+    const f = btn.closest('form');
+    f.querySelector('[name=busqueda]').value = '';
+    f.querySelector('[name=estado]').value = '';
+    f.querySelector('[name=ordenar]').value = 'estado';
+    f.submit();
+}
 
 // Este script funciona para no tener que estar dandole a buscar todo el rato
 // lo hace automático. Pero hay detalles por pulir, y el de arriba de debe cambiar,
