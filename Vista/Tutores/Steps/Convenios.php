@@ -99,7 +99,14 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 <div class="mt-12">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">Mi Listado Personal</h3>
-        <span id="lp-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+        <div class="flex items-center gap-2">
+            <span id="lp-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+            <button type="button" onclick="abrirModalPag('lp')" title="Configurar filas por página"
+                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span id="lp-pag-label">6/pág</span>
+            </button>
+        </div>
     </div>
     <div class="overflow-hidden rounded-2xl border-2 border-orange-100 bg-white">
         <table class="w-full text-left border-collapse table-fixed">
@@ -223,22 +230,29 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 
 <script>
 // ─── PAGINACIÓN: MI LISTADO PERSONAL ─────────────────────────────────────────
-const LP_POR_PAGINA = 6;
+let lpPorPagina = parseInt(localStorage.getItem('pag_lp_porPagina')) || 6;
 let lpPaginaActual = 1;
 
 function lpInicializar() {
-    const filas = document.querySelectorAll('#lp-tbody .lp-fila');
+    const filas = Array.from(document.querySelectorAll('#lp-tbody .lp-fila'));
     const total = filas.length;
-
-    if (total <= LP_POR_PAGINA) return; // Sin paginación si caben todas
-
-    document.getElementById('lp-paginacion').classList.remove('hidden');
+    const label = document.getElementById('lp-pag-label');
+    if (label) label.textContent = lpPorPagina + '/pág';
+    const pag = document.getElementById('lp-paginacion');
+    const contador = document.getElementById('lp-contador');
+    if (total <= lpPorPagina) {
+        pag.classList.add('hidden');
+        filas.forEach(f => f.style.display = '');
+        if (contador) contador.textContent = total > 0 ? `${total} registro${total !== 1 ? 's' : ''}` : '';
+        return;
+    }
+    pag.classList.remove('hidden');
     lpRenderizar();
 }
 
 function lpCambiarPagina(nuevaPagina) {
     const filas = document.querySelectorAll('#lp-tbody .lp-fila');
-    const totalPaginas = Math.ceil(filas.length / LP_POR_PAGINA);
+    const totalPaginas = Math.ceil(filas.length / lpPorPagina);
     if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
     lpPaginaActual = nuevaPagina;
     lpRenderizar();
@@ -247,28 +261,23 @@ function lpCambiarPagina(nuevaPagina) {
 function lpRenderizar() {
     const filas = Array.from(document.querySelectorAll('#lp-tbody .lp-fila'));
     const total = filas.length;
-    const totalPaginas = Math.ceil(total / LP_POR_PAGINA);
-    const inicio = (lpPaginaActual - 1) * LP_POR_PAGINA;
-    const fin    = Math.min(inicio + LP_POR_PAGINA, total);
+    const totalPaginas = Math.ceil(total / lpPorPagina);
+    const inicio = (lpPaginaActual - 1) * lpPorPagina;
+    const fin    = Math.min(inicio + lpPorPagina, total);
 
-    // Mostrar/ocultar filas
     filas.forEach((fila, i) => {
         fila.style.display = (i >= inicio && i < fin) ? '' : 'none';
     });
 
-    // Contador "Mostrando X–Y de Z"
     const contador = document.getElementById('lp-contador');
     if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
 
-    // Botones prev/next
     document.getElementById('lp-prev').disabled = lpPaginaActual === 1;
     document.getElementById('lp-next').disabled = lpPaginaActual === totalPaginas;
 
-    // Números de página
     const contenedor = document.getElementById('lp-paginas');
     contenedor.innerHTML = '';
 
-    // Lógica: mostrar siempre primera, última y ±1 de la actual, con "…" entre saltos
     const pagsMostrar = new Set([1, totalPaginas, lpPaginaActual, lpPaginaActual - 1, lpPaginaActual + 1]
         .filter(p => p >= 1 && p <= totalPaginas));
     const pagsOrdenadas = [...pagsMostrar].sort((a, b) => a - b);
@@ -294,6 +303,32 @@ function lpRenderizar() {
 }
 
 document.addEventListener('DOMContentLoaded', lpInicializar);
+
+// ─── Modal configurar paginación ─────────────────────────────────────────────
+window._pagCallbacks = window._pagCallbacks || {};
+window._pagCallbacks['lp'] = function(n) { lpPorPagina = n; lpPaginaActual = 1; lpInicializar(); };
+
+function abrirModalPag(prefix) {
+    const defaults = { lp: 6, seg: 6 };
+    const val = parseInt(localStorage.getItem('pag_' + prefix + '_porPagina')) || defaults[prefix] || 10;
+    document.getElementById('input-pag-' + prefix).value = val;
+    document.getElementById('modal-pag-' + prefix).style.display = 'flex';
+}
+function cerrarModalPag(prefix) {
+    document.getElementById('modal-pag-' + prefix).style.display = 'none';
+}
+function setPagPreset(prefix, n) {
+    document.getElementById('input-pag-' + prefix).value = n;
+}
+function aplicarPag(prefix) {
+    const val = parseInt(document.getElementById('input-pag-' + prefix).value);
+    if (!val || val < 1) return;
+    localStorage.setItem('pag_' + prefix + '_porPagina', val);
+    const label = document.getElementById(prefix + '-pag-label');
+    if (label) label.textContent = val + '/pág';
+    cerrarModalPag(prefix);
+    if (window._pagCallbacks[prefix]) window._pagCallbacks[prefix](val);
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
     function copiarUrlRegistro(url, elemento) {
@@ -318,5 +353,40 @@ document.addEventListener('DOMContentLoaded', lpInicializar);
         });
     }
 </script>
+
+<!-- ─── Modal Configurar Paginación: Mi Listado Personal ──────────────────── -->
+<div id="modal-pag-lp" style="display:none"
+     class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+     onclick="if(event.target===this)cerrarModalPag('lp')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 border border-slate-100">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Configurar Paginación
+            </h3>
+            <button onclick="cerrarModalPag('lp')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer leading-none">✕</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Acceso rápido</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button type="button" onclick="setPagPreset('lp', 5)"  class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">5</button>
+            <button type="button" onclick="setPagPreset('lp', 10)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">10</button>
+            <button type="button" onclick="setPagPreset('lp', 15)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">15</button>
+            <button type="button" onclick="setPagPreset('lp', 20)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">20</button>
+            <button type="button" onclick="setPagPreset('lp', 25)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">25</button>
+            <button type="button" onclick="setPagPreset('lp', 50)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">50</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cantidad personalizada</p>
+        <div class="flex items-center gap-3 mb-5">
+            <input type="number" id="input-pag-lp" min="1" max="200" placeholder="Ej: 12"
+                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-orange-200 transition-all"
+                onkeydown="if(event.key==='Enter')aplicarPag('lp')">
+            <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">por página</span>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button onclick="cerrarModalPag('lp')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+            <button onclick="aplicarPag('lp')" class="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-sm cursor-pointer">Aplicar</button>
+        </div>
+    </div>
+</div>
 
 <?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

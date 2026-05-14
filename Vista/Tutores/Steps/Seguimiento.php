@@ -114,6 +114,12 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
         class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
         Mostrar todos
     </button>
+
+    <button type="button" onclick="abrirModalPag('seg')" title="Configurar filas por página"
+        class="flex items-center gap-1 px-2.5 py-2.5 rounded-xl border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span id="seg-pag-label">6/pág</span>
+    </button>
 </div>
 
 <!-- Contador de registros -->
@@ -217,7 +223,7 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
 window.SEGUIMIENTO_CICLO = '<?= htmlspecialchars($carpetaCiclo, ENT_QUOTES) ?>';
 
 // ─── Paginación + filtros ────────────────────────────────────────────────────
-const SEG_POR_PAGINA = 6;
+let segPorPagina = parseInt(localStorage.getItem('pag_seg_porPagina')) || 6;
 let segPagActual = 1;
 let _segFilasVis = [];
 
@@ -259,7 +265,7 @@ function segAplicarFiltros() {
 }
 
 function segPagCambiar(nueva) {
-    const totalPaginas = Math.ceil(_segFilasVis.length / SEG_POR_PAGINA) || 1;
+    const totalPaginas = Math.ceil(_segFilasVis.length / segPorPagina) || 1;
     if (nueva < 1 || nueva > totalPaginas) return;
     segPagActual = nueva;
     segPagRenderizar();
@@ -267,9 +273,9 @@ function segPagCambiar(nueva) {
 
 function segPagRenderizar() {
     const total        = _segFilasVis.length;
-    const totalPaginas = Math.ceil(total / SEG_POR_PAGINA) || 1;
-    const inicio       = (segPagActual - 1) * SEG_POR_PAGINA;
-    const fin          = Math.min(inicio + SEG_POR_PAGINA, total);
+    const totalPaginas = Math.ceil(total / segPorPagina) || 1;
+    const inicio       = (segPagActual - 1) * segPorPagina;
+    const fin          = Math.min(inicio + segPorPagina, total);
 
     // Mostrar solo la página actual dentro de las filas visibles
     _segFilasVis.forEach((tr, i) => {
@@ -282,7 +288,7 @@ function segPagRenderizar() {
     const contador   = document.getElementById('seg-contador');
     if (!paginacion) return;
 
-    if (total <= SEG_POR_PAGINA) {
+    if (total <= segPorPagina) {
         paginacion.classList.add('hidden');
         if (contador) contador.textContent = total > 0 ? `${total} alumno${total !== 1 ? 's' : ''}` : '';
         return;
@@ -323,7 +329,11 @@ function segPagRenderizar() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', segAplicarFiltros);
+document.addEventListener('DOMContentLoaded', () => {
+    const label = document.getElementById('seg-pag-label');
+    if (label) label.textContent = segPorPagina + '/pág';
+    segAplicarFiltros();
+});
 
 function limpiarFiltrosSeg() {
     document.getElementById('segBuscador').value = '';
@@ -331,6 +341,74 @@ function limpiarFiltrosSeg() {
     document.getElementById('segOrden').value = 'estado';
     segAplicarFiltros();
 }
+
+// ─── Modal configurar paginación ─────────────────────────────────────────────
+window._pagCallbacks = window._pagCallbacks || {};
+window._pagCallbacks['seg'] = function(n) {
+    segPorPagina = n;
+    const label = document.getElementById('seg-pag-label');
+    if (label) label.textContent = n + '/pág';
+    segPagActual = 1;
+    segPagRenderizar();
+};
+
+function abrirModalPag(prefix) {
+    const defaults = { lp: 6, seg: 6 };
+    const val = parseInt(localStorage.getItem('pag_' + prefix + '_porPagina')) || defaults[prefix] || 10;
+    document.getElementById('input-pag-' + prefix).value = val;
+    document.getElementById('modal-pag-' + prefix).style.display = 'flex';
+}
+function cerrarModalPag(prefix) {
+    document.getElementById('modal-pag-' + prefix).style.display = 'none';
+}
+function setPagPreset(prefix, n) {
+    document.getElementById('input-pag-' + prefix).value = n;
+}
+function aplicarPag(prefix) {
+    const val = parseInt(document.getElementById('input-pag-' + prefix).value);
+    if (!val || val < 1) return;
+    localStorage.setItem('pag_' + prefix + '_porPagina', val);
+    const label = document.getElementById(prefix + '-pag-label');
+    if (label) label.textContent = val + '/pág';
+    cerrarModalPag(prefix);
+    if (window._pagCallbacks[prefix]) window._pagCallbacks[prefix](val);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
+
+<!-- ─── Modal Configurar Paginación: Seguimiento ───────────────────────────── -->
+<div id="modal-pag-seg" style="display:none"
+     class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+     onclick="if(event.target===this)cerrarModalPag('seg')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 border border-slate-100">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Configurar Paginación
+            </h3>
+            <button onclick="cerrarModalPag('seg')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer leading-none">✕</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Acceso rápido</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button type="button" onclick="setPagPreset('seg', 5)"  class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">5</button>
+            <button type="button" onclick="setPagPreset('seg', 10)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">10</button>
+            <button type="button" onclick="setPagPreset('seg', 15)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">15</button>
+            <button type="button" onclick="setPagPreset('seg', 20)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">20</button>
+            <button type="button" onclick="setPagPreset('seg', 25)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">25</button>
+            <button type="button" onclick="setPagPreset('seg', 50)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">50</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cantidad personalizada</p>
+        <div class="flex items-center gap-3 mb-5">
+            <input type="number" id="input-pag-seg" min="1" max="200" placeholder="Ej: 12"
+                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-orange-200 transition-all"
+                onkeydown="if(event.key==='Enter')aplicarPag('seg')">
+            <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">por página</span>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button onclick="cerrarModalPag('seg')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+            <button onclick="aplicarPag('seg')" class="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-sm cursor-pointer">Aplicar</button>
+        </div>
+    </div>
+</div>
 
 <?php include __DIR__ . '/../Components/Modales_Seguimiento.php'; ?>
