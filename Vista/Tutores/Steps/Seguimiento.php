@@ -70,9 +70,16 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
             Alumnos exportados · Carpeta: <span class="text-orange-600"><?= htmlspecialchars($carpetaCiclo) ?></span>
         </p>
     </div>
-    <span class="<?= $estadoGlobalColor ?> px-3 py-1.5 rounded-full text-[9px] border font-black whitespace-nowrap uppercase">
-        Estado general: <?= $estadoGlobal ?>
-    </span>
+    <div class="flex items-center gap-3">
+        <button type="button" onclick="abrirModalMasivo()"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 text-white text-[10px] font-black hover:bg-orange-700 transition-all shadow-sm cursor-pointer uppercase tracking-wide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Subida Masiva
+        </button>
+        <span class="<?= $estadoGlobalColor ?> px-3 py-1.5 rounded-full text-[9px] border font-black whitespace-nowrap uppercase">
+            Estado general: <?= $estadoGlobal ?>
+        </span>
+    </div>
 </div>
 
 <?php if (empty($alumnosSeguimiento)): ?>
@@ -155,7 +162,8 @@ else                                      { $estadoGlobal = 'Pendiente';  $estad
             <tr class="hover:bg-slate-50/50 transition-colors uppercase seg-fila"
                 data-nombre="<?= htmlspecialchars(strtoupper($nombreCompleto), ENT_QUOTES) ?>"
                 data-estado="<?= $estadoLabel ?>"
-                data-orden-estado="<?= $ordenEstado ?>">
+                data-orden-estado="<?= $ordenEstado ?>"
+                data-carpeta="<?= $carpetaJs ?>">
 
                 <td class="p-4 font-bold text-slate-700">
                     <?= htmlspecialchars($nombreCompleto) ?>
