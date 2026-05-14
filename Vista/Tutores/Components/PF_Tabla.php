@@ -63,6 +63,16 @@ validarAcceso('tutor');
     </button>
 </form>
 
+<!-- Barra superior: contador + config paginación -->
+<div class="flex items-center justify-between mb-2">
+    <span id="pf-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+    <button type="button" onclick="abrirModalPag('pf')" title="Configurar filas por página"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span id="pf-pag-label">10/pág</span>
+    </button>
+</div>
+
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
     <table class="w-full text-left border-collapse bg-white table-fixed">
         <thead>
@@ -97,7 +107,7 @@ validarAcceso('tutor');
                 foreach ($alumnosFirmados as $al): 
                     $nombreFull = $al['apellido1'] . ( $al['apellido2'] ? " {$al['apellido2']}" : "" ) . ", " . $al['nombre'];
                 ?>
-                <tr class="hover:bg-slate-50/50 transition-colors"
+                <tr class="pf-fila hover:bg-slate-50/50 transition-colors"
                     data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
                     data-exportado="<?= $al['exportado'] ? '1' : '0' ?>"
                     data-id-convenio="<?= intval($al['id_convenio'] ?? 0) ?>"
@@ -169,96 +179,193 @@ validarAcceso('tutor');
     </table>
 </div>
 
+<div id="pf-paginacion" class="hidden flex items-center justify-center mt-3 gap-1.5">
+    <button id="pf-prev" onclick="pfCambiarPagina(pfPagActual - 1)"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+    </button>
+    <div id="pf-paginas" class="flex items-center gap-1.5"></div>
+    <button id="pf-next" onclick="pfCambiarPagina(pfPagActual + 1)"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
+        Siguiente
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const inputBusqueda = document.querySelector('#busqueda');
-    const btnBuscar = document.querySelector('#btnBuscar');
-    const selectOrdenar = document.querySelector('#ordenar');
-    const selectEstado = document.querySelector('#filtroEstado'); // Selector de estado añadido
-    const tablaCuerpo = document.querySelector('#tablaCuerpo');
+// ─── PAGINACIÓN + FILTROS: GESTIÓN PLANES DE FORMACIÓN ───────────────────────
+let pfPorPagina = parseInt(localStorage.getItem('pag_pf_porPagina')) || 10;
+let pfPagActual = 1;
+let _pfFilasVis = [];
 
-    // --- FUNCIÓN BUSCAR Y FILTRAR ---
-    const realizarBusqueda = () => {
-        const texto = inputBusqueda.value.toLowerCase().trim();
-        const estadoFiltro = selectEstado.value; // Obtener el valor del filtro (todos, exportado, no exportado)
-        const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
+function pfOrdenar() {
+    const criterio = document.getElementById('ordenar').value;
+    const tbody = document.getElementById('tablaCuerpo');
+    const filas = Array.from(tbody.querySelectorAll('tr.pf-fila'));
+    if (!filas.length) return;
+    const col = { 'alumno': 1, 'empresa': 2, 'estado': 3 }[criterio] || 1;
+    filas.sort((a, b) => a.children[col].textContent.trim().localeCompare(b.children[col].textContent.trim(), 'es', { sensitivity: 'base' }));
+    filas.forEach(f => tbody.appendChild(f));
+}
 
-        filas.forEach(fila => {
-            // Saltamos la fila si es la de "No hay alumnos" (que suele tener un colspan)
-            if (fila.cells.length < 4) return;
+function pfFiltrar() {
+    const texto = (document.getElementById('busqueda')?.value || '').toLowerCase().trim();
+    const estadoFiltro = document.getElementById('filtroEstado')?.value || 'todos';
+    const tbody = document.getElementById('tablaCuerpo');
+    const todasFilas = Array.from(tbody.querySelectorAll('tr.pf-fila'));
 
-            const nombreAlumno = fila.children[1].textContent.toLowerCase();
-            const nombreEmpresa = fila.children[2].textContent.toLowerCase();
-            
-            // Localizamos el span del estado y extraemos el valor del data-attribute
-            const statusSpan = fila.querySelector('.status-tag');
-            const estadoActual = statusSpan ? statusSpan.getAttribute('data-estado') : '';
-
-            // Lógica combinada: debe coincidir el texto Y el estado
-            const coincideTexto = texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto);
-            const coincideEstado = estadoFiltro === 'todos' || estadoActual === estadoFiltro;
-
-            if (coincideTexto && coincideEstado) {
-                fila.style.display = "";
-            } else {
-                fila.style.display = "none";
-            }
-        });
-    };
-
-    // --- FUNCIÓN ORDENAR ---
-    const ordenarTabla = () => {
-        const criterio = selectOrdenar.value;
-        const filas = Array.from(tablaCuerpo.querySelectorAll('tr:not(.no-data)')); // Evitar ordenar fila de vacíos
-        
-        if (filas.length === 0) return;
-
-        // Mapeo de columna según el select
-        const indiceColumna = {
-            'alumno': 1,
-            'empresa': 2,
-            'estado': 3
-        }[criterio] || 1;
-
-        filas.sort((a, b) => {
-            const valA = a.children[indiceColumna].textContent.trim();
-            const valB = b.children[indiceColumna].textContent.trim();
-            return valA.localeCompare(valB, 'es', { sensitivity: 'base' });
-        });
-
-        // Reinyectar las filas ordenadas
-        filas.forEach(fila => tablaCuerpo.appendChild(fila));
-    };
-
-    // --- EVENTOS ---
-    
-    // Botón Buscar
-    btnBuscar.addEventListener('click', realizarBusqueda);
-    
-    // Búsqueda en tiempo real
-    inputBusqueda.addEventListener('input', realizarBusqueda);
-
-    // Cambio de Filtro de Estado
-    selectEstado.addEventListener('change', realizarBusqueda);
-
-    // Cambio de Orden
-    selectOrdenar.addEventListener('change', ordenarTabla);
-    
-    // Manejo de tecla Enter
-    inputBusqueda.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            realizarBusqueda();
-        }
+    const visibles = todasFilas.filter(fila => {
+        const nombreAlumno = fila.children[1].textContent.toLowerCase();
+        const nombreEmpresa = fila.children[2].textContent.toLowerCase();
+        const statusSpan = fila.querySelector('.status-tag');
+        const estadoActual = statusSpan ? statusSpan.getAttribute('data-estado') : '';
+        return (texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto))
+            && (estadoFiltro === 'todos' || estadoActual === estadoFiltro);
     });
 
-    window._realizarBusquedaPF = realizarBusqueda;
+    todasFilas.forEach(f => f.style.display = 'none');
+    _pfFilasVis = visibles;
+    pfPagActual = 1;
+    pfPagRenderizar();
+}
+
+function pfCambiarPagina(nueva) {
+    const totalPaginas = Math.ceil(_pfFilasVis.length / pfPorPagina) || 1;
+    if (nueva < 1 || nueva > totalPaginas) return;
+    pfPagActual = nueva;
+    pfPagRenderizar();
+}
+
+function pfPagRenderizar() {
+    const total        = _pfFilasVis.length;
+    const totalPaginas = Math.ceil(total / pfPorPagina) || 1;
+    const inicio       = (pfPagActual - 1) * pfPorPagina;
+    const fin          = Math.min(inicio + pfPorPagina, total);
+
+    _pfFilasVis.forEach((tr, i) => {
+        tr.style.display = (i >= inicio && i < fin) ? '' : 'none';
+    });
+
+    const pag     = document.getElementById('pf-paginacion');
+    const contador = document.getElementById('pf-contador');
+
+    if (total <= pfPorPagina) {
+        if (pag) pag.classList.add('hidden');
+        if (contador) contador.textContent = total > 0 ? `${total} alumno${total !== 1 ? 's' : ''}` : '';
+        return;
+    }
+
+    if (pag) pag.classList.remove('hidden');
+    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
+
+    document.getElementById('pf-prev').disabled = pfPagActual === 1;
+    document.getElementById('pf-next').disabled = pfPagActual === totalPaginas;
+
+    const contenedor = document.getElementById('pf-paginas');
+    contenedor.innerHTML = '';
+    const pagsMostrar = new Set([1, totalPaginas, pfPagActual, pfPagActual - 1, pfPagActual + 1]
+        .filter(p => p >= 1 && p <= totalPaginas));
+    [...pagsMostrar].sort((a, b) => a - b).forEach((p, idx, arr) => {
+        const prev = arr[idx - 1];
+        if (prev !== undefined && p - prev > 1) {
+            const sep = document.createElement('span');
+            sep.className = 'text-slate-300 text-xs font-bold px-1';
+            sep.textContent = '···';
+            contenedor.appendChild(sep);
+        }
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = p;
+        btn.onclick = () => pfCambiarPagina(p);
+        btn.className = p === pfPagActual
+            ? 'w-8 h-8 rounded-lg bg-orange-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
+            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer';
+        contenedor.appendChild(btn);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const label = document.getElementById('pf-pag-label');
+    if (label) label.textContent = pfPorPagina + '/pág';
+
+    document.getElementById('btnBuscar')?.addEventListener('click', pfFiltrar);
+    document.getElementById('busqueda')?.addEventListener('input', pfFiltrar);
+    document.getElementById('filtroEstado')?.addEventListener('change', pfFiltrar);
+    document.getElementById('busqueda')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); pfFiltrar(); }
+    });
+    document.getElementById('ordenar')?.addEventListener('change', () => { pfOrdenar(); pfFiltrar(); });
+
+    window._realizarBusquedaPF = pfFiltrar;
+    pfFiltrar();
 });
 
 function limpiarFiltrosPF() {
     document.getElementById('busqueda').value = '';
     document.getElementById('filtroEstado').value = 'todos';
     document.getElementById('ordenar').value = 'alumno';
-    if (window._realizarBusquedaPF) window._realizarBusquedaPF();
+    pfFiltrar();
 }
+
+// ─── Modal configurar paginación ─────────────────────────────────────────────
+window._pagCallbacks = window._pagCallbacks || {};
+window._pagCallbacks['pf'] = function(n) { pfPorPagina = n; pfPagActual = 1; pfPagRenderizar(); };
+
+function abrirModalPag(prefix) {
+    const val = parseInt(localStorage.getItem('pag_' + prefix + '_porPagina')) || 10;
+    document.getElementById('input-pag-' + prefix).value = val;
+    document.getElementById('modal-pag-' + prefix).style.display = 'flex';
+}
+function cerrarModalPag(prefix) {
+    document.getElementById('modal-pag-' + prefix).style.display = 'none';
+}
+function setPagPreset(prefix, n) {
+    document.getElementById('input-pag-' + prefix).value = n;
+}
+function aplicarPag(prefix) {
+    const val = parseInt(document.getElementById('input-pag-' + prefix).value);
+    if (!val || val < 1) return;
+    localStorage.setItem('pag_' + prefix + '_porPagina', val);
+    const label = document.getElementById(prefix + '-pag-label');
+    if (label) label.textContent = val + '/pág';
+    cerrarModalPag(prefix);
+    if (window._pagCallbacks[prefix]) window._pagCallbacks[prefix](val);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
+
+<!-- ─── Modal Configurar Paginación: Gestión Planes de Formación ──────────── -->
+<div id="modal-pag-pf" style="display:none"
+     class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+     onclick="if(event.target===this)cerrarModalPag('pf')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 border border-slate-100">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Configurar Paginación
+            </h3>
+            <button onclick="cerrarModalPag('pf')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer leading-none">✕</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Acceso rápido</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button type="button" onclick="setPagPreset('pf', 5)"  class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">5</button>
+            <button type="button" onclick="setPagPreset('pf', 10)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">10</button>
+            <button type="button" onclick="setPagPreset('pf', 15)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">15</button>
+            <button type="button" onclick="setPagPreset('pf', 20)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">20</button>
+            <button type="button" onclick="setPagPreset('pf', 25)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">25</button>
+            <button type="button" onclick="setPagPreset('pf', 50)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer">50</button>
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cantidad personalizada</p>
+        <div class="flex items-center gap-3 mb-5">
+            <input type="number" id="input-pag-pf" min="1" max="200" placeholder="Ej: 12"
+                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-orange-200 transition-all"
+                onkeydown="if(event.key==='Enter')aplicarPag('pf')">
+            <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">por página</span>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button onclick="cerrarModalPag('pf')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+            <button onclick="aplicarPag('pf')" class="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-sm cursor-pointer">Aplicar</button>
+        </div>
+    </div>
+</div>
