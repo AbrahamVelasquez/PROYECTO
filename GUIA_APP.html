@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía app</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; line-height: 1.7; color: #1e293b; background: #f8fafc; }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px 30px; background: white; }
+
+  h1 { font-size: 28px; font-weight: 900; color: #0f172a; border-bottom: 4px solid #ea580c; padding-bottom: 12px; margin-bottom: 8px; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 40px; }
+
+  h2 { font-size: 19px; font-weight: 800; color: #ea580c; margin: 36px 0 14px; padding: 10px 16px; background: #fff7ed; border-left: 5px solid #ea580c; border-radius: 0 8px 8px 0; }
+  h3 { font-size: 15px; font-weight: 700; color: #0f172a; margin: 22px 0 8px; padding: 6px 12px; background: #f1f5f9; border-left: 3px solid #475569; border-radius: 0 6px 6px 0; }
+  h4 { font-size: 13px; font-weight: 700; color: #334155; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 8px 0 12px 22px; }
+  li { margin-bottom: 5px; }
+
+  code { background: #f1f5f9; color: #be123c; padding: 2px 7px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 12.5px; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 18px; border-radius: 10px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 12.5px; line-height: 1.6; margin: 12px 0; }
+  pre .c { color: #94a3b8; }
+  pre .k { color: #f472b6; }
+  pre .s { color: #86efac; }
+  pre .v { color: #fbbf24; }
+
+  .box { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+  .box-warn { background: #fffbeb; border-color: #fcd34d; }
+  .box-info { background: #eff6ff; border-color: #93c5fd; }
+  .box-danger { background: #fef2f2; border-color: #fca5a5; }
+  .box strong { color: #166534; }
+  .box-warn strong { color: #92400e; }
+  .box-info strong { color: #1e40af; }
+  .box-danger strong { color: #991b1b; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #1e293b; color: white; padding: 10px 14px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  td:first-child { font-family: 'Consolas', monospace; font-size: 12px; color: #be123c; white-space: nowrap; }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+  .flow-step { background: #1e293b; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+  .flow-arrow { color: #ea580c; font-size: 18px; font-weight: 900; }
+
+  .toc { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px 26px; margin-bottom: 36px; }
+  .toc h2 { margin: 0 0 12px; padding: 0; background: none; border: none; font-size: 15px; color: #0f172a; }
+  .toc ol { margin-left: 18px; }
+  .toc li { margin-bottom: 4px; }
+  .toc a { color: #ea580c; text-decoration: none; font-weight: 600; }
+  .toc a:hover { text-decoration: underline; }
+
+  .qa { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+  .qa .q { font-weight: 800; color: #92400e; margin-bottom: 6px; }
+  .qa .a { color: #451a03; }
+
+  @media print {
+    body { background: white; font-size: 12px; }
+    .page { padding: 20px; }
+    h2 { page-break-before: auto; }
+    pre { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>📚 Guía de la app</h1>
+<p class="subtitle">IES Ciudad Escolar · 2025–2026</p>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <h2>📋 Índice</h2>
+  <ol>
+    <li><a href="#s1">Visión general del proyecto</a></li>
+    <li><a href="#s2">Estructura de carpetas y archivos</a></li>
+    <li><a href="#s3">Cómo funciona la aplicación (flujo completo)</a></li>
+    <li><a href="#s4">Conexión a la base de datos (Singleton + PDO)</a></li>
+    <li><a href="#s5">Sistema de seguridad y control de accesos</a></li>
+    <li><a href="#s6">Importar alumnos desde Excel</a></li>
+    <li><a href="#s7">Exportar el Plan Formativo a Excel (plantillas FFE)</a></li>
+    <li><a href="#s8">Importar convenios desde Excel</a></li>
+    <li><a href="#s9">Enlace externo de registro de convenios</a></li>
+    <li><a href="#s10">Modo oscuro / claro</a></li>
+    <li><a href="#s11">Dependencias externas (Composer)</a></li>
+    <li><a href="#s12">Preguntas frecuentes de defensa</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s1">1. Visión general del proyecto</h2>
+
+<p>Sistema web de gestión de <strong>Formación en Centros de Trabajo (FCT)</strong> del IES Ciudad Escolar. Permite que tutores y el administrador gestionen alumnos, convenios con empresas y planes formativos.</p>
+
+<h4>Roles del sistema</h4>
+<table>
+  <tr><th>Rol</th><th>Qué puede hacer</th></tr>
+  <tr><td>admin</td><td>Gestionar tutores, validar convenios pendientes, ver y editar todos los convenios, importar convenios masivamente, ver listado global de alumnos</td></tr>
+  <tr><td>tutor</td><td>Gestionar sus alumnos, solicitar y editar convenios, rellenar y exportar planes formativos (FFE), subir documentos de seguimiento</td></tr>
+</table>
+
+<h4>Tecnologías usadas</h4>
+<ul>
+  <li><strong>PHP 8</strong> — Backend y lógica de negocio</li>
+  <li><strong>MySQL</strong> — Base de datos <code>citye</code> en XAMPP</li>
+  <li><strong>PDO</strong> — Capa de abstracción para consultas SQL seguras</li>
+  <li><strong>Tailwind CSS v4 (CDN)</strong> — Estilos visuales</li>
+  <li><strong>PhpSpreadsheet</strong> (Composer) — Leer y escribir archivos Excel (.xlsx)</li>
+  <li><strong>PhpWord</strong> (Composer) — Exportar documentos Word</li>
+  <li><strong>Vanilla JavaScript</strong> — Interacciones del frontend (modales, AJAX)</li>
+</ul>
+
+<h4>Patrón arquitectónico: MVC</h4>
+<div class="flow">
+  <div class="flow-step">Navegador</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">index.php (router)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Controlador</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Modelo (SQL)</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Vista (HTML/PHP)</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s2">2. Estructura de carpetas y archivos</h2>
+
+<h3>Raíz del proyecto</h3>
+<table>
+  <tr><th>Archivo / Carpeta</th><th>Para qué sirve</th></tr>
+  <tr><td>index.php</td><td>Único punto de entrada. Actúa como router: detecta si hay sesión, qué rol tiene el usuario y llama al controlador correcto.</td></tr>
+  <tr><td>composer.json</td><td>Declara las dependencias PHP (PhpSpreadsheet, PhpWord). Se instalan con <code>composer install</code>.</td></tr>
+  <tr><td>robots.txt</td><td>Impide que los buscadores indexen la aplicación.</td></tr>
+  <tr><td>README.md</td><td>Documentación general del proyecto.</td></tr>
+</table>
+
+<h3>Core/</h3>
+<table>
+  <tr><th>Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>Conexion.php</td><td>Clase Singleton que crea y devuelve la única conexión PDO a MySQL. Evita abrir múltiples conexiones en la misma petición.</td></tr>
+  <tr><td>.htaccess</td><td>Bloquea el acceso directo a esta carpeta desde el navegador.</td></tr>
+</table>
+
+<h3>Seguridad/</h3>
+<table>
+  <tr><th>Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>Control_Accesos.php</td><td>Función <code>validarAcceso('admin'|'tutor'|'cualquiera')</code>. Se llama al inicio de cada vista. Verifica que haya sesión activa y que el rol sea el correcto. Si no cumple, muestra una pantalla de error y para la ejecución con <code>die()</code>.</td></tr>
+</table>
+
+<h3>Modelo/</h3>
+<p>Cada archivo es una clase PHP que agrupa las consultas SQL de una entidad. Todos reciben la conexión PDO en el constructor.</p>
+<table>
+  <tr><th>Archivo</th><th>Entidad y operaciones principales</th></tr>
+  <tr><td>Admin.php</td><td>Tutores: obtener listado, buscar, crear, editar, eliminar. Ciclos: obtener libres y todos. Convenios y alumnos desde perspectiva de admin.</td></tr>
+  <tr><td>Alumnos.php</td><td>CRUD completo de alumnos. Vinculación con ciclo en tabla <code>curso_academico</code>. Búsqueda y paginación.</td></tr>
+  <tr><td>Convenios.php</td><td>Convenios activos (empresa ↔ ciclo) y solicitudes nuevas (<code>convenios_nuevos</code>). Aprobar, validar, editar, eliminar.</td></tr>
+  <tr><td>Tutores.php</td><td>Plan formativo: módulos, RAs, datos del alumno en empresa. Seguimiento: relación alumno-empresa. Convenios favoritos del tutor.</td></tr>
+  <tr><td>Usuarios.php</td><td>Login: busca el usuario por DNI y valida la contraseña con <code>password_verify()</code>. Guarda en <code>$_SESSION</code> el id, nombre, rol e id_ciclo.</td></tr>
+</table>
+
+<h3>Controlador/</h3>
+<p>Cada controlador instancia el modelo, procesa los datos POST/GET y decide qué vista cargar.</p>
+<table>
+  <tr><th>Archivo</th><th>Responsabilidad</th></tr>
+  <tr><td>Controlador_Admin.php</td><td>Todas las acciones del panel de admin: mostrarPanel, mostrarTutores, guardarTutor, actualizarTutor, eliminarTutor, mostrarConvenios, actualizarConvenio, eliminarConvenio, mostrarConveniosPendientes, validarConvenio, mostrarAlumnos.</td></tr>
+  <tr><td>Controlador_Tutores.php</td><td>Todas las acciones del panel de tutor: mostrarPanel (con sus 4 pestañas), gestión de alumnos, convenios favoritos, plan formativo, seguimiento.</td></tr>
+  <tr><td>Controlador_Alumnos.php</td><td>Operaciones de alumnos compartidas: crear, editar, eliminar, importar masivamente, exportar Word.</td></tr>
+  <tr><td>Controlador_Convenios.php</td><td>Aprobar solicitud de convenio (tutor), guardar nuevo convenio, editar convenio.</td></tr>
+  <tr><td>Controlador_Usuarios.php</td><td>Login: valida credenciales y crea la sesión. Logout: destruye la sesión.</td></tr>
+  <tr><td>Exportar_PF.php</td><td>Carga la plantilla Excel FFE, la rellena con los datos del formulario y la envía al navegador como descarga.</td></tr>
+  <tr><td>Exportar_PF_Todo.php</td><td>Igual que el anterior pero para todos los alumnos del ciclo en un solo archivo.</td></tr>
+  <tr><td>Exportar_Alumnos_Word.php</td><td>Genera un documento Word con los datos del alumno usando PhpWord.</td></tr>
+  <tr><td>Importar_Alumnos.php</td><td>Lee el Excel subido, valida las filas e inserta alumnos en la BD. Devuelve JSON.</td></tr>
+  <tr><td>Importar_Convenios.php</td><td>Lee el Excel de convenios, valida e inserta empresas en la BD. Devuelve JSON.</td></tr>
+  <tr><td>Seguimiento_Subir.php</td><td>Recibe un archivo (fetch/FormData), lo guarda en <code>Documentacion/CICLO/ALUMNO/tipo/</code>.</td></tr>
+  <tr><td>Seguimiento_Listar.php</td><td>Devuelve JSON con los archivos subidos de un alumno concreto.</td></tr>
+  <tr><td>Seguimiento_Descargar.php</td><td>Sirve el archivo para descarga verificando que la ruta sea válida.</td></tr>
+  <tr><td>Seguimiento_Eliminar.php</td><td>Borra el archivo del servidor verificando permisos.</td></tr>
+  <tr><td>Logout.php</td><td>Destruye la sesión y redirige a <code>index.php</code>.</td></tr>
+</table>
+
+<h3>Vista/</h3>
+<table>
+  <tr><th>Subcarpeta / Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>Login.php</td><td>Formulario de inicio de sesión. Se carga cuando no hay sesión activa.</td></tr>
+  <tr><td>Admin/Dashboard_Admin.php</td><td>Plantilla HTML base del panel admin. Incluye el <code>&lt;head&gt;</code> con Tailwind, dark-mode.css y el script anti-parpadeo del tema. Carga dinámicamente la subvista según la acción.</td></tr>
+  <tr><td>Admin/Components/</td><td>Fragmentos PHP reutilizables: cabecera, modales de tutores, modales de convenios activos (TC) y convenios pendientes (TCP).</td></tr>
+  <tr><td>Admin/Sections/</td><td>Vistas completas que se inyectan en el panel: tabla de convenios, tabla de convenios pendientes, tabla de tutores, tabla de alumnos.</td></tr>
+  <tr><td>Tutores/Dashboard_Tutor.php</td><td>Plantilla HTML base del panel tutor. Misma estructura que la de admin.</td></tr>
+  <tr><td>Tutores/Components/</td><td>Modales de alumnos, convenios, plan formativo (PF) y seguimiento.</td></tr>
+  <tr><td>Tutores/Steps/</td><td>Cada "pestaña" del wizard del tutor: Convenios.php, Alumnos.php, PF.php, Seguimiento.php.</td></tr>
+</table>
+
+<h3>Public/</h3>
+<table>
+  <tr><th>Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>css/dark-mode.css</td><td>Todos los estilos del modo oscuro. Usa el selector <code>html.dark</code> para aplicarse solo cuando el toggle está activado.</td></tr>
+  <tr><td>js/dark-mode.js</td><td>Lógica del botón de tema: añade/quita la clase <code>dark</code> del <code>&lt;html&gt;</code> y guarda la preferencia en <code>localStorage</code>.</td></tr>
+  <tr><td>js/script_tabs.js</td><td>Controla las pestañas del panel tutor (Convenios, Alumnos, Plan Formativo, Seguimiento).</td></tr>
+  <tr><td>js/script_password.js</td><td>Botón para mostrar/ocultar la contraseña en el login.</td></tr>
+</table>
+
+<h3>Convenios/ (zona pública)</h3>
+<table>
+  <tr><th>Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>Registro.php</td><td>Formulario público accesible sin login. Las empresas introducen sus datos. Funciona tanto para externos (via enlace con <code>?id_ciclo=X</code>) como para tutores logueados.</td></tr>
+  <tr><td>Procesar.php</td><td>Endpoint AJAX que recibe el formulario externo, llama a <code>Controlador_Registro.php</code> y devuelve HTTP 200.</td></tr>
+  <tr><td>Controlador_Registro.php</td><td>Valida los datos y los inserta en la tabla <code>convenios_nuevos</code> de la BD.</td></tr>
+  <tr><td>Modales_Registro.php</td><td>Modal de confirmación antes de enviar y modal de éxito tras el registro exitoso.</td></tr>
+</table>
+
+<h3>Recursos/</h3>
+<table>
+  <tr><th>Subcarpeta</th><th>Para qué sirve</th></tr>
+  <tr><td>Exportar/plantilla_ffe.xlsx</td><td>Plantilla Excel oficial del Plan Formativo (FFE). Tiene hojas con celdas nombradas ("datos fijos", "datos variables", "constantes"). El sistema la carga, la rellena y la descarga.</td></tr>
+  <tr><td>Exportar/plantilla_word.docx</td><td>Plantilla Word para exportar datos de alumnos.</td></tr>
+  <tr><td>Importar/plantilla_listadoAlumnos.xlsx</td><td>Plantilla de ejemplo con las columnas correctas para importar alumnos: Nombre | Apellido(s) | Correo.</td></tr>
+  <tr><td>Importar/plantilla_listadoConvenios.xlsx</td><td>Plantilla de ejemplo con las columnas para importar convenios masivamente.</td></tr>
+</table>
+
+<h3>Documentacion/ (archivos subidos)</h3>
+<p>Carpeta física donde se guardan los documentos de seguimiento subidos por los tutores. Estructura:</p>
+<pre>Documentacion/
+  2DAW/
+    GARCIA_SANCHEZ_JOSUE/
+      plan_formativo/   ← PDFs firmados del plan formativo
+      fichas/           ← Fichas de seguimiento firmadas</pre>
+
+<h3>Helpers/</h3>
+<table>
+  <tr><th>Archivo</th><th>Para qué sirve</th></tr>
+  <tr><td>Paginador.php</td><td>Clase que calcula el offset y los botones de paginación para tablas largas (alumnos, convenios).</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s3">3. Cómo funciona la aplicación (flujo completo)</h2>
+
+<h3>El router: index.php</h3>
+<p>Todo el tráfico pasa por <code>index.php</code>. Es el único archivo accesible directamente. Funciona con 4 bloques <code>if-else</code>:</p>
+
+<pre><span class="c">// 1. Si viene logout → Controlador/Logout.php</span>
+<span class="c">// 2. Si hay sesión activa → determina el controlador por rol y llama a la acción</span>
+<span class="c">// 3. Si viene el botón de login → Controlador_Usuarios.php</span>
+<span class="c">// 4. Si no hay nada → muestra Vista/Login.php</span></pre>
+
+<h4>¿Cómo llega la acción al controlador?</h4>
+<p>Los formularios y botones de la app envían un campo oculto <code>name="accion"</code>. El router lo captura con <code>$_REQUEST['accion']</code> y llama al método del mismo nombre en el controlador:</p>
+<pre><span class="v">$accion</span> = <span class="v">$_REQUEST</span>[<span class="s">'accion'</span>] ?? <span class="s">"mostrarPanel"</span>;
+<span class="c">// Si accion = "mostrarConvenios" → llama a $controlador->mostrarConvenios()</span></pre>
+
+<h4>Flujo de una petición típica (tutor añade alumno)</h4>
+<div class="flow">
+  <div class="flow-step">Tutor rellena formulario</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">POST index.php<br>accion=guardarAlumno</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Controlador_Tutores<br>::guardarAlumno()</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Modelo Alumnos<br>::insertar()</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">SQL INSERT</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Vista recargada</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s4">4. Conexión a la base de datos — Singleton + PDO</h2>
+
+<h3>¿Qué es el patrón Singleton?</h3>
+<p>Garantiza que solo existe <strong>una instancia</strong> de la conexión durante toda la petición. Si varios modelos necesitan la BD, todos reutilizan el mismo objeto PDO en vez de abrir nuevas conexiones.</p>
+
+<pre><span class="k">class</span> <span class="v">Conexion</span> {
+    <span class="k">private static</span> <span class="v">$instancia</span> = <span class="k">null</span>;
+
+    <span class="k">public static function</span> <span class="v">getConexion</span>() {
+        <span class="k">if</span> (<span class="k">self</span>::<span class="v">$instancia</span> === <span class="k">null</span>) {        <span class="c">// Solo conecta si no hay conexión</span>
+            <span class="k">self</span>::<span class="v">$instancia</span> = <span class="k">new</span> <span class="v">PDO</span>(
+                <span class="s">"mysql:host=localhost;dbname=citye;charset=utf8"</span>,
+                <span class="s">"root"</span>, <span class="s">""</span>,
+                [<span class="v">PDO::ATTR_ERRMODE</span> => <span class="v">PDO::ERRMODE_EXCEPTION</span>]
+            );
+        }
+        <span class="k">return self</span>::<span class="v">$instancia</span>;
+    }
+}</pre>
+
+<h4>Datos de conexión</h4>
+<ul>
+  <li><strong>Host:</strong> <code>localhost</code></li>
+  <li><strong>Base de datos:</strong> <code>citye</code></li>
+  <li><strong>Usuario:</strong> <code>root</code></li>
+  <li><strong>Contraseña:</strong> vacía (entorno local XAMPP)</li>
+  <li><strong>Charset:</strong> <code>utf8</code></li>
+</ul>
+
+<h4>¿Qué es PDO y por qué se usa?</h4>
+<p><strong>PDO (PHP Data Objects)</strong> es la capa de abstracción estándar de PHP para bases de datos. Ventajas clave:</p>
+<ul>
+  <li>Previene <strong>SQL Injection</strong> mediante consultas preparadas con <code>prepare()</code> y <code>execute()</code></li>
+  <li>Independiente del motor de BD (podría cambiar a PostgreSQL sin tocar el código)</li>
+  <li>Lanza excepciones en vez de fallar silenciosamente (<code>ERRMODE_EXCEPTION</code>)</li>
+</ul>
+
+<h4>Ejemplo de consulta segura con PDO</h4>
+<pre><span class="v">$sql</span>  = <span class="s">"SELECT * FROM tutores WHERE dni = :dni"</span>;
+<span class="v">$stmt</span> = <span class="v">$conn</span>->prepare(<span class="v">$sql</span>);           <span class="c">// prepara la consulta</span>
+<span class="v">$stmt</span>->execute([<span class="s">'dni'</span> => <span class="v">$dni</span>]);        <span class="c">// inyecta el valor de forma segura</span>
+<span class="v">$result</span> = <span class="v">$stmt</span>->fetch(<span class="v">PDO::FETCH_ASSOC</span>); <span class="c">// devuelve array asociativo</span></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s5">5. Sistema de seguridad y control de accesos</h2>
+
+<h3>¿Cómo funciona la protección de vistas?</h3>
+<p>Cada archivo PHP de vista o controlador incluye al principio:</p>
+<pre><span class="v">require_once</span> <span class="v">$_SERVER</span>[<span class="s">'DOCUMENT_ROOT'</span>] . <span class="s">'/PROYECTO/Seguridad/Control_Accesos.php'</span>;
+<span class="v">validarAcceso</span>(<span class="s">'admin'</span>); <span class="c">// o 'tutor' o 'cualquiera'</span></pre>
+
+<h4>¿Qué comprueba?</h4>
+<ol>
+  <li>Que <code>$_SESSION['usuario']</code> exista → si no, error de sesión no iniciada</li>
+  <li>Que <code>$_SESSION['rol']</code> coincida con el rol requerido → si no, error de acceso restringido</li>
+</ol>
+
+<div class="box-danger">
+  <strong>⚠️ Importante:</strong> Si alguien conoce la URL de una vista de admin e intenta acceder sin sesión o siendo tutor, la función <code>validarAcceso()</code> llama a <code>die()</code> y muestra una pantalla de error — nunca se ejecuta el código de la vista.
+</div>
+
+<h4>El login</h4>
+<ol>
+  <li>El usuario envía DNI + contraseña</li>
+  <li><code>Controlador_Usuarios.php</code> busca el usuario en la BD por DNI</li>
+  <li>Valida la contraseña con <code>password_verify($input, $hash)</code> (las contraseñas están hasheadas con bcrypt)</li>
+  <li>Si es válido, crea la sesión: <code>$_SESSION['usuario']</code>, <code>$_SESSION['rol']</code>, <code>$_SESSION['id_ciclo']</code>, etc.</li>
+  <li>Redirige a <code>index.php</code> que ya detecta la sesión</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s6">6. Importar alumnos desde Excel</h2>
+
+<h3>¿Cómo funciona?</h3>
+<p>El tutor descarga la plantilla (<code>Recursos/Importar/plantilla_listadoAlumnos.xlsx</code>), la rellena y la sube desde la pestaña de Alumnos.</p>
+
+<h4>Formato esperado de la plantilla</h4>
+<table>
+  <tr><th>Columna A</th><th>Columna B</th><th>Columna C</th></tr>
+  <tr><td>Nombre</td><td>Apellido(s)</td><td>Dirección de correo</td></tr>
+  <tr><td>JUAN</td><td>GARCIA LOPEZ</td><td>juan@email.com</td></tr>
+</table>
+
+<div class="box-info">
+  <strong>ℹ️ Nota:</strong> Los apellidos van en una sola columna separados por espacio. El sistema divide automáticamente en apellido1 y apellido2 con <code>explode(' ', $apellidos, 2)</code>.
+</div>
+
+<h4>Flujo técnico del archivo Importar_Alumnos.php</h4>
+<ol>
+  <li><strong>Validación inicial:</strong> Comprueba que llegó el archivo y que es .xlsx o .xls</li>
+  <li><strong>Lectura con PhpSpreadsheet:</strong> <code>IOFactory::load($tmp)</code> carga el Excel; <code>toArray()</code> convierte la hoja a un array PHP</li>
+  <li><strong>Saltar la cabecera:</strong> <code>if ($idx === 0) continue;</code> — la fila 0 son los títulos de columna</li>
+  <li><strong>Por cada fila válida:</strong>
+    <ul>
+      <li>Inserta en tabla <code>alumnos</code> (nombre, apellidos, correo)</li>
+      <li>Inserta en tabla <code>curso_academico</code> vinculando el alumno al ciclo del tutor en sesión</li>
+      <li>Usa una <strong>transacción</strong> (<code>beginTransaction</code> / <code>commit</code> / <code>rollBack</code>) para que ambas inserciones sean atómicas</li>
+    </ul>
+  </li>
+  <li><strong>Respuesta JSON:</strong> devuelve <code>{ success, insertados, omitidos, errores }</code></li>
+  <li><strong>El frontend</strong> muestra el resultado en el modal sin recargar la página (fetch + JSON)</li>
+</ol>
+
+<div class="box-warn">
+  <strong>🔄 ¿Por qué transacciones?</strong> Si el INSERT en <code>alumnos</code> funciona pero el de <code>curso_academico</code> falla, el <code>rollBack()</code> deshace el primero. Así no quedan alumnos "huérfanos" sin ciclo asignado.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s7">7. Exportar el Plan Formativo a Excel (plantilla FFE)</h2>
+
+<h3>¿Qué es el FFE?</h3>
+<p>El <strong>Fichero de Formación en Empresa (FFE)</strong> es el documento oficial que el tutor debe entregar con los datos del alumno, la empresa y los Resultados de Aprendizaje (RAs) a impartir.</p>
+
+<h3>Arquitectura de la plantilla Excel</h3>
+<p>La plantilla <code>plantilla_ffe.xlsx</code> tiene 3 hojas:</p>
+<table>
+  <tr><th>Hoja</th><th>Contenido</th><th>¿Se modifica?</th></tr>
+  <tr><td>datos fijos</td><td>Datos del centro, ciclo, RAs. La columna A tiene claves (ej: <code>nombre_ciclo</code>) y la columna B el valor.</td><td>Sí — el sistema busca la clave en col A y escribe el valor en col B</td></tr>
+  <tr><td>datos variables</td><td>Datos del alumno, empresa, fechas, horario. La fila 1 son cabeceras y la fila 2 los valores.</td><td>Sí — el sistema lee la cabecera en fila 1 y escribe en fila 2</td></tr>
+  <tr><td>constantes</td><td>Fórmulas y celdas de presentación que calculan automáticamente basándose en las otras hojas.</td><td>No — se deja intacta</td></tr>
+</table>
+
+<h4>¿Cómo escribe los datos el sistema?</h4>
+<pre><span class="c">// Hoja "datos fijos": busca la clave en columna A, escribe en columna B</span>
+<span class="k">function</span> <span class="v">setValorHoja</span>(<span class="v">$ws</span>, <span class="v">$key</span>, <span class="v">$value</span>) {
+    <span class="k">for</span> (<span class="v">$row</span> = 1; <span class="v">$row</span> &lt;= <span class="v">$ws</span>->getHighestRow(); <span class="v">$row</span>++) {
+        <span class="k">if</span> (<span class="v">$ws</span>->getCell(<span class="s">"A{$row}"</span>)->getValue() === <span class="v">$key</span>) {
+            <span class="v">$ws</span>->getCell(<span class="s">"B{$row}"</span>)->setValue(<span class="v">$value</span>);
+            <span class="k">return</span>;
+        }
+    }
+}
+<span class="c">// Ejemplo: setValorHoja($ws, 'nombre_ciclo', '2º DAW')</span></pre>
+
+<h4>Flujo completo de exportación</h4>
+<ol>
+  <li>El tutor rellena el formulario del Plan Formativo en la app</li>
+  <li>Pulsa "Exportar" → envía todos los datos via POST a <code>Exportar_PF.php</code></li>
+  <li>El controlador carga la plantilla con <code>IOFactory::load($plantilla)</code></li>
+  <li>Rellena "datos fijos": centro, ciclo, RAs de la BD (hasta 14)</li>
+  <li>Rellena "datos variables": alumno, empresa, fechas, horario, excepciones</li>
+  <li>Envía el archivo al navegador con cabeceras HTTP de descarga:
+    <pre>Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+Content-Disposition: attachment; filename="datos_ffe_APELLIDONOMBRE.xlsx"</pre>
+  </li>
+  <li>PhpSpreadsheet escribe en <code>php://output</code> — el archivo se descarga directamente sin guardarse en el servidor</li>
+</ol>
+
+<div class="box">
+  <strong>✅ Ventaja clave:</strong> Al usar una plantilla existente, las fórmulas, el formato visual, los colores y el diseño oficial del documento se conservan exactamente. El sistema solo cambia los valores de datos.
+</div>
+
+<h4>Los Resultados de Aprendizaje (RAs)</h4>
+<p>Se obtienen de la BD con una consulta que cruza las tablas <code>resultados_aprendizaje</code>, <code>modulos</code> y <code>plan_estudios</code> filtrando por el <code>id_ciclo</code> del tutor en sesión. Se rellenan hasta 14 RAs en la plantilla.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s8">8. Importar convenios desde Excel</h2>
+
+<p>El administrador puede cargar un listado masivo de empresas con convenio usando <code>Controlador/Importar_Convenios.php</code>.</p>
+
+<h4>Columnas esperadas en la plantilla</h4>
+<p>Nº Convenio* | Nombre Empresa | CIF | Dirección | Municipio | CP | País | Teléfono | Fax | Mail | Nombre Rep. | DNI Rep. | Cargo</p>
+<p><em>* El Nº de convenio se ignora al importar.</em></p>
+
+<h4>Proceso</h4>
+<ol>
+  <li>El admin sube el Excel desde el modal "Importar Convenios"</li>
+  <li>Se envía via <code>fetch()</code> a <code>index.php?accion=importarConvenios</code></li>
+  <li>PhpSpreadsheet lee el archivo y procesa fila a fila</li>
+  <li>Para cada fila válida, inserta en la tabla <code>convenios</code></li>
+  <li>Devuelve JSON con insertados, errores y filas omitidas</li>
+  <li>El modal muestra el resultado sin recargar la página</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s9">9. Enlace externo de registro de convenios</h2>
+
+<h3>¿Qué es?</h3>
+<p>Una URL pública que el tutor puede enviar a las empresas para que rellenen sus datos sin necesidad de tener cuenta en el sistema.</p>
+
+<h3>La URL</h3>
+<pre>http://localhost/PROYECTO/Convenios/Registro.php?id_ciclo=<span class="v">3</span></pre>
+<p>El parámetro <code>id_ciclo</code> identifica a qué ciclo (y por tanto a qué tutor) pertenece la solicitud que va a llegar.</p>
+
+<h3>¿Cómo funciona internamente?</h3>
+
+<div class="box-info">
+  <strong>La clave:</strong> El archivo <code>Registro.php</code> detecta si el visitante tiene sesión activa o no:
+  <ul>
+    <li><strong>Sin sesión (empresa externa):</strong> El formulario envía los datos via AJAX a <code>Procesar.php</code>. Si hay éxito, muestra un modal de confirmación y resetea el formulario.</li>
+    <li><strong>Con sesión (tutor logueado):</strong> El formulario envía a <code>../index.php</code> como un POST normal con <code>accion=guardarNuevoConvenio</code>.</li>
+  </ul>
+</div>
+
+<h4>Flujo cuando la empresa rellena el formulario externo</h4>
+<div class="flow">
+  <div class="flow-step">Empresa abre el enlace con ?id_ciclo=3</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Registro.php detecta: sin sesión</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Empresa rellena y envía</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">fetch() → Procesar.php</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Controlador_Registro → INSERT en convenios_nuevos</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">Modal de éxito en pantalla</div>
+</div>
+
+<h4>¿Dónde quedan las solicitudes?</h4>
+<p>En la tabla <code>convenios_nuevos</code> de la BD. El tutor las ve en su pestaña de Convenios con estado "Pendiente". Puede aprobarlas (el admin las valida después) o rechazarlas.</p>
+
+<h4>Validación de seguridad</h4>
+<p>Si se accede a <code>Registro.php</code> sin el parámetro <code>id_ciclo</code> y sin sesión, el sistema muestra un modal de error y ejecuta <code>die()</code> — no se puede usar el formulario sin saber a qué ciclo pertenece.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s10">10. Modo oscuro / claro</h2>
+
+<h3>¿Cómo funciona el sistema de temas?</h3>
+<ol>
+  <li><strong>Al cargar la página</strong>, un script inline en el <code>&lt;head&gt;</code> consulta <code>localStorage</code>:
+    <pre><span class="k">if</span> (localStorage.getItem(<span class="s">'theme'</span>) === <span class="s">'dark'</span> || coincide-con-preferencia-OS) {
+    document.documentElement.classList.add(<span class="s">'dark'</span>);
+}</pre>
+    Esto evita el "parpadeo blanco" al cargar en modo oscuro.
+  </li>
+  <li><strong>El botón</strong> (luna/sol) añade o quita la clase <code>dark</code> del elemento <code>&lt;html&gt;</code> y guarda en <code>localStorage</code>.</li>
+  <li><strong>El CSS de modo oscuro</strong> (<code>dark-mode.css</code>) usa el selector <code>html.dark .clase-de-tailwind</code> con <code>!important</code> para sobreescribir los estilos de Tailwind.</li>
+</ol>
+
+<div class="box-warn">
+  <strong>⚠️ Por qué NO se usaron los prefijos <code>dark:</code> de Tailwind:</strong> La versión del CDN usada (<code>@tailwindcss/browser@4</code>) aplica <code>dark:</code> basándose en la preferencia del sistema operativo (<code>prefers-color-scheme</code>), no en la clase <code>html.dark</code>. Por eso se usa un CSS personalizado que sí responde a la clase.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s11">11. Dependencias externas — Composer</h2>
+
+<h4>¿Qué es Composer?</h4>
+<p>El gestor de dependencias de PHP. El archivo <code>composer.json</code> declara qué librerías se necesitan y <code>composer install</code> las descarga en la carpeta <code>vendor/</code>.</p>
+
+<h4>Librerías usadas</h4>
+<table>
+  <tr><th>Librería</th><th>Para qué se usa</th></tr>
+  <tr><td>phpoffice/phpspreadsheet</td><td>Leer archivos Excel (.xlsx/.xls) al importar alumnos y convenios. Escribir/rellenar archivos Excel al exportar el Plan Formativo (FFE).</td></tr>
+  <tr><td>phpoffice/phpword</td><td>Generar documentos Word (.docx) al exportar datos de alumnos.</td></tr>
+</table>
+
+<h4>¿Cómo se carga?</h4>
+<pre><span class="c">// Al inicio de cada controlador que necesite estas librerías:</span>
+<span class="v">require_once</span> <span class="v">__DIR__</span> . <span class="s">'/../vendor/autoload.php'</span>;
+
+<span class="k">use</span> PhpOffice\PhpSpreadsheet\IOFactory;
+<span class="k">use</span> PhpOffice\PhpSpreadsheet\Writer\Xlsx;</pre>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="s12">12. Preguntas frecuentes de defensa</h2>
+
+<div class="qa">
+  <div class="q">❓ ¿Por qué todo pasa por index.php?</div>
+  <div class="a">Es el patrón Front Controller. Centraliza la seguridad (si un archivo de vista se accede directamente, la función validarAcceso() lo bloquea) y simplifica el enrutamiento. Las URLs son siempre index.php?accion=X, fáciles de mantener.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Cómo se evita el SQL Injection?</div>
+  <div class="a">Usando consultas preparadas de PDO (<code>prepare()</code> + <code>execute()</code> con parámetros nombrados <code>:nombre</code>). Nunca se concatena directamente el input del usuario en el SQL.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Por qué el Singleton en la conexión?</div>
+  <div class="a">Para no abrir múltiples conexiones a MySQL en una misma petición. En PHP, cada petición HTTP crea una nueva ejecución, pero dentro de esa petición pueden instanciarse varios modelos. El Singleton garantiza que todos comparten el mismo objeto PDO.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Cómo se asegura que un tutor no vea datos de otro?</div>
+  <div class="a">Todas las consultas del tutor filtran por <code>id_ciclo</code> o <code>id_tutor</code> que vienen de la sesión (<code>$_SESSION['id_ciclo']</code>), no de parámetros de usuario. El tutor no puede manipular su propio ID.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Qué es una transacción y cuándo se usa aquí?</div>
+  <div class="a">Una transacción agrupa varias operaciones SQL para que o se completan TODAS o no se completa ninguna. Se usa al importar alumnos: se insertan en dos tablas (<code>alumnos</code> y <code>curso_academico</code>). Si la segunda falla, el <code>rollBack()</code> deshace la primera, evitando datos inconsistentes.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Cómo funciona la exportación a Excel sin guardar en el servidor?</div>
+  <div class="a">PhpSpreadsheet escribe en el flujo de salida PHP (<code>php://output</code>). Las cabeceras HTTP le dicen al navegador que el contenido es un archivo Excel para descargar (<code>Content-Disposition: attachment</code>). Nunca se escribe en disco.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Puede cualquiera acceder al formulario de registro de convenios?</div>
+  <div class="a">Sí, es intencionado — es una URL pública. Pero sin el parámetro <code>id_ciclo</code>, el sistema muestra un error y bloquea el acceso. Con el parámetro, los datos se vinculan al ciclo correcto. El enlace se envía directamente a la empresa por el tutor.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Cómo se almacenan las contraseñas?</div>
+  <div class="a">Con bcrypt mediante <code>password_hash()</code> de PHP. En la BD hay un hash, nunca la contraseña en texto plano. La verificación es con <code>password_verify($input, $hashAlmacenado)</code>.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Por qué se usa Tailwind por CDN y no compilado?</div>
+  <div class="a">Simplifica el despliegue: no hace falta Node.js ni proceso de build. En producción lo ideal sería compilarlo, pero para un entorno académico el CDN es suficiente y acelera el desarrollo.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Cómo se sube un documento de seguimiento?</div>
+  <div class="a">Via fetch() con FormData enviado a <code>index.php?controlador=Tutores&accion=seguimientoSubir</code>. El servidor sanitiza el nombre del archivo, verifica la extensión y lo guarda en <code>Documentacion/CICLO/ALUMNO/tipo/</code>. La respuesta es JSON. El frontend actualiza la lista sin recargar.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Qué hace el .htaccess de las carpetas internas?</div>
+  <div class="a">Impide el acceso directo a las carpetas <code>Core/</code>, <code>Modelo/</code>, <code>Controlador/</code>, etc. desde el navegador. Solo son accesibles mediante <code>require_once</code> desde PHP en el servidor, nunca por URL directa.</div>
+</div>
+
+<div class="qa">
+  <div class="q">❓ ¿Qué tablas principales tiene la base de datos?</div>
+  <div class="a">
+    <ul>
+      <li><code>tutores</code> — datos del tutor y su ciclo asignado</li>
+      <li><code>ciclos</code> y <code>cursos</code> — ciclos formativos disponibles</li>
+      <li><code>alumnos</code> — datos personales del alumno</li>
+      <li><code>curso_academico</code> — vincula alumno ↔ ciclo ↔ año</li>
+      <li><code>convenios</code> — empresas con convenio activo</li>
+      <li><code>convenios_nuevos</code> — solicitudes pendientes de validación</li>
+      <li><code>modulos</code> y <code>resultados_aprendizaje</code> — estructura académica del ciclo</li>
+      <li><code>plan_estudios</code> — vincula módulos con ciclos</li>
+      <li><code>usuarios</code> — credenciales de acceso (dni + hash contraseña + rol)</li>
+    </ul>
+  </div>
+</div>
+
+<br><br>
+<div style="text-align:center; color:#94a3b8; font-size:12px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+  TFG — Sistema de Gestión FCT · IES Ciudad Escolar ·  2025–2026
+</div>
+
+</div>
+</body>
+</html>

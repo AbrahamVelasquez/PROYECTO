@@ -151,6 +151,12 @@ validarAcceso('admin');
     </div>
 </div>
 
+<style>
+html.dark #formRevision                { background-color: #0f172a !important; }
+html.dark #formRevision label          { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+html.dark #modalRevisionConvenio label { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+</style>
+
 <script>
 let idParaValidar = null;
 
