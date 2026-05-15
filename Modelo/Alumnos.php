@@ -16,7 +16,7 @@ class Alumnos {
         // Base de la consulta - Se añade asig.enviado
         $query = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
                                 asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
-                                asig.horario, asig.horas_dia, asig.num_total_horas, asig.enviado,
+                                asig.horario, asig.horario_excepciones, asig.horas_dia, asig.num_total_horas, asig.enviado,
                                 conv.nombre_empresa, conv.municipio, conv.direccion,
                                 (f.id_firmada IS NOT NULL) as firmado 
                         FROM alumnos a
