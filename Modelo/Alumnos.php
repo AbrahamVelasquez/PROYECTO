@@ -413,7 +413,8 @@ class Alumnos {
                                 horario = ?, 
                                 num_total_horas = ?,
                                 fecha_inicio = ?,
-                                fecha_final = ?
+                                fecha_final = ?,
+                                dias_semana = ?
                             WHERE id_asignacion = ?";
 
                 $this->conn->prepare($sqlAsig)->execute([
@@ -424,6 +425,7 @@ class Alumnos {
                     $datos['horas_totales'] !== '' ? ($datos['horas_totales'] ?? null) : null,
                     $datos['fecha_inicio']    ?? null,
                     $datos['fecha_final']     ?? null,
+                    $datos['dias_semana']     ?? null,
                     $idAsignacion
                 ]);
             }

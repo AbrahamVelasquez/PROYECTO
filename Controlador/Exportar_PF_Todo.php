@@ -43,6 +43,42 @@ function fmtFechaT(string $fecha): string {
     catch (Exception $e) { return $fecha; }
 }
 
+function formatearHorarioPFT(string $excepciones, string $horarioSimple, string $diasSemana = ''): string {
+    $NOMBRES_CORTO = ['L'=>'Lunes','M'=>'Martes','X'=>'Miércoles','J'=>'Jueves','V'=>'Viernes','S'=>'Sábado','D'=>'Domingo'];
+
+    if (empty($excepciones)) {
+        if (empty($diasSemana) || empty($horarioSimple)) return $horarioSimple;
+        // Convierte "L-V" → "Lunes a Viernes"
+        $partesDias = explode('-', $diasSemana);
+        if (count($partesDias) === 2) {
+            $inicio = $NOMBRES_CORTO[trim($partesDias[0])] ?? trim($partesDias[0]);
+            $fin    = $NOMBRES_CORTO[trim($partesDias[1])] ?? trim($partesDias[1]);
+            return "$inicio a $fin: $horarioSimple";
+        }
+        // Si es un solo día (ej: "L")
+        $dia = $NOMBRES_CORTO[trim($diasSemana)] ?? $diasSemana;
+        return "$dia: $horarioSimple";
+    }
+
+    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+    $bloques = json_decode($excepciones, true) ?? [];
+    $partes  = [];
+    foreach ($bloques as $b) {
+        if (empty($b['dias'])) continue;
+        $dias = $b['dias'];
+        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+        $esConsecutivo = true;
+        for ($i = 1; $i < count($dias); $i++) {
+            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+        }
+        $labelDias = (count($dias) > 1 && $esConsecutivo)
+            ? $NOMBRES_CORTO[$dias[0]] . ' a ' . $NOMBRES_CORTO[$dias[count($dias)-1]]
+            : implode(', ', array_map(fn($d) => $NOMBRES_CORTO[$d], $dias));
+        $partes[] = $labelDias . ': ' . $b['inicio'] . '-' . $b['fin'];
+    }
+    return implode(", ", $partes);
+}
+
 function obtenerRAsCicloT(int $idCiclo): array {
     if (!$idCiclo) return [];
     try {
@@ -67,8 +103,8 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
     try {
         $conn = Conexion::getConexion();
         $sql  = "SELECT a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
-                        asig.id_asignacion, asig.id_convenio, asig.horario,
-                        asig.num_total_horas, asig.horas_dia,
+                        asig.id_asignacion, asig.id_convenio, asig.horario, asig.horario_excepciones,
+                        asig.num_total_horas, asig.horas_dia, asig.dias_semana,
                         asig.fecha_inicio, asig.fecha_final,
                         asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
                         conv.nombre_empresa, conv.cif, conv.mail AS email_empresa,
@@ -295,7 +331,11 @@ foreach ($todosLosDatos as $d) {
     $setVar($filaActual, 'fecha_ini',               $fechaIni);
     $setVar($filaActual, 'fecha_fin',               $fechaFin);
     $setVar($filaActual, 'fecha_ini-fecha_fin_1',   ($fechaIni && $fechaFin) ? "$fechaIni - $fechaFin" : '');
-    $setVar($filaActual, 'horario_cada_dia_1',      $d['horario'] ?? '');
+    $setVar($filaActual, 'horario_cada_dia_1', formatearHorarioPFT(
+        $d['horario_excepciones'] ?? '',
+        $d['horario'] ?? '',
+        $d['dias_semana'] ?? ''
+    ));
     $setVar($filaActual, 'inter_diario',            'Sí');
     $setVar($filaActual, 'adaptaciones?',           'no');
     $setVar($filaActual, 'autorizacion_extra?',     'no');

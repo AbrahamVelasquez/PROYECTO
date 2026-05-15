@@ -121,7 +121,8 @@ validarAcceso('tutor');
                     data-horas-totales="<?= intval($al['num_total_horas'] ?? 0) ?>"
                     data-fecha-inicio="<?= htmlspecialchars($al['fecha_inicio'] ?? '') ?>"
                     data-fecha-final="<?= htmlspecialchars($al['fecha_final'] ?? '') ?>"
-                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>">
+                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>"
+                    data-dias-semana="<?= htmlspecialchars($al['dias_semana'] ?? '') ?>">
                     <td class="p-3 text-center">
                         <button type="button" 
                             onclick="window.mostrarEdicion(
@@ -145,13 +146,13 @@ validarAcceso('tutor');
                                 '<?= addslashes($al['nombre_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>',
-                                <?= intval($al['anexo'] ?? 0) ?>,      
+                                <?= intval($al['anexo'] ?? 0) ?>,
                                 <?= intval($al['id_convenio'] ?? 0) ?>,
                                 '<?= addslashes($al['horario'] ?? '') ?>',
                                 <?= intval($al['num_total_horas'] ?? 0) ?>,
                                 '<?= addslashes($al['fecha_inicio'] ?? '') ?>',
                                 '<?= addslashes($al['fecha_final'] ?? '') ?>',
-                                '<?= addslashes($al['horario_excepciones'] ?? '') ?>'
+                                this.closest('tr')
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">

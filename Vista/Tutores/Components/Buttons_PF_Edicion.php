@@ -87,6 +87,7 @@ function recogerDatosFormulario(idAsignacion) {
         'fecha_final':          document.getElementById('pf_edit_fecha_final')?.value      ?? '',
         'horario':              document.getElementById('pf_edit_horario')?.value          ?? '',
         'horario_excepciones':  document.getElementById('pf_edit_horario_excepciones')?.value ?? '',
+        'dias_semana':          document.getElementById('pf_edit_dias_semana')?.value ?? '',
         // Periodo del select (nuevo)
         'periodo_planificacion': document.getElementById('pf_edit_periodo_planificacion')?.value ?? '1',
         // Intervalos (con id directos)
@@ -196,6 +197,7 @@ window.guardarBorrador = async function(idAsignacion) {
         'horas_totales':  'pf_edit_horas_totales',
         'fecha_inicio':   'pf_edit_fecha_inicio',
         'fecha_final':    'pf_edit_fecha_final',
+        'dias_semana':    'pf_edit_dias_semana',
     };
     for (const [key, id] of Object.entries(campos)) {
         const el = document.getElementById(id);

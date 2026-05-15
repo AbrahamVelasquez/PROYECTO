@@ -35,6 +35,40 @@ function fmtFecha(string $fecha): string {
     catch (Exception $e) { return $fecha; }
 }
 
+function formatearHorarioPF(string $excepciones, string $horarioSimple, string $diasSemana = ''): string {
+    $NOMBRES_CORTO = ['L'=>'Lunes','M'=>'Martes','X'=>'Miércoles','J'=>'Jueves','V'=>'Viernes','S'=>'Sábado','D'=>'Domingo'];
+
+    if (empty($excepciones)) {
+        if (empty($diasSemana) || empty($horarioSimple)) return $horarioSimple;
+        $partesDias = explode('-', $diasSemana);
+        if (count($partesDias) === 2) {
+            $inicio = $NOMBRES_CORTO[trim($partesDias[0])] ?? trim($partesDias[0]);
+            $fin    = $NOMBRES_CORTO[trim($partesDias[1])] ?? trim($partesDias[1]);
+            return "$inicio a $fin: $horarioSimple";
+        }
+        $dia = $NOMBRES_CORTO[trim($diasSemana)] ?? $diasSemana;
+        return "$dia: $horarioSimple";
+    }
+
+    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+    $bloques = json_decode($excepciones, true) ?? [];
+    $partes  = [];
+    foreach ($bloques as $b) {
+        if (empty($b['dias'])) continue;
+        $dias = $b['dias'];
+        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+        $esConsecutivo = true;
+        for ($i = 1; $i < count($dias); $i++) {
+            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+        }
+        $labelDias = (count($dias) > 1 && $esConsecutivo)
+            ? $NOMBRES_CORTO[$dias[0]] . ' a ' . $NOMBRES_CORTO[$dias[count($dias)-1]]
+            : implode(', ', array_map(fn($d) => $NOMBRES_CORTO[$d], $dias));
+        $partes[] = $labelDias . ': ' . $b['inicio'] . '-' . $b['fin'];
+    }
+    return implode(", ", $partes);
+}
+
 /** Devuelve los RAs del ciclo del tutor desde la BD. */
 function obtenerRAsCiclo(int $idCiclo): array {
     if (!$idCiclo) return [];
@@ -52,7 +86,6 @@ function obtenerRAsCiclo(int $idCiclo): array {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) { return []; }
 }
-
 // ──────────────────────────────────────────────────────────────
 // RECOGER DATOS DEL POST
 // ──────────────────────────────────────────────────────────────
@@ -220,22 +253,14 @@ $setVar('num_periodo_1',           $periodoSeleccionado);  // ← periodo del se
 $setVar('fecha_ini',               $fechaIni);
 $setVar('fecha_fin',               $fechaFin);
 $setVar('fecha_ini-fecha_fin_1',   ($fechaIni && $fechaFin) ? "$fechaIni - $fechaFin" : '');
-$setVar('horario_cada_dia_1',      $p['horario']        ?? '');
+
 
 // Excepciones de horario → texto legible
-$excepcionesRaw = trim($p['horario_excepciones'] ?? '');
-if ($excepcionesRaw) {
-    $excBloques = json_decode($excepcionesRaw, true) ?? [];
-    $nombresDias = ['L'=>'Lunes','M'=>'Martes','X'=>'Miércoles','J'=>'Jueves','V'=>'Viernes','S'=>'Sábado','D'=>'Domingo'];
-    $lineas = [];
-    foreach ($excBloques as $b) {
-        if (empty($b['dias'])) continue;
-        $diasTexto = implode(', ', array_map(fn($d) => $nombresDias[$d] ?? $d, $b['dias']));
-        $lineas[] = "$diasTexto: {$b['inicio']}–{$b['fin']}";
-    }
-    $excepcionesTexto = implode(' | ', $lineas);
-    $setVar('horario_excepciones', $excepcionesTexto);
-}
+$setVar('horario_cada_dia_1', formatearHorarioPF(
+    trim($p['horario_excepciones'] ?? ''),
+    $p['horario'] ?? '',
+    $p['dias_semana'] ?? ''
+));
 
 // Intervalos (Y → AC)
 $setVar('inter_diario',   $interDiario);
