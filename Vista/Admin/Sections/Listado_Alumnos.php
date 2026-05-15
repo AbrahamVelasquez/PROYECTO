@@ -200,7 +200,30 @@ validarAcceso('admin');
 
                         <!-- Horario -->
                         <td class="p-4 text-center text-slate-600">
-                            <?= $tieneHorario ? htmlspecialchars($al['horario']) : '<span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>' ?>
+                            <?php if (!$tieneHorario): ?>
+                                <span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>
+                            <?php else:
+                                $excepciones = trim($al['horario_excepciones'] ?? '');
+                                $bloques = $excepciones ? json_decode($excepciones, true) : null;
+                                if (!empty($bloques) && is_array($bloques)):
+                                    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+                                    foreach ($bloques as $bloque):
+                                        if (empty($bloque['dias'])) continue;
+                                        $dias = $bloque['dias'];
+                                        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+                                        $esConsecutivo = true;
+                                        for ($i = 1; $i < count($dias); $i++) {
+                                            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+                                        }
+                                        $labelDias = (count($dias) > 1 && $esConsecutivo)
+                                            ? $dias[0] . '-' . $dias[count($dias)-1]
+                                            : implode('', $dias);
+                            ?>
+                                    <span class="block text-slate-600 leading-tight"><?= htmlspecialchars($labelDias . ' ' . $bloque['inicio'] . '-' . $bloque['fin']) ?></span>
+                            <?php   endforeach;
+                                else: ?>
+                                    <span class="text-slate-600"><?= htmlspecialchars($al['horario']) ?></span>
+                            <?php endif; endif; ?>
                         </td>
 
                         <!-- H/Día -->

@@ -471,6 +471,7 @@ class Admin {
                 asig.fecha_inicio,
                 asig.fecha_final,
                 asig.horario,
+                asig.horario_excepciones,
                 asig.horas_dia,
                 asig.num_total_horas,
                 conv.nombre_empresa,
