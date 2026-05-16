@@ -18,6 +18,7 @@ validarAcceso('tutor');
     <!-- Anti-parpadeo: aplica tema antes de pintar -->
     <script>if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}</script>
     <link rel="stylesheet" href="Public/css/dark-mode.css">
+    <script src="Public/js/paginacion.js"></script>
     <style>
         /* Estilos base para pestañas */
         [data-tab] { display: none; }

@@ -123,17 +123,17 @@ validarAcceso('admin');
 
 <script>
 // ─── PAGINACIÓN: CONVENIOS DE EMPRESA ────────────────────────────────────────
-let convPorPagina = parseInt(localStorage.getItem('pag_conv_porPagina')) || 10;
+let convPorPagina = _leerPagStorage('conv');
 let convPaginaActual = 1;
 
 function convInicializar() {
     const filas = Array.from(document.querySelectorAll('#conv-tbody .conv-fila'));
     const total = filas.length;
     const label = document.getElementById('conv-pag-label');
-    if (label) label.textContent = convPorPagina + '/pág';
+    if (label) label.textContent = convPorPagina === 0 ? 'Todos' : convPorPagina + '/pág';
     const pag = document.getElementById('conv-paginacion');
     const contador = document.getElementById('conv-contador');
-    if (total <= convPorPagina) {
+    if (convPorPagina === 0 || total <= convPorPagina) {
         pag.classList.add('hidden');
         filas.forEach(f => f.style.display = '');
         if (contador) contador.textContent = total > 0 ? `${total} convenio${total !== 1 ? 's' : ''}` : '';
@@ -193,66 +193,10 @@ function convRenderizar() {
 
 document.addEventListener('DOMContentLoaded', convInicializar);
 
-// ─── Modal configurar paginación ─────────────────────────────────────────────
-window._pagCallbacks = window._pagCallbacks || {};
 window._pagCallbacks['conv'] = function(n) { convPorPagina = n; convPaginaActual = 1; convInicializar(); };
-
-function abrirModalPag(prefix) {
-    const val = parseInt(localStorage.getItem('pag_' + prefix + '_porPagina')) || 10;
-    document.getElementById('input-pag-' + prefix).value = val;
-    document.getElementById('modal-pag-' + prefix).style.display = 'flex';
-}
-function cerrarModalPag(prefix) {
-    document.getElementById('modal-pag-' + prefix).style.display = 'none';
-}
-function setPagPreset(prefix, n) {
-    document.getElementById('input-pag-' + prefix).value = n;
-}
-function aplicarPag(prefix) {
-    const val = parseInt(document.getElementById('input-pag-' + prefix).value);
-    if (!val || val < 1) return;
-    localStorage.setItem('pag_' + prefix + '_porPagina', val);
-    const label = document.getElementById(prefix + '-pag-label');
-    if (label) label.textContent = val + '/pág';
-    cerrarModalPag(prefix);
-    if (window._pagCallbacks[prefix]) window._pagCallbacks[prefix](val);
-}
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
 
-<!-- ─── Modal Configurar Paginación: Convenios de Empresa ─────────────────── -->
-<div id="modal-pag-conv" style="display:none"
-     class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
-     onclick="if(event.target===this)cerrarModalPag('conv')">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 border border-slate-100">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                Configurar Paginación
-            </h3>
-            <button onclick="cerrarModalPag('conv')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer leading-none">✕</button>
-        </div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Acceso rápido</p>
-        <div class="flex flex-wrap gap-2 mb-4">
-            <button type="button" onclick="setPagPreset('conv', 5)"  class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">5</button>
-            <button type="button" onclick="setPagPreset('conv', 10)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">10</button>
-            <button type="button" onclick="setPagPreset('conv', 15)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">15</button>
-            <button type="button" onclick="setPagPreset('conv', 20)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">20</button>
-            <button type="button" onclick="setPagPreset('conv', 25)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">25</button>
-            <button type="button" onclick="setPagPreset('conv', 50)" class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all cursor-pointer">50</button>
-        </div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cantidad personalizada</p>
-        <div class="flex items-center gap-3 mb-5">
-            <input type="number" id="input-pag-conv" min="1" max="200" placeholder="Ej: 12"
-                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-blue-200 transition-all"
-                onkeydown="if(event.key==='Enter')aplicarPag('conv')">
-            <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">por página</span>
-        </div>
-        <div class="flex gap-3 justify-end">
-            <button onclick="cerrarModalPag('conv')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
-            <button onclick="aplicarPag('conv')" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-all shadow-sm cursor-pointer">Aplicar</button>
-        </div>
-    </div>
-</div>
+<?php $pag_prefix = 'conv'; $pag_color = 'blue'; include 'Vista/Shared/Modal_Paginacion.php'; ?>
 
 <?php include 'Vista/Admin/Components/Modales_TC.php'; ?>
