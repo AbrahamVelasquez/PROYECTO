@@ -95,7 +95,7 @@ class Admin {
         $sqlUser = "INSERT INTO usuarios (username, password, rol) VALUES (:user, :pass, 'tutor')";
         $stmtUser = $this->conn->prepare($sqlUser);
 
-        // Ejecución actual (Texto plano para pruebas)
+        // Ejecución actual (Texto plano para PROYECTO)
         $stmtUser->execute([
             ':user' => $nuevoUsername,
             ':pass' => $nuevaPassword
@@ -209,8 +209,7 @@ class Admin {
 
     public function obtenerConvenios($busqueda = '', $ordenar = 'nombre_empresa') {
         try {
-            // Validamos que la columna de ordenación exista para evitar errores de SQL
-            $columnasPermitidas = ['nombre_empresa', 'cif', 'municipio', 'mail'];
+            $columnasPermitidas = ['nombre_empresa', 'cif', 'localidad', 'num_convenio'];
             if (!in_array($ordenar, $columnasPermitidas)) {
                 $ordenar = 'nombre_empresa';
             }
@@ -218,7 +217,7 @@ class Admin {
             $sql = "SELECT * FROM convenios 
                     WHERE nombre_empresa LIKE :busqueda 
                     OR cif LIKE :busqueda 
-                    OR municipio LIKE :busqueda
+                    OR localidad LIKE :busqueda
                     ORDER BY $ordenar ASC";
                     
             $stmt = $this->conn->prepare($sql);
@@ -248,24 +247,30 @@ class Admin {
         try {
             $this->conn->beginTransaction();
 
-            // 1. Insertamos en la tabla oficial 'convenios' con los datos revisados
-            $sql = "INSERT INTO convenios (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, nombre_representante, dni_representante, cargo) 
-                    VALUES (:nom, :cif, :dir, :mun, :cp, :pais, :tel, :fax, :mail, :nom_rep, :dni_rep, :cargo)";
+            // 1. Generar num_convenio automático (siguiente número disponible)
+            $stmtMax = $this->conn->prepare("SELECT MAX(CAST(num_convenio AS UNSIGNED)) FROM convenios");
+            $stmtMax->execute();
+            $maxNum = (int)$stmtMax->fetchColumn();
+            $nuevoNum = (string)($maxNum + 1);
+
+            // 2. Insertamos en la tabla oficial 'convenios'
+            $sql = "INSERT INTO convenios (num_convenio, nombre_empresa, cif, direccion, localidad, cp, telefono, fax, representante, especialidad, fecha_alta_renovacion, fecha_nueva_renovacion, observaciones) 
+                    VALUES (:num_conv, :nom, :cif, :dir, :loc, :cp, :tel, :fax, :rep, :esp, CURDATE(), :fecha_nueva, :obs)";
             
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([
-                ':nom'     => $d['nombre_empresa'],
-                ':cif'     => $d['cif'],
-                ':dir'     => $d['direccion'],
-                ':mun'     => $d['municipio'],
-                ':cp'      => $d['cp'],
-                ':pais'    => $d['pais'],
-                ':tel'     => $d['telefono'],
-                ':fax'     => $d['fax'],
-                ':mail'    => $d['mail'],
-                ':nom_rep' => $d['nombre_representante'],
-                ':dni_rep' => $d['dni_representante'],
-                ':cargo'   => $d['cargo']
+                ':num_conv'    => $nuevoNum,
+                ':nom'         => $d['nombre_empresa'],
+                ':cif'         => $d['cif'],
+                ':dir'         => $d['direccion'],
+                ':loc'         => $d['localidad'],
+                ':cp'          => $d['cp'],
+                ':tel'         => $d['telefono'],
+                ':fax'         => $d['fax'],
+                ':rep'         => $d['representante'],
+                ':esp'         => $d['especialidad']           ?? null,
+                ':fecha_nueva' => $d['fecha_nueva_renovacion'] ?? null,
+                ':obs'         => $d['observaciones']          ?? null,
             ]);
 
             // 2. Marcamos como validado en convenios_aprobados para que desaparezca de pendientes
@@ -296,24 +301,30 @@ class Admin {
                 throw new Exception("No se encontraron datos para el convenio ID: $id");
             }
 
-            // 2. AHORA SÍ, usamos 'datos' que acabamos de traer de la BD
-            $sqlIns = "INSERT INTO convenios (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, nombre_representante, dni_representante, cargo) 
-                    VALUES (:nom, :cif, :dir, :mun, :cp, :pais, :tel, :fax, :mail, :nom_rep, :dni_rep, :cargo)";
+            // 2. Generar num_convenio automático (siguiente número disponible)
+            $stmtMax = $this->conn->prepare("SELECT MAX(CAST(num_convenio AS UNSIGNED)) FROM convenios");
+            $stmtMax->execute();
+            $maxNum = (int)$stmtMax->fetchColumn();
+            $nuevoNum = (string)($maxNum + 1);
+
+            // 3. Insertamos en la tabla oficial 'convenios'
+            $sqlIns = "INSERT INTO convenios (num_convenio, nombre_empresa, cif, direccion, localidad, cp, telefono, fax, representante, especialidad, fecha_alta_renovacion, fecha_nueva_renovacion, observaciones) 
+                    VALUES (:num_conv, :nom, :cif, :dir, :loc, :cp, :tel, :fax, :rep, :esp, CURDATE(), :fecha_nueva, :obs)";
             
             $stmtIns = $this->conn->prepare($sqlIns);
             $stmtIns->execute([
-                ':nom'     => $datos['nombre_empresa'],
-                ':cif'     => $datos['cif'],
-                ':dir'     => $datos['direccion'],
-                ':mun'     => $datos['municipio'],
-                ':cp'      => $datos['cp'],
-                ':pais'    => $datos['pais'],
-                ':tel'     => $datos['telefono'],
-                ':fax'     => $datos['fax'],
-                ':mail'    => $datos['mail'],
-                ':nom_rep' => $datos['nombre_representante'],
-                ':dni_rep' => $datos['dni_representante'],
-                ':cargo'   => $datos['cargo']
+                ':num_conv'    => $nuevoNum,
+                ':nom'         => $datos['nombre_empresa'],
+                ':cif'         => $datos['cif'],
+                ':dir'         => $datos['direccion'],
+                ':loc'         => $datos['localidad'],
+                ':cp'          => $datos['cp'],
+                ':tel'         => $datos['telefono'],
+                ':fax'         => $datos['fax'],
+                ':rep'         => $datos['representante'],
+                ':esp'         => $datos['especialidad']           ?? null,
+                ':fecha_nueva' => $datos['fecha_nueva_renovacion'] ?? null,
+                ':obs'         => $datos['observaciones']          ?? null,
             ]);
 
             // 3. Marcamos como validado
@@ -336,48 +347,43 @@ class Admin {
                     nombre_empresa = :nombre_empresa,
                     cif = :cif,
                     direccion = :direccion,
-                    municipio = :municipio,
+                    localidad = :localidad,
                     cp = :cp,
-                    pais = :pais,
                     telefono = :telefono,
                     fax = :fax,
-                    mail = :mail,
-                    nombre_representante = :nombre_representante,
-                    dni_representante = :dni_representante,
-                    cargo = :cargo
+                    representante = :representante,
+                    especialidad = :especialidad,
+                    fecha_nueva_renovacion = :fecha_nueva_renovacion,
+                    observaciones = :observaciones
                     WHERE id_convenio_nuevo = :id_convenio_nuevo";
             
             $stmt = $this->conn->prepare($sql);
-            
-            // Ejecutamos pasando el array de datos que viene del controlador
             return $stmt->execute([
-                ':id_convenio_nuevo'    => $datos['id_convenio_nuevo'],
-                ':nombre_empresa'       => $datos['nombre_empresa'],
-                ':cif'                  => $datos['cif'],
-                ':direccion'            => $datos['direccion'],
-                ':municipio'            => $datos['municipio'],
-                ':cp'                   => $datos['cp'],
-                ':pais'                 => $datos['pais'],
-                ':telefono'             => $datos['telefono'],
-                ':fax'                  => $datos['fax'],
-                ':mail'                 => $datos['mail'],
-                ':nombre_representante' => $datos['nombre_representante'],
-                ':dni_representante'    => $datos['dni_representante'],
-                ':cargo'                => $datos['cargo']
+                ':id_convenio_nuevo'      => $datos['id_convenio_nuevo'],
+                ':nombre_empresa'         => $datos['nombre_empresa'],
+                ':cif'                    => $datos['cif'],
+                ':direccion'              => $datos['direccion'],
+                ':localidad'              => $datos['localidad'],
+                ':cp'                     => $datos['cp'],
+                ':telefono'               => $datos['telefono'],
+                ':fax'                    => $datos['fax'],
+                ':representante'          => $datos['representante'],
+                ':especialidad'           => $datos['especialidad']           ?? null,
+                ':fecha_nueva_renovacion' => $datos['fecha_nueva_renovacion'] ?? null,
+                ':observaciones'          => $datos['observaciones']          ?? null,
             ]);
 
         } catch (PDOException $e) {
-            // Opcional: registrar el error para depuración
             error_log("Error en actualizarConvenioPendiente: " . $e->getMessage());
             return false;
         }
     }
 
-    public function eliminarConvenio($id) {
+    public function eliminarConvenio($num_convenio) {
         try {
-            $sql = "DELETE FROM convenios WHERE id_convenio = :id";
+            $sql = "DELETE FROM convenios WHERE num_convenio = :id";
             $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([':id' => $id]);
+            return $stmt->execute([':id' => $num_convenio]);
         } catch (PDOException $e) {
             error_log("Error en el Modelo: " . $e->getMessage());
             return false;
@@ -387,19 +393,27 @@ class Admin {
     /**
      * Actualiza un convenio en la tabla oficial
      */
-    public function actualizarConvenio($id, $d) {
+    public function actualizarConvenio($num_convenio, $d) {
         $sql = "UPDATE convenios SET 
-                nombre_empresa = ?, cif = ?, direccion = ?, municipio = ?, 
-                cp = ?, pais = ?, mail = ?, telefono = ?, fax = ?,
-                nombre_representante = ?, dni_representante = ?, cargo = ?
-                WHERE id_convenio = ?";
+                nombre_empresa = ?, cif = ?, direccion = ?, localidad = ?, 
+                cp = ?, telefono = ?, fax = ?,
+                representante = ?,
+                especialidad = ?,
+                fecha_alta_renovacion = ?,
+                fecha_nueva_renovacion = ?,
+                observaciones = ?
+                WHERE num_convenio = ?";
                 
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
-            $d['nombre_empresa'], $d['cif'], $d['direccion'], $d['municipio'],
-            $d['cp'], $d['pais'], $d['mail'], $d['telefono'], $d['fax'],
-            $d['nombre_representante'], $d['dni_representante'], $d['cargo'], 
-            $id
+            $d['nombre_empresa'], $d['cif'], $d['direccion'], $d['localidad'],
+            $d['cp'], $d['telefono'], $d['fax'],
+            $d['representante'],
+            $d['especialidad']           ?? null,
+            $d['fecha_alta_renovacion']  ?? null,
+            $d['fecha_nueva_renovacion'] ?? null,
+            $d['observaciones']          ?? null,
+            $num_convenio
         ]);
     }
 
@@ -407,11 +421,10 @@ class Admin {
      * Sincroniza por CIF o por Nombre
      */
     public function sincronizarConvenioPendiente($cifAntiguo, $nombreAntiguo, $d) {
-        // La lógica es: Actualiza si el CIF coincide OR el nombre coincide
         $sql = "UPDATE convenios_nuevos SET 
-                nombre_empresa = ?, cif = ?, direccion = ?, municipio = ?, 
-                cp = ?, pais = ?, mail = ?, telefono = ?, fax = ?,
-                nombre_representante = ?, dni_representante = ?, cargo = ?
+                nombre_empresa = ?, cif = ?, direccion = ?, localidad = ?, 
+                cp = ?, telefono = ?, fax = ?,
+                representante = ?
                 WHERE cif = ? OR nombre_empresa = ?";
                 
         $stmt = $this->conn->prepare($sql);
@@ -419,17 +432,13 @@ class Admin {
             $d['nombre_empresa'], 
             $d['cif'], 
             $d['direccion'], 
-            $d['municipio'],
+            $d['localidad'],
             $d['cp'], 
-            $d['pais'], 
-            $d['mail'], 
             $d['telefono'], 
             $d['fax'],
-            $d['nombre_representante'], 
-            $d['dni_representante'], 
-            $d['cargo'], 
-            $cifAntiguo,    // Para el primer ? del WHERE
-            $nombreAntiguo  // Para el segundo ? del WHERE (el OR)
+            $d['representante'],
+            $cifAntiguo,
+            $nombreAntiguo
         ]);
     }
 
@@ -467,7 +476,7 @@ class Admin {
                 al.sexo,
                 al.correo,
                 asig.id_asignacion,
-                asig.id_convenio,
+                asig.num_convenio,
                 asig.fecha_inicio,
                 asig.fecha_final,
                 asig.horario,
@@ -476,16 +485,16 @@ class Admin {
                 asig.num_total_horas,
                 conv.nombre_empresa,
                 conv.direccion,
-                conv.municipio,
+                conv.localidad,
                 ci.nombre_ciclo,
                 ci.grado,
                 cu.nombre_curso
             FROM asignaciones asig
-            JOIN alumnos al         ON asig.id_alumno   = al.id_alumno
-            JOIN convenios conv     ON asig.id_convenio = conv.id_convenio
-            JOIN curso_academico ca ON ca.id_alumno     = al.id_alumno
-            JOIN ciclos ci          ON ca.id_ciclo      = ci.id_ciclo
-            JOIN cursos cu          ON ci.id_curso      = cu.id_curso
+            JOIN alumnos al         ON asig.id_alumno    = al.id_alumno
+            JOIN convenios conv     ON asig.num_convenio = conv.num_convenio
+            JOIN curso_academico ca ON ca.id_alumno      = al.id_alumno
+            JOIN ciclos ci          ON ca.id_ciclo       = ci.id_ciclo
+            JOIN cursos cu          ON ci.id_curso       = cu.id_curso
             WHERE asig.enviado = 1
             AND asig.id_asignacion NOT IN (
                 SELECT id_asignacion FROM asignaciones_firmadas
