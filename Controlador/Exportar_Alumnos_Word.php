@@ -32,13 +32,13 @@ function obtenerAlumnosWord(array $ids): array {
         $conn = Conexion::getConexion();
         $ph   = implode(',', array_fill(0, count($ids), '?'));
         $sql  = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo,
-                        asig.id_convenio, asig.horario, asig.num_total_horas, asig.horas_dia,
+                        asig.num_convenio, asig.horario, asig.num_total_horas, asig.horas_dia,
                         asig.fecha_inicio, asig.fecha_final, asig.nombre_tutor_empresa,
                         asig.horario_excepciones,
-                        conv.nombre_empresa, conv.municipio, conv.direccion
+                        conv.nombre_empresa, conv.localidad, conv.direccion
                  FROM alumnos a
-                 LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
-                 LEFT JOIN convenios conv    ON asig.id_convenio = conv.id_convenio
+                 LEFT JOIN asignaciones asig ON a.id_alumno  = asig.id_alumno
+                 LEFT JOIN convenios conv    ON asig.num_convenio = conv.num_convenio
                  WHERE a.id_alumno IN ($ph)
                  ORDER BY a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
         $stmt = $conn->prepare($sql);
@@ -195,8 +195,8 @@ foreach ($alumnos as $al) {
         $al['sexo'] ?? '',
         $al['dni'] ?? '',
         $al['nombre_empresa'] ?? '',
-        $al['id_convenio'] ? str_pad((string)$al['id_convenio'], 4, '0', STR_PAD_LEFT) : '',
-        trim(($al['direccion'] ?? '') . ($al['municipio'] ? ', ' . $al['municipio'] : '')),
+        $al['num_convenio'] ?? '',
+        trim(($al['direccion'] ?? '') . ($al['localidad'] ? ', ' . $al['localidad'] : '')),
         fmtFecha($al['fecha_inicio'] ?? ''),
         fmtFecha($al['fecha_final'] ?? ''),
         formatearHorarioExportacion($al),

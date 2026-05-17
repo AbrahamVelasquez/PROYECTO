@@ -103,12 +103,12 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
     try {
         $conn = Conexion::getConexion();
         $sql  = "SELECT a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
-                        asig.id_asignacion, asig.id_convenio, asig.horario, asig.horario_excepciones,
+                        asig.id_asignacion, asig.num_convenio, asig.horario, asig.horario_excepciones,
                         asig.num_total_horas, asig.horas_dia, asig.dias_semana,
                         asig.fecha_inicio, asig.fecha_final,
                         asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
-                        conv.nombre_empresa, conv.cif, conv.mail AS email_empresa,
-                        conv.telefono AS tel_empresa, conv.direccion, conv.municipio,
+                        conv.nombre_empresa, conv.cif, conv.representante AS email_empresa,
+                        conv.telefono AS tel_empresa, conv.direccion, conv.localidad,
                         ci.id_ciclo, ci.nombre_ciclo,
                         cu.id_curso,
                         ca.anio_inicio, ca.anio_fin,
@@ -117,14 +117,14 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
                         t.email AS tutor_email, t.telefono AS tutor_tel,
                         cu2.nombre_curso AS nombre_curso_tutor
                  FROM asignaciones asig
-                 INNER JOIN alumnos a         ON asig.id_alumno    = a.id_alumno
+                 INNER JOIN alumnos a              ON asig.id_alumno    = a.id_alumno
                  INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                 LEFT  JOIN convenios conv    ON asig.id_convenio  = conv.id_convenio
-                 INNER JOIN curso_academico ca ON a.id_alumno      = ca.id_alumno
-                 INNER JOIN ciclos ci          ON ca.id_ciclo       = ci.id_ciclo
-                 INNER JOIN cursos cu          ON ci.id_curso       = cu.id_curso
-                 LEFT  JOIN tutores t          ON t.id_ciclo        = ci.id_ciclo
-                 LEFT  JOIN cursos cu2         ON ci.id_curso       = cu2.id_curso
+                 LEFT  JOIN convenios conv         ON asig.num_convenio = conv.num_convenio
+                 INNER JOIN curso_academico ca     ON a.id_alumno       = ca.id_alumno
+                 INNER JOIN ciclos ci              ON ca.id_ciclo       = ci.id_ciclo
+                 INNER JOIN cursos cu              ON ci.id_curso       = cu.id_curso
+                 LEFT  JOIN tutores t              ON t.id_ciclo        = ci.id_ciclo
+                 LEFT  JOIN cursos cu2             ON ci.id_curso       = cu2.id_curso
                  WHERE asig.id_asignacion = ?
                  LIMIT 1";
         $stmt = $conn->prepare($sql);
@@ -308,7 +308,7 @@ foreach ($todosLosDatos as $d) {
     $fechaIni = fmtFechaT($d['fecha_inicio'] ?? '');
     $fechaFin = fmtFechaT($d['fecha_final']  ?? '');
 
-    $setVar($filaActual, 'num_convenio',            $d['id_convenio']  ?? '');
+    $setVar($filaActual, 'num_convenio',            $d['num_convenio'] ?? '');
     $setVar($filaActual, 'num_anexo',               $d['anexo']        ?? '');
     $setVar($filaActual, 'Alumno',                  trim("$nomAlu $ape1Alu $ape2Alu"));
     $setVar($filaActual, 'nom_alumno',              $nomAlu);
