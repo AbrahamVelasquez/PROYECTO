@@ -72,7 +72,7 @@ function recogerDatosFormulario(idAsignacion) {
         'tutor_centro_correo':  document.getElementById('pf_edit_tutor_centro_correo')?.value  ?? '',
         'tutor_centro_tel':     document.getElementById('pf_edit_tutor_centro_tel')?.value     ?? '',
         // Empresa
-        'id_convenio':          document.getElementById('pf_id_convenio')?.value           ?? '',
+        'num_convenio':         document.getElementById('pf_id_convenio')?.value           ?? '',
         'nombre_empresa':       document.getElementById('pf_edit_nombre_empresa')?.value   ?? '',
         'nif_empresa':          document.getElementById('pf_edit_nif_empresa')?.value      ?? '',
         'email_empresa':        document.getElementById('pf_edit_email_empresa')?.value    ?? '',

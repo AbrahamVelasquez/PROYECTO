@@ -100,16 +100,12 @@ validarAcceso('tutor');
                     <input type="text" name="direccion" id="edit_conv_direccion" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Municipio <span class="text-red-500">*</span></label>
-                    <input type="text" name="municipio" id="edit_conv_municipio" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Localidad <span class="text-red-500">*</span></label>
+                    <input type="text" name="localidad" id="edit_conv_localidad" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CP <span class="text-red-500">*</span></label>
                     <input type="text" name="cp" id="edit_conv_cp" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
-                </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">País</label>
-                    <input type="text" name="pais" id="edit_conv_pais" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tfno</label>
@@ -120,25 +116,24 @@ validarAcceso('tutor');
                     <input type="text" name="fax" id="edit_conv_fax" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Email</label>
-                    <input type="email" name="email" id="edit_conv_email" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Fecha Nueva Renovación</label>
+                    <input type="date" name="fecha_nueva_renovacion" id="edit_conv_fecha_nueva" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
             </div>
 
             <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-4 border-b border-amber-50 pb-2">Representante Legal</p>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="md:col-span-1">
+            <div class="grid grid-cols-1 gap-4 mb-6">
+                <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre y Apellidos</label>
-                    <input type="text" name="nombre_rep_legal" id="edit_conv_rep_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="representante" id="edit_conv_rep_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI</label>
-                    <input type="text" name="dni_rep_legal" id="edit_conv_rep_dni" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
-                </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cargo</label>
-                    <input type="text" name="cargo_rep_legal" id="edit_conv_rep_cargo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 mb-8">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Observaciones</label>
+                    <textarea name="observaciones" id="edit_conv_observaciones" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none resize-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"></textarea>
                 </div>
             </div>
 
@@ -207,30 +202,30 @@ validarAcceso('tutor');
         document.getElementById('edit_conv_id').value = datos.id_convenio_nuevo;
         
         // Empresa
-        document.getElementById('edit_conv_nombre').value = datos.nombre_empresa;
-        document.getElementById('edit_conv_cif').value = datos.cif;
-        document.getElementById('edit_conv_direccion').value = datos.direccion;
-        document.getElementById('edit_conv_municipio').value = datos.municipio;
-        document.getElementById('edit_conv_cp').value = datos.cp;
-        document.getElementById('edit_conv_pais').value = datos.pais || 'ESPAÑA';
-        document.getElementById('edit_conv_telefono').value = datos.telefono || '';
-        document.getElementById('edit_conv_fax').value = datos.fax || '';
-        document.getElementById('edit_conv_email').value = datos.mail;
-        
+        document.getElementById('edit_conv_nombre').value    = datos.nombre_empresa;
+        document.getElementById('edit_conv_cif').value       = datos.cif;
+        document.getElementById('edit_conv_direccion').value = datos.direccion      ?? '';
+        document.getElementById('edit_conv_localidad').value = datos.localidad      ?? '';
+        document.getElementById('edit_conv_cp').value        = datos.cp             ?? '';
+        document.getElementById('edit_conv_telefono').value  = datos.telefono       ?? '';
+        document.getElementById('edit_conv_fax').value       = datos.fax            ?? '';
+
         // Representante
-        document.getElementById('edit_conv_rep_nombre').value = datos.nombre_representante || '';
-        document.getElementById('edit_conv_rep_dni').value = datos.dni_representante || '';
-        document.getElementById('edit_conv_rep_cargo').value = datos.cargo || '';
+        document.getElementById('edit_conv_rep_nombre').value = datos.representante ?? '';
+
+        // Otros
+        document.getElementById('edit_conv_fecha_nueva').value  = datos.fecha_nueva_renovacion  ?? '';
+        document.getElementById('edit_conv_observaciones').value = datos.observaciones           ?? '';
 
         document.getElementById('modalEditarConvenioNuevo').style.display = 'flex';
     }
 
-    function abrirConfirmarEliminar(idConvenio, nombre) {
+    function abrirConfirmarEliminar(numConvenio, nombre) {
         document.getElementById('modalConfirmarNombre').textContent = nombre;
         document.getElementById('modalConfirmarEliminar').style.display = 'flex';
         document.getElementById('btnConfirmarEliminarFav').onclick = function() {
-            document.querySelectorAll('input[name="id_convenio_eliminar"]').forEach(function(input) {
-                if (input.value == idConvenio) {
+            document.querySelectorAll('input[name="num_convenio_eliminar"]').forEach(function(input) {
+                if (input.value == numConvenio) {
                     var btn = document.createElement('input');
                     btn.type = 'hidden'; btn.name = 'btnEliminarFav'; btn.value = '1';
                     input.closest('form').appendChild(btn);

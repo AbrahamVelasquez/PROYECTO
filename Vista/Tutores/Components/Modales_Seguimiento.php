@@ -401,13 +401,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl">
                 <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1.5">Formato de nombre de archivo esperado</p>
                 <p class="text-[10px] font-bold text-slate-600 leading-relaxed">
-                    Nombra cada archivo como
-                    <span class="font-black text-slate-800">apellido1Apellido2_Nombre</span>
-                    o <span class="font-black text-slate-800">Apellido1_Apellido2_Nombre</span>
-                    (con cualquier extensión).<br>
-                    Ej: <span class="text-orange-600 font-black">GarciaLopez_Juan.pdf</span>
-                    · <span class="text-orange-600 font-black">Garcia_Lopez_Juan.pdf</span>
-                    · <span class="text-orange-600 font-black">Martinez_Ana.pdf</span>
+                    El archivo debe comenzar por <span class="font-black text-slate-800">Apellido1_Apellido2_Ciclo</span>
+                    seguido de cualquier sufijo.<br>
+                    Plan Formativo: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2.pdf</span>
+                    · <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_signed.pdf</span><br>
+                    Fichas: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_marzo26.pdf</span>
+                    · <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_abril26_corregida.pdf</span>
                 </p>
             </div>
 
@@ -490,15 +489,15 @@ function _masivoNormalizar(s) {
     return s2.replace(/^_+/, '').replace(/_+$/, '');
 }
 
-function onMasivoFilesSelected(input) {
+async function onMasivoFilesSelected(input) {
     if (!input.files || !input.files.length) return;
     const files = Array.from(input.files);
     document.getElementById('masivoNombreFicheros').textContent =
         files.length === 1 ? files[0].name : `${files.length} archivos seleccionados`;
-    _masivoMostrarPreview(files);
+    await _masivoMostrarPreview(files);
 }
 
-function _masivoMostrarPreview(files) {
+async function _masivoMostrarPreview(files) {
     // Recoge todos los alumnos del DOM (incluyendo filas ocultas por filtros/paginación)
     const alumnos = Array.from(document.querySelectorAll('tr.seg-fila')).map(tr => ({
         carpeta: tr.dataset.carpeta || '',
@@ -506,33 +505,73 @@ function _masivoMostrarPreview(files) {
         flat:    (tr.dataset.carpeta || '').replace(/_/g, ''),
     }));
 
-    _masivoArchivos = files.map((file, i) => {
-        const base  = file.name.replace(/\.[^.]+$/, '');           // sin extensión
-        const flat  = _masivoNormalizar(base).replace(/_/g, '');   // aplana separadores
-        const match = alumnos.find(al => al.flat === flat);
-        return { file, idx: i, matched: !!match, carpeta: match?.carpeta ?? null, nombreAlumno: match?.nombre ?? null };
+    const ciclo = window.SEGUIMIENTO_CICLO || '';
+
+    // Para cada alumno con ficheros asignados, cargamos sus archivos actuales
+    const archivosExistentes = {};
+    const alumnosImplicados = new Set();
+    files.forEach(file => {
+        const baseNorm = _masivoNormalizar(file.name.replace(/\.[^.]+$/, ''));
+        const match = alumnos.find(al => baseNorm.startsWith(_masivoNormalizar(al.carpeta)));
+        if (match) alumnosImplicados.add(match.carpeta);
     });
 
-    const svgOk = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>`;
-    const svgNo = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 shrink-0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    await Promise.all([...alumnosImplicados].map(async carpeta => {
+        try {
+            const res  = await fetch(`index.php?controlador=Tutores&accion=seguimientoListar&tipo=${encodeURIComponent(_masivoTipo)}&ciclo=${encodeURIComponent(ciclo)}&alumno=${encodeURIComponent(carpeta)}`);
+            const data = await res.json();
+            if (data.success) archivosExistentes[carpeta] = (data.archivos || []).map(f => f.toLowerCase());
+        } catch { archivosExistentes[carpeta] = []; }
+    }));
 
-    document.getElementById('masivoLista').innerHTML = _masivoArchivos.map(item => `
-        <div id="masivo-item-${item.idx}" class="flex items-center gap-3 px-3 py-2.5 border rounded-xl ${item.matched ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}">
-            <span id="masivo-icon-${item.idx}" class="shrink-0">${item.matched ? svgOk : svgNo}</span>
+    _masivoArchivos = files.map((file, i) => {
+        // El prefijo del alumno es GARCIA_LOPEZ_DAW2 — el fichero debe empezar por él
+        const base     = file.name.replace(/\.[^.]+$/, '');           // sin extensión
+        const baseNorm = _masivoNormalizar(base);                     // normalizado
+        const match    = alumnos.find(al => {
+            const prefijo = _masivoNormalizar(al.carpeta);
+            return baseNorm.startsWith(prefijo);
+        });
+        const nombreNorm = file.name.toLowerCase();
+        const existentes  = match ? (archivosExistentes[match.carpeta] || []) : [];
+        const esDuplicado = existentes.includes(nombreNorm);
+        return { file, idx: i, matched: !!match, carpeta: match?.carpeta ?? null, nombreAlumno: match?.nombre ?? null, duplicado: esDuplicado };
+    });
+
+    const svgOk  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const svgNo  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 shrink-0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    const svgWarn = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+
+    document.getElementById('masivoLista').innerHTML = _masivoArchivos.map(item => {
+        let bgClass, icon, statusText, statusColor;
+        if (!item.matched) {
+            bgClass = 'bg-red-50 border-red-200'; icon = svgNo;
+            statusText = 'Sin coincidencia encontrada'; statusColor = 'text-red-400';
+        } else if (item.duplicado) {
+            bgClass = 'bg-amber-50 border-amber-300'; icon = svgWarn;
+            statusText = '⚠ Ya existe — se subirá con nombre distinto'; statusColor = 'text-amber-600';
+        } else {
+            bgClass = 'bg-emerald-50 border-emerald-200'; icon = svgOk;
+            statusText = '→ ' + item.nombreAlumno; statusColor = 'text-emerald-600';
+        }
+        return `
+        <div id="masivo-item-${item.idx}" class="flex items-center gap-3 px-3 py-2.5 border rounded-xl ${bgClass}">
+            <span id="masivo-icon-${item.idx}" class="shrink-0">${icon}</span>
             <div class="flex-1 min-w-0">
                 <p class="text-[10px] font-black text-slate-700 truncate">${item.file.name}</p>
-                <p id="masivo-status-${item.idx}" class="text-[9px] font-bold mt-0.5 ${item.matched ? 'text-emerald-600' : 'text-red-400'}">
-                    ${item.matched ? '→ ' + item.nombreAlumno : 'Sin coincidencia encontrada'}
-                </p>
+                <p id="masivo-status-${item.idx}" class="text-[9px] font-bold mt-0.5 ${statusColor}">${statusText}</p>
             </div>
-        </div>`).join('');
+        </div>`;
+    }).join('');
 
     document.getElementById('masivoListaWrapper').style.display = 'block';
 
     const matchCount = _masivoArchivos.filter(a => a.matched).length;
+    const dupCount   = _masivoArchivos.filter(a => a.matched && a.duplicado).length;
     const total      = _masivoArchivos.length;
-    document.getElementById('masivoResumenTexto').textContent =
-        `${matchCount} de ${total} archivo${total !== 1 ? 's' : ''} asignado${matchCount !== 1 ? 's' : ''}`;
+    let resumen = `${matchCount} de ${total} archivo${total !== 1 ? 's' : ''} asignado${matchCount !== 1 ? 's' : ''}`;
+    if (dupCount > 0) resumen += ` · ⚠ ${dupCount} ya exist${dupCount !== 1 ? 'en' : 'e'}`;
+    document.getElementById('masivoResumenTexto').textContent = resumen;
     const btn = document.getElementById('masivoBtnSubir');
     btn.disabled    = matchCount === 0;
     btn.textContent = matchCount > 0
