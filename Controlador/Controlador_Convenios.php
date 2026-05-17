@@ -21,9 +21,7 @@ class Convenios_Controlador {
         $id_tutor_actual = $_SESSION['id_tutor']; 
         $id_ciclo_actual = $_SESSION['id_ciclo'] ?? null; 
         
-        // Recogemos la búsqueda priorizando POST (el nuevo método)
-        // Pero mantenemos GET por si viniera de alguna redirección antigua
-        $terminoBusqueda = $_POST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
+        $terminoBusqueda = $_REQUEST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
         
         $resultadosBusqueda = [];
 

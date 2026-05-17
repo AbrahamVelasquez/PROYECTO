@@ -21,9 +21,9 @@ class Admin_Controlador {
 
     // Acción para ver la tabla de tutores
     public function mostrarTutores() {
-        $busqueda = $_POST['busqueda'] ?? '';
-        $ordenar = $_POST['ordenar'] ?? 'id';
-        $filtro_curso = $_POST['filtro_curso'] ?? '';
+        $busqueda = $_REQUEST['busqueda'] ?? '';
+        $ordenar = $_REQUEST['ordenar'] ?? 'id';
+        $filtro_curso = $_REQUEST['filtro_curso'] ?? '';
 
         // $admin = new Admin(); // <-- ELIMINADO: Ya usamos $this->admin
         $tutores = $this->admin->obtenerTutores($busqueda, $ordenar, $filtro_curso);
@@ -81,9 +81,8 @@ class Admin_Controlador {
 
     // En Controlador_Admin.php
     public function mostrarConvenios() {
-        $busqueda = $_POST['busqueda'] ?? '';
-        // Cambia 'nombre' por 'nombre_empresa' o como se llame en tu BD
-        $ordenar = $_POST['ordenar'] ?? 'nombre_empresa'; 
+        $busqueda = $_REQUEST['busqueda'] ?? '';
+        $ordenar = $_REQUEST['ordenar'] ?? 'nombre_empresa';
         
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         

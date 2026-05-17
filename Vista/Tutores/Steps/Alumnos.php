@@ -1,14 +1,19 @@
-<?php 
+<?php
 
 // Vista/Tutores/Steps/Alumnos.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
 
-// Incluimos el Header (Título y Filtros)
-include __DIR__ . '/../Components/Header_Alumnos.php'; 
+// Paginación PHP
+$pp_alum  = leerPorPagina('pp_alum', 10);
+$pag_alum = leerPaginaActual('pag_alum');
+$total_alum = count($alumnos ?? []);
+$alumnosPag = paginarArray($alumnos ?? [], $pp_alum, $pag_alum);
+
+include __DIR__ . '/../Components/Header_Alumnos.php';
 
 ?>
 <style>
@@ -59,11 +64,17 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
 
 <!-- Barra superior: contador + config paginación -->
 <div class="flex items-center justify-between mb-2">
-    <span id="alum-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
-    <button type="button" onclick="abrirModalPag('alum')" title="Configurar filas por página"
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+        <?php if ($pp_alum > 0 && $total_alum > $pp_alum): ?>
+            Mostrando <?= ($pag_alum - 1) * $pp_alum + 1 ?>–<?= min($pag_alum * $pp_alum, $total_alum) ?> de <?= $total_alum ?>
+        <?php elseif ($total_alum > 0): ?>
+            <?= $total_alum ?> alumno<?= $total_alum !== 1 ? 's' : '' ?>
+        <?php endif; ?>
+    </span>
+    <button type="button" onclick="document.getElementById('modal-pag-alum').style.display='flex'" title="Configurar filas por página"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span id="alum-pag-label">10/pág</span>
+        <span><?= $pp_alum > 0 ? $pp_alum . '/pág' : 'Todos' ?></span>
     </button>
 </div>
 
@@ -89,10 +100,10 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
     </thead>
     <!-- id="tablaAlumnosBody" eso se colocó para funcionalidades de javascript que se usan en el header, para búsqueda -->
     <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
-      <?php if (empty($alumnos)): ?>
+      <?php if (empty($alumnosPag)): ?>
         <tr><td colspan="14" class="py-10 text-center text-slate-400 italic">No hay resultados.</td></tr>
       <?php else: ?>
-        <?php foreach ($alumnos as $al): 
+        <?php foreach ($alumnosPag as $al):
             $tieneEmpresa = !empty($al['id_convenio']);
             $tieneDireccion = !empty($al['direccion']);
             $f_inicio = ($al['fecha_inicio'] && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
@@ -206,19 +217,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
   </table>
 </div>
 
-<div id="alum-paginacion" class="hidden flex items-center justify-center mt-3 gap-1.5">
-    <button id="alum-prev" onclick="alumCambiarPagina(alumPaginaActual - 1)"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-    </button>
-    <div id="alum-paginas" class="flex items-center gap-1.5"></div>
-    <button id="alum-next" onclick="alumCambiarPagina(alumPaginaActual + 1)"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-        Siguiente
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-</div>
+<?= renderizarNavPaginacion($total_alum, $pag_alum, $pp_alum, 'pag_alum', 'orange') ?>
 
 <?php
 // Incluimos todos los Modales
@@ -386,80 +385,7 @@ function mostrarErrorExportar(nombreAlumno, checkbox) {
     return false;
 }
 
-// ─── PAGINACIÓN: ALUMNOS ─────────────────────────────────────────────────────
-let alumPorPagina = _leerPagStorage('alum');
-let alumPaginaActual = 1;
-
-function alumInicializar() {
-    const filas = Array.from(document.querySelectorAll('#tablaAlumnosBody .alum-fila'));
-    const total = filas.length;
-    const label = document.getElementById('alum-pag-label');
-    if (label) label.textContent = alumPorPagina === 0 ? 'Todos' : alumPorPagina + '/pág';
-    const pag = document.getElementById('alum-paginacion');
-    const contador = document.getElementById('alum-contador');
-    if (alumPorPagina === 0 || total <= alumPorPagina) {
-        pag.classList.add('hidden');
-        filas.forEach(f => f.style.display = '');
-        if (contador) contador.textContent = total > 0 ? `${total} alumno${total !== 1 ? 's' : ''}` : '';
-        return;
-    }
-    pag.classList.remove('hidden');
-    alumRenderizar();
-}
-
-function alumCambiarPagina(nuevaPagina) {
-    const filas = document.querySelectorAll('#tablaAlumnosBody .alum-fila');
-    const totalPaginas = Math.ceil(filas.length / alumPorPagina);
-    if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
-    alumPaginaActual = nuevaPagina;
-    alumRenderizar();
-}
-
-function alumRenderizar() {
-    const filas = Array.from(document.querySelectorAll('#tablaAlumnosBody .alum-fila'));
-    const total = filas.length;
-    const totalPaginas = Math.ceil(total / alumPorPagina);
-    const inicio = (alumPaginaActual - 1) * alumPorPagina;
-    const fin    = Math.min(inicio + alumPorPagina, total);
-
-    filas.forEach((fila, i) => {
-        fila.style.display = (i >= inicio && i < fin) ? '' : 'none';
-    });
-
-    const contador = document.getElementById('alum-contador');
-    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
-
-    document.getElementById('alum-prev').disabled = alumPaginaActual === 1;
-    document.getElementById('alum-next').disabled = alumPaginaActual === totalPaginas;
-
-    const contenedor = document.getElementById('alum-paginas');
-    contenedor.innerHTML = '';
-    const pagsMostrar = new Set([1, totalPaginas, alumPaginaActual, alumPaginaActual - 1, alumPaginaActual + 1]
-        .filter(p => p >= 1 && p <= totalPaginas));
-    [...pagsMostrar].sort((a, b) => a - b).forEach((p, idx, arr) => {
-        const prev = arr[idx - 1];
-        if (prev !== undefined && p - prev > 1) {
-            const sep = document.createElement('span');
-            sep.className = 'text-slate-300 text-xs font-bold px-1';
-            sep.textContent = '···';
-            contenedor.appendChild(sep);
-        }
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = p;
-        btn.onclick = () => alumCambiarPagina(p);
-        btn.className = p === alumPaginaActual
-            ? 'w-8 h-8 rounded-lg bg-orange-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
-            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer';
-        contenedor.appendChild(btn);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', alumInicializar);
-
-window._pagCallbacks['alum'] = function(n) { alumPorPagina = n; alumPaginaActual = 1; alumInicializar(); };
-// ─────────────────────────────────────────────────────────────────────────────
 
 </script>
 
-<?php $pag_prefix = 'alum'; $pag_color = 'orange'; include 'Vista/Shared/Modal_Paginacion.php'; ?>
+<?php $pag_prefix = 'alum'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '2']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

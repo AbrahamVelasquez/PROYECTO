@@ -1,7 +1,45 @@
 <?php
 // Vista/Admin/Sections/Listado_Alumnos.php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
 validarAcceso('admin');
+
+// Leer filtros de GET
+$ladmBusqueda = strtolower(trim($_GET['ladm_busqueda'] ?? ''));
+$ladmCiclo    = strtolower(trim($_GET['ladm_ciclo']    ?? ''));
+$ladmEmpresa  = strtolower(trim($_GET['ladm_empresa']  ?? ''));
+
+// PHP filter
+$rowsLadm = $alumnos ?? [];
+
+if ($ladmBusqueda !== '') {
+    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmBusqueda) {
+        $texto = strtolower(
+            ($al['apellido1'] ?? '') . ' ' . ($al['apellido2'] ?? '') . ' ' . ($al['nombre'] ?? '') . ' ' .
+            ($al['dni'] ?? '') . ' ' . ($al['nombre_empresa'] ?? '') . ' ' . ($al['nombre_ciclo'] ?? '')
+        );
+        return str_contains($texto, $ladmBusqueda);
+    }));
+}
+if ($ladmCiclo !== '') {
+    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmCiclo) {
+        $cicloKey = strtolower($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
+        return $cicloKey === $ladmCiclo;
+    }));
+}
+if ($ladmEmpresa !== '') {
+    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmEmpresa) {
+        return strtolower($al['nombre_empresa']) === $ladmEmpresa;
+    }));
+}
+
+// Paginación PHP
+$pp_ladm  = leerPorPagina('pp_ladm', 10);
+$pag_ladm = leerPaginaActual('pag_ladm');
+$total_ladm = count($rowsLadm);
+$rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
+
 ?>
 
 <style>
@@ -52,21 +90,26 @@ validarAcceso('admin');
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <!-- Filtros (GET form) -->
+    <form id="ladm-filter-form" method="GET" action="index.php" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input type="hidden" name="accion" value="mostrarAlumnos">
 
         <!-- Buscador -->
         <div class="relative flex-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input type="search" id="buscadorAlumnos"
+            <input type="search" id="buscadorAlumnos" name="ladm_busqueda"
+                value="<?= htmlspecialchars($_GET['ladm_busqueda'] ?? '') ?>"
                 placeholder="Buscar por nombre o apellidos…"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
+                oninput="clearTimeout(window._ladmT); window._ladmT = setTimeout(()=>document.getElementById('ladm-filter-form').submit(), 400)"/>
         </div>
 
         <!-- Filtro ciclo -->
-        <select id="filtroCiclo" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroCiclo" name="ladm_ciclo"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todos los ciclos</option>
             <?php
             $ciclosVistos = [];
@@ -74,14 +117,17 @@ validarAcceso('admin');
                 $key = $al['nombre_ciclo'] . ' ' . ucfirst($al['grado']);
                 if (!in_array($key, $ciclosVistos)) {
                     $ciclosVistos[] = $key;
-                    echo '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($key) . '</option>';
+                    $selected = (strtolower($key) === $ladmCiclo) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($key)) . '" ' . $selected . '>' . htmlspecialchars($key) . '</option>';
                 }
             }
             ?>
         </select>
 
         <!-- Filtro empresa -->
-        <select id="filtroEmpresa" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroEmpresa" name="ladm_empresa"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todas las empresas</option>
             <?php
             $empresasVistas = [];
@@ -89,26 +135,34 @@ validarAcceso('admin');
                 $emp = $al['nombre_empresa'];
                 if (!in_array($emp, $empresasVistas)) {
                     $empresasVistas[] = $emp;
-                    echo '<option value="' . htmlspecialchars($emp) . '">' . htmlspecialchars($emp) . '</option>';
+                    $selected = (strtolower($emp) === $ladmEmpresa) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($emp)) . '" ' . $selected . '>' . htmlspecialchars($emp) . '</option>';
                 }
             }
             ?>
         </select>
 
-        <button type="button" onclick="limpiarFiltrosAdmin()"
+        <a href="index.php?accion=mostrarAlumnos"
             class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
             Mostrar todos
-        </button>
-
-    </div>
+        </a>
+    </form>
 
     <!-- Barra superior: contador + config paginación -->
     <div class="flex items-center justify-between mb-2">
-        <span id="ladm-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
-        <button type="button" onclick="abrirModalPag('ladm')" title="Configurar filas por página"
+        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            <?php if ($pp_ladm > 0 && $total_ladm > $pp_ladm): ?>
+                Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
+            <?php elseif ($total_ladm > 0): ?>
+                <?= $total_ladm ?> alumno<?= $total_ladm !== 1 ? 's' : '' ?>
+            <?php elseif (!empty($alumnos)): ?>
+                Sin resultados
+            <?php endif; ?>
+        </span>
+        <button type="button" onclick="document.getElementById('modal-pag-ladm').style.display='flex'" title="Configurar filas por página"
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide">
             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span id="ladm-pag-label">10/pág</span>
+            <span><?= $pp_ladm > 0 ? $pp_ladm . '/pág' : 'Todos' ?></span>
         </button>
     </div>
 
@@ -130,7 +184,7 @@ validarAcceso('admin');
                     <th class="p-4 w-24 text-center">Firmar</th>
                 </tr>
             </thead>
-            <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 text-[11px] uppercase">
+            <tbody class="divide-y divide-slate-100 text-[11px] uppercase">
 
                 <?php if (empty($alumnos)): ?>
                     <tr>
@@ -138,14 +192,20 @@ validarAcceso('admin');
                             No hay alumnos con FCT firmada registrados.
                         </td>
                     </tr>
+                <?php elseif (empty($rowsLadmPag)): ?>
+                    <tr>
+                        <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
+                            No hay alumnos que coincidan con los filtros.
+                        </td>
+                    </tr>
                 <?php else: ?>
-                    <?php foreach ($alumnos as $al):
+                    <?php foreach ($rowsLadmPag as $al):
                         $f_inicio   = (!empty($al['fecha_inicio']) && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
                         $f_final    = (!empty($al['fecha_final'])  && $al['fecha_final']  !== '0000-00-00') ? $al['fecha_final']  : null;
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
                         $cicloLabel   = htmlspecialchars($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
                     ?>
-                    <tr class="ladm-fila hover:bg-slate-50/60 transition-colors" data-ciclo="<?= $cicloLabel ?>" data-empresa="<?= htmlspecialchars($al['nombre_empresa']) ?>">
+                    <tr class="hover:bg-slate-50/60 transition-colors">
 
                         <!-- Alumno -->
                         <td class="p-4">
@@ -228,19 +288,7 @@ validarAcceso('admin');
         </table>
     </div>
 
-    <div id="ladm-paginacion" class="hidden flex items-center justify-center mt-1 gap-1.5">
-        <button id="ladm-prev" onclick="ladmCambiarPagina(ladmPagActual - 1)"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Anterior
-        </button>
-        <div id="ladm-paginas" class="flex items-center gap-1.5"></div>
-        <button id="ladm-next" onclick="ladmCambiarPagina(ladmPagActual + 1)"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-            Siguiente
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-    </div>
+    <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarAlumnos']) ?>
 
 </div>
 
@@ -276,111 +324,7 @@ validarAcceso('admin');
     </div>
 </div>
 
-
 <script>
-// ─── PAGINACIÓN + FILTROS: LISTADO ALUMNOS ADMIN ─────────────────────────────
-let ladmPorPagina = _leerPagStorage('ladm');
-let ladmPagActual = 1;
-let _ladmFilasVis = [];
-
-function ladmFiltrar() {
-    const q       = (document.getElementById('buscadorAlumnos')?.value || '').toLowerCase().trim();
-    const ciclo   = (document.getElementById('filtroCiclo')?.value    || '').toLowerCase().trim();
-    const empresa = (document.getElementById('filtroEmpresa')?.value  || '').toLowerCase().trim();
-
-    const todas = Array.from(document.querySelectorAll('#tablaAlumnosBody .ladm-fila'));
-
-    const visibles = todas.filter(fila => {
-        const texto       = fila.textContent.toLowerCase();
-        const filaCiclo   = (fila.dataset.ciclo   || '').toLowerCase();
-        const filaEmpresa = (fila.dataset.empresa || '').toLowerCase();
-        return (!q || texto.includes(q)) && (!ciclo || filaCiclo === ciclo) && (!empresa || filaEmpresa === empresa);
-    });
-
-    todas.forEach(f => f.style.display = 'none');
-    _ladmFilasVis = visibles;
-    ladmPagActual = 1;
-    ladmPagRenderizar();
-}
-
-function ladmCambiarPagina(nueva) {
-    const totalPaginas = Math.ceil(_ladmFilasVis.length / ladmPorPagina) || 1;
-    if (nueva < 1 || nueva > totalPaginas) return;
-    ladmPagActual = nueva;
-    ladmPagRenderizar();
-}
-
-function ladmPagRenderizar() {
-    const total   = _ladmFilasVis.length;
-    const pag     = document.getElementById('ladm-paginacion');
-    const contador = document.getElementById('ladm-contador');
-
-    if (ladmPorPagina === 0 || total <= ladmPorPagina) {
-        _ladmFilasVis.forEach(tr => tr.style.display = '');
-        pag.classList.add('hidden');
-        if (contador) contador.textContent = total > 0 ? `${total} alumno${total !== 1 ? 's' : ''}` : 'Sin resultados';
-        return;
-    }
-
-    const totalPaginas = Math.ceil(total / ladmPorPagina);
-    const inicio       = (ladmPagActual - 1) * ladmPorPagina;
-    const fin          = Math.min(inicio + ladmPorPagina, total);
-
-    _ladmFilasVis.forEach((tr, i) => {
-        tr.style.display = (i >= inicio && i < fin) ? '' : 'none';
-    });
-
-    pag.classList.remove('hidden');
-    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
-
-    document.getElementById('ladm-prev').disabled = ladmPagActual === 1;
-    document.getElementById('ladm-next').disabled = ladmPagActual === totalPaginas;
-
-    const contenedor = document.getElementById('ladm-paginas');
-    contenedor.innerHTML = '';
-    const pagsMostrar = new Set([1, totalPaginas, ladmPagActual, ladmPagActual - 1, ladmPagActual + 1]
-        .filter(p => p >= 1 && p <= totalPaginas));
-    [...pagsMostrar].sort((a, b) => a - b).forEach((p, idx, arr) => {
-        const prev = arr[idx - 1];
-        if (prev !== undefined && p - prev > 1) {
-            const sep = document.createElement('span');
-            sep.className = 'text-slate-300 text-xs font-bold px-1';
-            sep.textContent = '···';
-            contenedor.appendChild(sep);
-        }
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = p;
-        btn.onclick = () => ladmCambiarPagina(p);
-        btn.className = p === ladmPagActual
-            ? 'w-8 h-8 rounded-lg bg-violet-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
-            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer';
-        contenedor.appendChild(btn);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const label = document.getElementById('ladm-pag-label');
-    if (label) label.textContent = ladmPorPagina === 0 ? 'Todos' : ladmPorPagina + '/pág';
-
-    document.getElementById('buscadorAlumnos')?.addEventListener('input', ladmFiltrar);
-    document.getElementById('filtroCiclo')?.addEventListener('change', ladmFiltrar);
-    document.getElementById('filtroEmpresa')?.addEventListener('change', ladmFiltrar);
-
-    window._filtrarAlumnos = ladmFiltrar;
-    ladmFiltrar();
-});
-
-function limpiarFiltrosAdmin() {
-    document.getElementById('buscadorAlumnos').value = '';
-    document.getElementById('filtroCiclo').value = '';
-    document.getElementById('filtroEmpresa').value = '';
-    ladmFiltrar();
-}
-
-window._pagCallbacks['ladm'] = function(n) { ladmPorPagina = n; ladmPagActual = 1; ladmPagRenderizar(); };
-// ─────────────────────────────────────────────────────────────────────────────
-
 let _firmaIdAsignacion = null;
 
 function abrirModalFirmaAdmin(idAsignacion, nombre) {
@@ -401,13 +345,11 @@ function cerrarModalFirma() {
 document.getElementById('btnConfirmarFirmaAccion').addEventListener('click', function () {
     const anexo = document.getElementById('inputFirmaAnexo').value.trim();
     const error = document.getElementById('errorAnexo');
-
     if (!anexo) {
         error.style.display = 'block';
         document.getElementById('inputFirmaAnexo').focus();
         return;
     }
-
     const f = document.createElement('form');
     f.method = 'POST';
     f.action = 'index.php';
@@ -421,4 +363,4 @@ document.getElementById('btnConfirmarFirmaAccion').addEventListener('click', fun
 });
 </script>
 
-<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; include 'Vista/Shared/Modal_Paginacion.php'; ?>
+<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
