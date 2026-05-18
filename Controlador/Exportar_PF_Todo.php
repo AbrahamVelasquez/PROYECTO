@@ -337,6 +337,10 @@ foreach ($todosLosDatos as $d) {
         $d['dias_semana'] ?? ''
     ));
     $setVar($filaActual, 'inter_diario',            'Sí');
+    $setVar($filaActual, 'inter_semanal',           'Off');   
+    $setVar($filaActual, 'inter_mensual',           'Off');   
+    $setVar($filaActual, 'inter_otros',             'Off');   
+    $setVar($filaActual, 'varias_empresas',         'Off');   
     $setVar($filaActual, 'adaptaciones?',           'no');
     $setVar($filaActual, 'autorizacion_extra?',     'no');
 
