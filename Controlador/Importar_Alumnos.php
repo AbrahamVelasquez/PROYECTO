@@ -10,18 +10,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 validarAcceso('tutor');
-<?php
-
-// Controlador/Importar_Alumnos.php
-// Invocado desde: index.php?controlador=Tutores&accion=importarAlumnos (POST)
-
-require_once __DIR__ . '/../Core/Conexion.php';
-require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
-require_once __DIR__ . '/../vendor/autoload.php';
-
-use PhpOffice\PhpSpreadsheet\IOFactory;
-
-validarAcceso('tutor');
 
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json; charset=utf-8');

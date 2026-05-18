@@ -1,8 +1,6 @@
 <?php
 // Vista/Admin/Sections/Listado_Alumnos.php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
-
 validarAcceso('admin');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
@@ -62,26 +60,21 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
         </div>
     </div>
 
-    <!-- Filtros (GET form) -->
-    <form id="ladm-filter-form" method="GET" action="index.php" class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <input type="hidden" name="accion" value="mostrarAlumnos">
+    <!-- Filtros -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
         <!-- Buscador -->
         <div class="relative flex-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input type="search" id="buscadorAlumnos" name="ladm_busqueda"
-                value="<?= htmlspecialchars($_GET['ladm_busqueda'] ?? '') ?>"
+            <input type="search" id="buscadorAlumnos"
                 placeholder="Buscar por nombre o apellidos…"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
-                oninput="clearTimeout(window._ladmT); window._ladmT = setTimeout(()=>document.getElementById('ladm-filter-form').submit(), 400)"/>
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
         </div>
 
         <!-- Filtro ciclo -->
-        <select id="filtroCiclo" name="ladm_ciclo"
-            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-            onchange="this.closest('form').submit()">
+        <select id="filtroCiclo" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
             <option value="">Todos los ciclos</option>
             <?php
             $ciclosVistos = [];
@@ -89,17 +82,14 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $key = $al['nombre_ciclo'] . ' ' . ucfirst($al['grado']);
                 if (!in_array($key, $ciclosVistos)) {
                     $ciclosVistos[] = $key;
-                    $selected = (strtolower($key) === $ladmCiclo) ? 'selected' : '';
-                    echo '<option value="' . htmlspecialchars(strtolower($key)) . '" ' . $selected . '>' . htmlspecialchars($key) . '</option>';
+                    echo '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($key) . '</option>';
                 }
             }
             ?>
         </select>
 
         <!-- Filtro empresa -->
-        <select id="filtroEmpresa" name="ladm_empresa"
-            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-            onchange="this.closest('form').submit()">
+        <select id="filtroEmpresa" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
             <option value="">Todas las empresas</option>
             <?php
             $empresasVistas = [];
@@ -107,18 +97,18 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $emp = $al['nombre_empresa'];
                 if (!in_array($emp, $empresasVistas)) {
                     $empresasVistas[] = $emp;
-                    $selected = (strtolower($emp) === $ladmEmpresa) ? 'selected' : '';
-                    echo '<option value="' . htmlspecialchars(strtolower($emp)) . '" ' . $selected . '>' . htmlspecialchars($emp) . '</option>';
+                    echo '<option value="' . htmlspecialchars($emp) . '">' . htmlspecialchars($emp) . '</option>';
                 }
             }
             ?>
         </select>
 
-        <a href="index.php?accion=mostrarAlumnos"
+        <button type="button" onclick="limpiarFiltrosAdmin()"
             class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
             Mostrar todos
-        </a>
-    </form>
+        </button>
+
+    </div>
 
     <!-- Barra superior: contador + config paginación -->
     <div class="flex items-center justify-between mb-2">
@@ -154,18 +144,12 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                     <th class="p-4 w-24 text-center">Firmar</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-[11px] uppercase">
+            <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 text-[11px] uppercase">
 
                 <?php if (empty($alumnos)): ?>
                     <tr>
                         <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
                             No hay alumnos con FCT firmada registrados.
-                        </td>
-                    </tr>
-                <?php elseif (empty($rowsLadmPag)): ?>
-                    <tr>
-                        <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
-                            No hay alumnos que coincidan con los filtros.
                         </td>
                     </tr>
                 <?php else: ?>
@@ -175,7 +159,7 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
                         $cicloLabel   = htmlspecialchars($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
                     ?>
-                    <tr class="hover:bg-slate-50/60 transition-colors">
+                    <tr class="ladm-fila hover:bg-slate-50/60 transition-colors" data-ciclo="<?= $cicloLabel ?>" data-empresa="<?= htmlspecialchars($al['nombre_empresa']) ?>">
 
                         <!-- Alumno -->
                         <td class="p-4">
@@ -281,9 +265,78 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
         </table>
     </div>
 
-
     <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarListadoAlumnos']) ?>
 
 </div><!-- end .space-y-6 -->
+
+<div id="modal-firma-admin" style="display:none"
+     class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+     onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs">✍️</span>
+                CONFIRMAR FIRMA
+            </h3>
+            <button onclick="cerrarModalFirmaAdmin()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
+        </div>
+
+        <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Confirmar que este alumno está firmado?</p>
+        <p id="firma-admin-nombre" class="text-sm font-black text-slate-900 mb-4 text-center uppercase"></p>
+
+        <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">
+                Número de anexo <span class="text-emerald-600">*</span>
+            </label>
+            <input type="text" id="firma-admin-anexo" placeholder="Ej: 1"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-center outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
+                oninput="document.getElementById('firma-admin-error').style.display='none'">
+            <p id="firma-admin-error" style="display:none"
+                class="text-[10px] font-bold text-red-500 text-center mt-2 uppercase tracking-wide">
+                Debes introducir el número de anexo antes de confirmar.
+            </p>
+        </div>
+
+        <form method="POST" action="index.php?accion=firmarAlumnoAdmin">
+            <input type="hidden" name="id_asignacion" id="firma-admin-id">
+            <input type="hidden" name="anexo"         id="firma-admin-anexo-hidden">
+            <div class="flex gap-3 justify-center">
+                <button type="button" onclick="cerrarModalFirmaAdmin()"
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
+                <button  type="button" onclick="confirmarFirmaAdmin()"
+                    class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirModalFirmaAdmin(idAsignacion, nombre) {
+    document.getElementById('firma-admin-id').value        = idAsignacion;
+    document.getElementById('firma-admin-nombre').textContent = nombre;
+    document.getElementById('firma-admin-anexo').value     = '';
+    document.getElementById('modal-firma-admin').style.display = 'flex';
+}
+
+function cerrarModalFirmaAdmin() {
+    document.getElementById('modal-firma-admin').style.display = 'none';
+}
+
+function confirmarFirmaAdmin() {
+    const anexo = document.getElementById('firma-admin-anexo').value.trim();
+    if (!anexo) {
+        document.getElementById('firma-admin-error').style.display = 'block';
+        return;
+    }
+    document.getElementById('firma-admin-anexo-hidden').value = anexo;
+    document.querySelector('#modal-firma-admin form').submit();
+}
+
+// Sincroniza el input visible con el hidden antes de enviar
+document.querySelector('#modal-firma-admin form').addEventListener('submit', () => {
+    document.getElementById('firma-admin-anexo-hidden').value =
+        document.getElementById('firma-admin-anexo').value;
+});
+</script>
 
 <?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

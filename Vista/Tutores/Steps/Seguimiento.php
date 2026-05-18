@@ -59,15 +59,13 @@ function contarArchivosSeg(string $ruta, string $prefijo = ''): int {
     return count($ficheros);
 }
 
-// Pre-computar todas las filas con sus campos derivados
-$rowsSeg = [];
+// Estado global
 $hayAlgunPF = false; $hayAlgunaFicha = false;
 foreach ($alumnosSeguimiento as $al) {
     $prefijo = prefijoDeFichero($al, $carpetaCiclo);
     if (contarArchivosSeg($baseDoc . $carpetaCiclo . '/Plan_Formativo/', $prefijo) > 0) $hayAlgunPF     = true;
     if (contarArchivosSeg($baseDoc . $carpetaCiclo . '/Fichas/',         $prefijo) > 0) $hayAlgunaFicha = true;
 }
-
 if ($hayAlgunPF && $hayAlgunaFicha)      { $estadoGlobal = 'Completado'; $estadoGlobalColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; }
 elseif ($hayAlgunPF || $hayAlgunaFicha)  { $estadoGlobal = 'Parcial';    $estadoGlobalColor = 'bg-amber-100 text-amber-700 border-amber-200'; }
 else                                      { $estadoGlobal = 'Pendiente';  $estadoGlobalColor = 'bg-red-100 text-red-700 border-red-200'; }
@@ -105,43 +103,41 @@ $alumnosSeguimientoPag = paginarArray(array_values($alumnosSeguimiento), $pp_seg
     </div>
 <?php else: ?>
 
-<!-- ── Barra de controles: buscar / ordenar / filtrar (GET form) ── -->
-<form method="GET" action="index.php" id="seg-filter-form" class="flex flex-wrap gap-3 mb-4 items-center">
-    <input type="hidden" name="tab" value="4">
+<!-- ── Barra de controles: buscar / ordenar / filtrar ── -->
+<div class="flex flex-wrap gap-3 mb-4 items-center">
 
     <!-- Buscador -->
     <div class="relative flex-1 min-w-[180px]">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="segBuscador" name="seg_buscador" type="text"
-            value="<?= htmlspecialchars($_GET['seg_buscador'] ?? '') ?>"
-            placeholder="Buscar alumno..."
+        <input id="segBuscador" type="text" placeholder="Buscar alumno..."
             class="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all uppercase placeholder:normal-case placeholder:font-normal"
-            oninput="clearTimeout(window._segT); window._segT = setTimeout(()=>document.getElementById('seg-filter-form').submit(), 400)">
+            oninput="segAplicarFiltros()">
     </div>
 
     <!-- Ordenar -->
-    <select id="segOrden" name="seg_orden"
+    <select id="segOrden"
         class="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer"
-        onchange="this.closest('form').submit()">
-        <option value="estado" <?= $segOrden === 'estado' ? 'selected' : '' ?>>Ordenar: Estado</option>
-        <option value="nombre" <?= $segOrden === 'nombre' ? 'selected' : '' ?>>Ordenar: Nombre</option>
+        onchange="segAplicarFiltros()">
+        <option value="estado">Ordenar: Estado</option>
+        <option value="nombre">Ordenar: Nombre</option>
     </select>
 
     <!-- Filtrar por estado -->
-    <select id="segFiltroEstado" name="seg_filtro_estado"
+    <select id="segFiltroEstado"
         class="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer"
-        onchange="this.closest('form').submit()">
-        <option value="" <?= $segFiltroEstado === '' ? 'selected' : '' ?>>Todos los estados</option>
-        <option value="Pendiente" <?= $segFiltroEstado === 'Pendiente' ? 'selected' : '' ?>>🔴 Pendiente</option>
-        <option value="Parcial"   <?= $segFiltroEstado === 'Parcial'   ? 'selected' : '' ?>>🟡 Parcial</option>
-        <option value="Completado"<?= $segFiltroEstado === 'Completado'? 'selected' : '' ?>>🟢 Completado</option>
+        onchange="segAplicarFiltros()">
+        <option value="">Todos los estados</option>
+        <option value="Pendiente">🔴 Pendiente</option>
+        <option value="Parcial">🟡 Parcial</option>
+        <option value="Completado">🟢 Completado</option>
     </select>
 
-    <a href="index.php?tab=4"
+    <button type="button" onclick="limpiarFiltrosSeg()"
         class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
         Mostrar todos
-    </a>
-</form>
+    </button>
+
+</div>
 
 <!-- Contador de registros + config paginación -->
 <div class="flex items-center justify-between mb-2">
@@ -191,48 +187,91 @@ $alumnosSeguimientoPag = paginarArray(array_values($alumnosSeguimiento), $pp_seg
                 data-carpeta="<?= $prefijoJs ?>">
 
                 <td class="p-4 font-bold text-slate-700">
-                    <?= htmlspecialchars($al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ', ' . $al['nombre']) ?>
+                    <?= htmlspecialchars($nombreCompleto) ?>
                 </td>
+
                 <td class="p-4 text-center">
                     <button type="button"
                         onclick="abrirModalDocumentos('plan_formativo', '<?= $prefijoJs ?>')"
                         class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[9px] font-black text-slate-600 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer uppercase tracking-wide">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         Ver Documentos
-                        <?php if ($al['numPF'] > 0): ?>
-                            <span class="ml-1 bg-orange-600 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black"><?= $al['numPF'] ?></span>
+                        <?php if ($numPF > 0): ?>
+                            <span class="ml-1 bg-orange-600 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black"><?= $numPF ?></span>
                         <?php endif; ?>
                     </button>
                 </td>
+
                 <td class="p-4 text-center">
                     <button type="button"
                         onclick="abrirModalDocumentos('fichas', '<?= $prefijoJs ?>')"
                         class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[9px] font-black text-slate-600 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer uppercase tracking-wide">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         Ver Documentos
-                        <?php if ($al['numFichas'] > 0): ?>
-                            <span class="ml-1 bg-orange-600 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black"><?= $al['numFichas'] ?></span>
+                        <?php if ($numFichas > 0): ?>
+                            <span class="ml-1 bg-orange-600 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black"><?= $numFichas ?></span>
                         <?php endif; ?>
                     </button>
                 </td>
+
                 <td class="p-4 text-center">
-                    <span class="<?= $al['estadoColor'] ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
-                        <?= $al['estadoLabel'] ?>
+                    <span class="<?= $estadoColor ?> px-3 py-1 rounded-full text-[8px] border font-black whitespace-nowrap">
+                        <?= $estadoLabel ?>
                     </span>
                 </td>
             </tr>
             <?php endforeach; ?>
-            <?php endif; ?>
         </tbody>
     </table>
+
+    <!-- Sin resultados -->
+    <div id="segSinResultados" style="display:none"
+         class="py-12 text-center text-slate-400 text-xs italic font-bold uppercase tracking-widest">
+        No hay alumnos que coincidan con los filtros.
+    </div>
 </div>
 
 <?= renderizarNavPaginacion($total_seg, $pag_seg, $pp_seg, 'pag_seg', 'orange', ['tab' => '4']) ?>
 
 <?php endif; ?>
 
+<?php include __DIR__ . '/../Components/Modales_Seguimiento.php'; ?>
+
 <script>
 window.SEGUIMIENTO_CICLO = '<?= htmlspecialchars($carpetaCiclo, ENT_QUOTES) ?>';
 
+function segAplicarFiltros() {
+    const busqueda = document.getElementById('segBuscador').value.trim().toUpperCase();
+    const orden    = document.getElementById('segOrden').value;
+    const filtro   = document.getElementById('segFiltroEstado').value;
+    const tbody    = document.getElementById('segTablaCuerpo');
+    if (!tbody) return;
+
+    const filas = Array.from(tbody.querySelectorAll('tr.seg-fila'));
+    let visibles = filas.filter(tr => {
+        const nombre = tr.dataset.nombre || '';
+        const estado = tr.dataset.estado || '';
+        return (!busqueda || nombre.includes(busqueda)) && (!filtro || estado === filtro);
+    });
+    visibles.sort((a, b) => orden === 'nombre'
+        ? (a.dataset.nombre || '').localeCompare(b.dataset.nombre || '')
+        : parseInt(a.dataset.ordenEstado) - parseInt(b.dataset.ordenEstado)
+    );
+    filas.forEach(tr => { tr.style.display = 'none'; });
+    visibles.forEach(tr => { tr.style.display = ''; tbody.appendChild(tr); });
+
+    const sinRes = document.getElementById('segSinResultados');
+    if (sinRes) sinRes.style.display = visibles.length === 0 ? 'block' : 'none';
+}
+
+function limpiarFiltrosSeg() {
+    document.getElementById('segBuscador').value = '';
+    document.getElementById('segFiltroEstado').value = '';
+    document.getElementById('segOrden').value = 'estado';
+    segAplicarFiltros();
+}
+
+document.addEventListener('DOMContentLoaded', segAplicarFiltros);
+</script>
 
 <?php $pag_prefix = 'seg'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '4']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

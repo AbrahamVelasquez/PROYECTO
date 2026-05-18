@@ -4,7 +4,6 @@
 
 // Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 validarAcceso('admin'); 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
@@ -38,20 +37,20 @@ $tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
     </div>
 </div>
 
-<form method="GET" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
+<form method="POST" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
     <input type="hidden" name="accion" value="mostrarTutores">
 
     <div class="flex-1 relative w-full">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" name="busqueda" value="<?= htmlspecialchars($_GET['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O APELLIDOS..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+        <input type="text" name="busqueda" value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O APELLIDOS..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
     </div>
-
+    
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Ordenar por:</span>
         <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="id"        <?= (!isset($_GET['ordenar']) || $_GET['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
-            <option value="apellidos" <?= ($_GET['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
-            <option value="ciclo"     <?= ($_GET['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
+            <option value="id"        <?= (!isset($_POST['ordenar']) || $_POST['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
+            <option value="apellidos" <?= ($_POST['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
+            <option value="ciclo"     <?= ($_POST['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
         </select>
     </div>
 
@@ -59,8 +58,8 @@ $tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Curso:</span>
         <select name="filtro_curso" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
             <option value="">TODOS LOS CURSOS</option>
-            <option value="Primero" <?= ($_GET['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
-            <option value="Segundo" <?= ($_GET['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
+            <option value="Primero" <?= ($_POST['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
+            <option value="Segundo" <?= ($_POST['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
         </select>
     </div>
 
