@@ -58,7 +58,7 @@ class Tutores_Controlador {
         $estadoFiltro = $_REQUEST['estado'] ?? '';
 
         $alumnoModelo = new Alumnos();
-        $ordenar = $_POST['ordenar'] ?? '';
+        $ordenar = $_REQUEST['ordenar'] ?? '';
         $misConveniosIds = array_column($misConvenios, 'id_convenio');
         $alumnos = $alumnoModelo->listarPorCiclo($idCicloTutor, $busqueda, $estadoFiltro, $ordenar, $misConveniosIds);
         $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($idCicloTutor);

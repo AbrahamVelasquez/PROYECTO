@@ -25,7 +25,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
             Esperando incorporación al sistema: <?= count($pendientes) ?>
         </p>
     </div>
-    
+
     <form action="index.php" method="POST">
         <input type="hidden" name="accion" value="mostrarPanel">
         <button type="submit" class="flex items-center gap-2 text-slate-400 px-4 py-2 text-xs font-bold hover:text-emerald-600 transition-all cursor-pointer">
@@ -59,7 +59,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                 <th class="py-4 px-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
             </tr>
         </thead>
-        <tbody id="pend-tbody" class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-slate-100">
             <?php if (empty($pendientes)): ?>
                 <tr>
                     <td colspan="3" class="py-20 px-6 text-center">
@@ -88,8 +88,8 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                     </td>
                     <td class="py-5 px-6">
                         <div class="flex items-center justify-center gap-3">
-                            <button onclick='abrirModalRevision(<?= json_encode($p) ?>)' 
-                                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer" 
+                            <button onclick='abrirModalRevision(<?= json_encode($p) ?>)'
+                                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
                                     title="Revisar y Editar">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -100,8 +100,8 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                             <form id="form-validar-<?= $p['id_convenio_nuevo'] ?>" method="POST" action="index.php">
                                 <input type="hidden" name="accion" value="validarConvenio">
                                 <input type="hidden" name="id_convenio_nuevo" value="<?= $p['id_convenio_nuevo'] ?>">
-                                
-                                <button type="button" 
+
+                                <button type="button"
                                         onclick="confirmarValidacionDirecta('<?= $p['id_convenio_nuevo'] ?>', '<?= htmlspecialchars($p['nombre_empresa']) ?>')"
                                         class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,12 +1,11 @@
-<?php 
+<?php
 
 // Vista/Tutores/Steps/Convenios.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
 
 // Paginación PHP — Resultados de búsqueda
 $pp_rs  = leerPorPagina('pp_rs', 10);
@@ -35,9 +34,9 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 ?>
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold flex items-center gap-3">🏢 Gestión de Convenios</h2>
-    
+
     <div class="flex items-center gap-2">
-        <button type="button" 
+        <button type="button"
                 onclick="copiarUrlRegistro('<?= $urlCompartir ?>', this)"
                 class="inline-flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all shadow-sm cursor-pointer group">
             <span id="btn-text">📋 Copiar enlace</span>
@@ -46,16 +45,17 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             </svg>
         </button>
 
-        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
+        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>"
            class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
             <span class="text-sm">+</span> Registro Convenio
         </a>
     </div>
 </div>
 
-<form action="index.php" method="POST" class="flex gap-3 w-full mb-10">
-    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>" 
-        placeholder="CIF O NOMBRE DE EMPRESA..." 
+<form action="index.php" method="GET" class="flex gap-3 w-full mb-10">
+    <input type="hidden" name="tab" value="1">
+    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_GET['busqueda_convenio'] ?? '') ?>"
+        placeholder="CIF O NOMBRE DE EMPRESA..."
         class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all">
     <button type="submit" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg cursor-pointer">Buscar</button>
     <button type="button" onclick="this.closest('form').querySelector('[name=busqueda_convenio]').value=''; this.closest('form').submit();"
@@ -64,7 +64,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
     </button>
 </form>
 
-<?php if (isset($_POST['busqueda_convenio']) && trim($_POST['busqueda_convenio']) !== ''): ?>
+<?php if (isset($_GET['busqueda_convenio']) && trim($_GET['busqueda_convenio']) !== ''): ?>
     <div class="mb-10">
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Resultados de la búsqueda</h3>
         <div class="flex items-center justify-between mb-2">
@@ -120,7 +120,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_POST['busqueda_convenio']) ?>".</td></tr>
+                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_GET['busqueda_convenio']) ?>".</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -208,16 +208,15 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
         </div>
     </div>
     <div class="overflow-hidden rounded-2xl border-2 border-amber-100 bg-white shadow-sm">
-        <table class="w-full text-left border-collapse table-fixed"> <thead class="bg-amber-500 text-white">
+        <table class="w-full text-left border-collapse table-fixed">
+            <thead class="bg-amber-500 text-white">
                 <tr>
                     <th class="w-32 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Editar</th>
-                    
                     <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-left">Empresa</th>
-                    
                     <th class="w-48 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Acción</th>
                 </tr>
             </thead>
-            <tbody id="cp-tbody" class="divide-y divide-amber-50">
+            <tbody class="divide-y divide-amber-50">
                 <?php if (!empty($conveniosProceso)): ?>
                     <?php foreach ($conveniosProcesoPag as $convP): ?>
                         <tr class="cp-fila hover:bg-amber-50/50 transition-colors">
@@ -229,7 +228,6 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                     </svg>
                                 </button>
                             </td>
-
                             <td class="px-6 py-5">
                                 <div class="font-bold text-slate-900 uppercase text-sm tracking-tight">
                                     <?= htmlspecialchars($convP['nombre_empresa']) ?>
@@ -238,13 +236,11 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                     <?= htmlspecialchars($convP['localidad']) ?>
                                 </div>
                             </td>
-
                             <td class="px-6 py-5 text-center">
                                 <form action="index.php" method="POST" class="flex justify-center">
                                     <input type="hidden" name="accion" value="aprobarNuevo">
                                     <input type="hidden" name="id_convenio_nuevo" value="<?= $convP['id_convenio_nuevo'] ?>">
-                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
-                                    <button type="button" 
+                                    <button type="button"
                                             onclick="abrirConfirmarAprobar('<?= $convP['id_convenio_nuevo'] ?>', '<?= addslashes($convP['nombre_empresa']) ?>')"
                                             class="group flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-5 py-2.5 rounded-xl transition-all border border-emerald-100 shadow-sm hover:shadow-emerald-200 cursor-pointer active:scale-95">
                                         <span class="text-[10px] font-black uppercase tracking-widest">Aprobar</span>

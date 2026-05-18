@@ -1,6 +1,8 @@
 <?php
 // Vista/Admin/Sections/Listado_Alumnos.php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
 validarAcceso('admin');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
@@ -60,21 +62,26 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <!-- Filtros (GET form) -->
+    <form id="ladm-filter-form" method="GET" action="index.php" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input type="hidden" name="accion" value="mostrarAlumnos">
 
         <!-- Buscador -->
         <div class="relative flex-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input type="search" id="buscadorAlumnos"
+            <input type="search" id="buscadorAlumnos" name="ladm_busqueda"
+                value="<?= htmlspecialchars($_GET['ladm_busqueda'] ?? '') ?>"
                 placeholder="Buscar por nombre o apellidos…"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
+                oninput="clearTimeout(window._ladmT); window._ladmT = setTimeout(()=>document.getElementById('ladm-filter-form').submit(), 400)"/>
         </div>
 
         <!-- Filtro ciclo -->
-        <select id="filtroCiclo" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroCiclo" name="ladm_ciclo"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todos los ciclos</option>
             <?php
             $ciclosVistos = [];
@@ -82,14 +89,17 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $key = $al['nombre_ciclo'] . ' ' . ucfirst($al['grado']);
                 if (!in_array($key, $ciclosVistos)) {
                     $ciclosVistos[] = $key;
-                    echo '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($key) . '</option>';
+                    $selected = (strtolower($key) === $ladmCiclo) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($key)) . '" ' . $selected . '>' . htmlspecialchars($key) . '</option>';
                 }
             }
             ?>
         </select>
 
         <!-- Filtro empresa -->
-        <select id="filtroEmpresa" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroEmpresa" name="ladm_empresa"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todas las empresas</option>
             <?php
             $empresasVistas = [];
@@ -97,18 +107,18 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $emp = $al['nombre_empresa'];
                 if (!in_array($emp, $empresasVistas)) {
                     $empresasVistas[] = $emp;
-                    echo '<option value="' . htmlspecialchars($emp) . '">' . htmlspecialchars($emp) . '</option>';
+                    $selected = (strtolower($emp) === $ladmEmpresa) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($emp)) . '" ' . $selected . '>' . htmlspecialchars($emp) . '</option>';
                 }
             }
             ?>
         </select>
 
-        <button type="button" onclick="limpiarFiltrosAdmin()"
+        <a href="index.php?accion=mostrarAlumnos"
             class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
             Mostrar todos
-        </button>
-
-    </div>
+        </a>
+    </form>
 
     <!-- Barra superior: contador + config paginación -->
     <div class="flex items-center justify-between mb-2">
@@ -144,12 +154,18 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                     <th class="p-4 w-24 text-center">Firmar</th>
                 </tr>
             </thead>
-            <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 text-[11px] uppercase">
+            <tbody class="divide-y divide-slate-100 text-[11px] uppercase">
 
                 <?php if (empty($alumnos)): ?>
                     <tr>
                         <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
                             No hay alumnos con FCT firmada registrados.
+                        </td>
+                    </tr>
+                <?php elseif (empty($rowsLadmPag)): ?>
+                    <tr>
+                        <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
+                            No hay alumnos que coincidan con los filtros.
                         </td>
                     </tr>
                 <?php else: ?>
@@ -159,7 +175,7 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
                         $cicloLabel   = htmlspecialchars($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
                     ?>
-                    <tr class="ladm-fila hover:bg-slate-50/60 transition-colors" data-ciclo="<?= $cicloLabel ?>" data-empresa="<?= htmlspecialchars($al['nombre_empresa']) ?>">
+                    <tr class="hover:bg-slate-50/60 transition-colors">
 
                         <!-- Alumno -->
                         <td class="p-4">

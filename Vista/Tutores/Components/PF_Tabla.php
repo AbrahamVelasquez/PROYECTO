@@ -2,11 +2,52 @@
 
 // Vista/Tutores/Components/PF_Tabla.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
+
+$alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($_SESSION['id_ciclo']);
+
+// Leer filtros de GET
+$pfBusqueda    = strtolower(trim($_GET['pf_busqueda']    ?? ''));
+$pfOrdenar     = $_GET['pf_ordenar']     ?? 'alumno';
+$pfFiltroEstado = $_GET['pf_filtro_estado'] ?? 'todos';
+
+// PHP filter
+$rowsPF = $alumnosFirmados;
+
+if ($pfBusqueda !== '') {
+    $rowsPF = array_values(array_filter($rowsPF, function($al) use ($pfBusqueda) {
+        $nombreFull = strtolower($al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ' ' . $al['nombre']);
+        $empresa = strtolower($al['nombre_empresa'] ?? '');
+        return str_contains($nombreFull, $pfBusqueda) || str_contains($empresa, $pfBusqueda);
+    }));
+}
+
+if ($pfFiltroEstado !== 'todos') {
+    $exportado = $pfFiltroEstado === 'exportado' ? 1 : 0;
+    $rowsPF = array_values(array_filter($rowsPF, fn($al) => (int)($al['exportado'] ?? 0) === $exportado));
+}
+
+// PHP sort
+usort($rowsPF, function($a, $b) use ($pfOrdenar) {
+    if ($pfOrdenar === 'empresa') {
+        return strcmp($a['nombre_empresa'] ?? '', $b['nombre_empresa'] ?? '');
+    } elseif ($pfOrdenar === 'estado') {
+        return ($a['exportado'] ?? 0) <=> ($b['exportado'] ?? 0);
+    }
+    // alumno
+    $na = ($a['apellido1'] ?? '') . ' ' . ($a['apellido2'] ?? '') . ' ' . ($a['nombre'] ?? '');
+    $nb = ($b['apellido1'] ?? '') . ' ' . ($b['apellido2'] ?? '') . ' ' . ($b['nombre'] ?? '');
+    return strcmp($na, $nb);
+});
+
+// Paginación PHP
+$pp_pf  = leerPorPagina('pp_pf', 10);
+$pag_pf = leerPaginaActual('pag_pf');
+$total_pf = count($rowsPF);
+$rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
 
 // Paginación PHP
 $pp_pf  = leerPorPagina('pp_pf', 10);
@@ -35,39 +76,46 @@ $rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
     </div>
 </div>
 
-<form id="formFiltros" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+<form id="formFiltros" method="GET" action="index.php" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+    <input type="hidden" name="tab" value="3">
     <div class="flex-1 relative w-full">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" id="busqueda" 
-            placeholder="BUSCAR POR NOMBRE O EMPRESA..." 
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+        <input type="text" id="busqueda" name="pf_busqueda"
+            value="<?= htmlspecialchars($_GET['pf_busqueda'] ?? '') ?>"
+            placeholder="BUSCAR POR NOMBRE O EMPRESA..."
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase"
+            oninput="clearTimeout(window._pfT); window._pfT = setTimeout(()=>document.getElementById('formFiltros').submit(), 400)">
     </div>
-    
+
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ordenar por:</span>
-        <select id="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="alumno">ALUMNO</option>
-            <option value="empresa">EMPRESA</option>
-            <option value="estado">ESTADO</option>
+        <select id="ordenar" name="pf_ordenar"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase"
+            onchange="this.closest('form').submit()">
+            <option value="alumno"  <?= $pfOrdenar === 'alumno'  ? 'selected' : '' ?>>ALUMNO</option>
+            <option value="empresa" <?= $pfOrdenar === 'empresa' ? 'selected' : '' ?>>EMPRESA</option>
+            <option value="estado"  <?= $pfOrdenar === 'estado'  ? 'selected' : '' ?>>ESTADO</option>
         </select>
     </div>
 
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado:</span>
-        <select id="filtroEstado" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="todos">TODOS</option>
-            <option value="exportado">🟢 EXPORTADO</option>
-            <option value="no exportado">🔴 NO EXPORTADO</option>
+        <select id="filtroEstado" name="pf_filtro_estado"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase"
+            onchange="this.closest('form').submit()">
+            <option value="todos"        <?= $pfFiltroEstado === 'todos'         ? 'selected' : '' ?>>TODOS</option>
+            <option value="exportado"    <?= $pfFiltroEstado === 'exportado'     ? 'selected' : '' ?>>🟢 EXPORTADO</option>
+            <option value="no exportado" <?= $pfFiltroEstado === 'no exportado'  ? 'selected' : '' ?>>🔴 NO EXPORTADO</option>
         </select>
     </div>
 
-    <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
-        BUSCADO AUTOMÁTICO
+    <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
+        BUSCAR
     </button>
-    <button type="button" onclick="limpiarFiltrosPF()"
+    <a href="index.php?tab=3"
         class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
         Mostrar todos
-    </button>
+    </a>
 </form>
 
 <!-- Barra superior: contador + config paginación -->
@@ -102,9 +150,6 @@ $rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
                 <tr>
                 <td colspan="4" class="p-12 text-center">
                     <div class="flex flex-col items-center justify-center gap-4">
-                    <!-- No lo voy a usar por ahora pero lo guardaré el simbolo de cero con la raya -->
-                    <!-- <span class="text-5xl text-slate-300">∅</span> -->
-                    
                     <p class="text-slate-600 font-black tracking-widest uppercase text-sm">
                         No hay alumnos con asignaciones firmadas actualmente
                     </p>
@@ -135,7 +180,7 @@ $rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
                     data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>"
                     data-dias-semana="<?= htmlspecialchars($al['dias_semana'] ?? '') ?>">
                     <td class="p-3 text-center">
-                        <button type="button" 
+                        <button type="button"
                             onclick="window.mostrarEdicion(
                                 <?= $al['id_alumno'] ?>,
                                 '<?= addslashes($nombreFull) ?>',
@@ -185,7 +230,7 @@ $rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php endforeach; 
+                <?php endforeach;
             endif; ?>
         </tbody>
     </table>
