@@ -4,8 +4,16 @@
 
 // Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 validarAcceso('admin'); 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
+// Paginación PHP
+$pp_tut    = leerPorPagina('pp_tut', 10);
+$pag_tut   = leerPaginaActual('pag_tut');
+$total_tut = count($tutores ?? []);
+$tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
 
 ?>
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 px-2">
@@ -30,20 +38,20 @@ validarAcceso('admin');
     </div>
 </div>
 
-<form method="POST" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
+<form method="GET" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
     <input type="hidden" name="accion" value="mostrarTutores">
 
     <div class="flex-1 relative w-full">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" name="busqueda" value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O APELLIDOS..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+        <input type="text" name="busqueda" value="<?= htmlspecialchars($_GET['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O APELLIDOS..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
     </div>
-    
+
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Ordenar por:</span>
         <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="id"        <?= (!isset($_POST['ordenar']) || $_POST['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
-            <option value="apellidos" <?= ($_POST['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
-            <option value="ciclo"     <?= ($_POST['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
+            <option value="id"        <?= (!isset($_GET['ordenar']) || $_GET['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
+            <option value="apellidos" <?= ($_GET['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
+            <option value="ciclo"     <?= ($_GET['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
         </select>
     </div>
 
@@ -51,15 +59,44 @@ validarAcceso('admin');
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Curso:</span>
         <select name="filtro_curso" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
             <option value="">TODOS LOS CURSOS</option>
-            <option value="Primero" <?= ($_POST['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
-            <option value="Segundo" <?= ($_POST['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
+            <option value="Primero" <?= ($_GET['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
+            <option value="Segundo" <?= ($_GET['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
         </select>
     </div>
 
     <button type="submit" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-[10px] hover:bg-orange-600 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
         BUSCAR
     </button>
+    <button type="button" onclick="limpiarFormTutores(this)"
+        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        Mostrar todos
+    </button>
 </form>
+<script>
+function limpiarFormTutores(btn) {
+    const f = btn.closest('form');
+    f.querySelector('[name=busqueda]').value = '';
+    f.querySelector('[name=filtro_curso]').value = '';
+    f.querySelector('[name=ordenar]').value = 'id';
+    f.submit();
+}
+</script>
+
+<!-- Barra superior: contador + config paginación -->
+<div class="flex items-center justify-between mb-2">
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+        <?php if ($pp_tut > 0 && $total_tut > $pp_tut): ?>
+            Mostrando <?= ($pag_tut - 1) * $pp_tut + 1 ?>–<?= min($pag_tut * $pp_tut, $total_tut) ?> de <?= $total_tut ?>
+        <?php elseif ($total_tut > 0): ?>
+            <?= $total_tut ?> tutor<?= $total_tut !== 1 ? 's' : '' ?>
+        <?php endif; ?>
+    </span>
+    <button type="button" onclick="document.getElementById('modal-pag-tut').style.display='flex'" title="Configurar filas por página"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span><?= $pp_tut > 0 ? $pp_tut . '/pág' : 'Todos' ?></span>
+    </button>
+</div>
 
 <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-slate-700">
     <table class="w-full border-collapse">
@@ -73,7 +110,7 @@ validarAcceso('admin');
                 <th class="py-5 px-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-28">Acciones</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
+        <tbody id="tut-tbody" class="divide-y divide-slate-100">
             <?php if (empty($tutores)): ?>
                 <tr>
                     <td colspan="6" class="py-20 text-center">
@@ -81,8 +118,8 @@ validarAcceso('admin');
                     </td>
                 </tr>
             <?php else: ?>
-                <?php foreach ($tutores as $fila): ?>
-                <tr class="hover:bg-slate-50/40 transition-all duration-200 group">
+                <?php foreach ($tutoresPag as $fila): ?>
+                <tr class="tut-fila hover:bg-slate-50/40 transition-all duration-200 group">
                     <td class="py-5 px-6">
                         <span class="font-mono text-[11px] font-bold text-slate-300 group-hover:text-orange-400 transition-colors">#<?= $fila['id_tutor'] ?></span>
                     </td>
@@ -140,5 +177,10 @@ validarAcceso('admin');
         </tbody>
     </table>
 </div>
+
+
+<?= renderizarNavPaginacion($total_tut, $pag_tut, $pp_tut, 'pag_tut', 'orange', ['accion' => 'mostrarTutores']) ?>
+
+<?php $pag_prefix = 'tut'; $pag_color = 'orange'; $pag_extra_params = ['accion' => 'mostrarTutores']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 
 <?php include 'Vista/Admin/Components/Modales_Tutores.php'; ?>

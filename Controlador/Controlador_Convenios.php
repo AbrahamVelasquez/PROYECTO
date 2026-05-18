@@ -23,13 +23,13 @@ class Convenios_Controlador {
         
         // Recogemos la búsqueda priorizando POST (el nuevo método)
         // Pero mantenemos GET por si viniera de alguna redirección antigua
-        $terminoBusqueda = $_POST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
+        $terminoBusqueda = $_REQUEST['busqueda_convenio'] ?? $_GET['busqueda'] ?? '';
         
         $resultadosBusqueda = [];
 
         // Lógica para AÑADIR A FAVORITOS
         if (isset($_POST['btnFavorito'])) {
-            $resultado = $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['id_convenio_fav']);
+            $resultado = $this->convenio->añadirAFavoritos($id_tutor_actual, $_POST['num_convenio_fav']);
             
             if ($resultado === "duplicado") {
                 $_SESSION['error_duplicado'] = true;
@@ -47,17 +47,17 @@ class Convenios_Controlador {
 
         // LÓGICA PARA ELIMINAR DE FAVORITOS
         if (isset($_POST['btnEliminarFav'])) {
-            $idConvenio = $_POST['id_convenio_eliminar'];
+            $numConvenio = $_POST['num_convenio_eliminar'];
             $id_ciclo_actual = $_SESSION['id_ciclo']; // <--- Importante tener esto aquí
             
             // Limpiamos la URL para que sea POST puro (sin busqueda en el GET)
             $url = "index.php?tab=1";
 
             // Ahora pasamos ambos parámetros
-            if ($this->convenio->estaEnUso($idConvenio, $id_ciclo_actual)) {
+            if ($this->convenio->estaEnUso($numConvenio, $id_ciclo_actual)) {
                 $_SESSION['error_convenio'] = 'No puedes quitarlo de favoritos porque tienes alumnos de tu ciclo asignados a él.';
             } else {
-                $this->convenio->eliminarDeFavoritos($id_tutor_actual, $idConvenio);
+                $this->convenio->eliminarDeFavoritos($id_tutor_actual, $numConvenio);
             }
             header("Location: " . $url);
             exit();
@@ -81,19 +81,16 @@ class Convenios_Controlador {
 
     public function guardarNuevoConvenioPendiente() {
         $datos = [
-            'nombre_empresa'      => strtoupper(trim($_POST['nombre_empresa'])),
-            'cif'                 => strtoupper(trim($_POST['cif'])),
-            'direccion'           => strtoupper(trim($_POST['direccion'])),
-            'municipio'           => strtoupper(trim($_POST['municipio'])),
-            'cp'                  => trim($_POST['cp']),
-            'pais'                => strtoupper(trim($_POST['pais'])),
-            'telefono'            => trim($_POST['telefono']),
-            'fax'                 => trim($_POST['fax']),
-            'mail'                => trim($_POST['email']),
-            'nombre_representante'=> strtoupper(trim($_POST['nombre_rep_legal'])),
-            'dni_representante'   => strtoupper(trim($_POST['dni_rep_legal'])),
-            'cargo'               => strtoupper(trim($_POST['cargo_rep_legal'])),
-            'id_ciclo'            => $_POST['id_ciclo']
+            'nombre_empresa'         => strtoupper(trim($_POST['nombre_empresa'])),
+            'cif'                    => strtoupper(trim($_POST['cif'])),
+            'direccion'              => strtoupper(trim($_POST['direccion'])),
+            'localidad'              => strtoupper(trim($_POST['localidad'])),
+            'cp'                     => trim($_POST['cp']),
+            'telefono'               => trim($_POST['telefono']        ?? ''),
+            'fax'                    => trim($_POST['fax']             ?? ''),
+            'representante'          => strtoupper(trim($_POST['representante'] ?? '')),
+            'especialidad'           => $_POST['id_ciclo'],
+            'fecha_nueva_renovacion' => $_POST['fecha_nueva_renovacion'] ?? null ?: null,
         ];
 
         $exito = $this->convenio->guardarNuevoConvenioPendiente($datos);
@@ -137,18 +134,16 @@ class Convenios_Controlador {
         $id = $_POST['id_convenio_nuevo'];
 
         $datos = [
-            'nombre_empresa'    => strtoupper(trim($_POST['nombre_empresa'])),
-            'cif'               => strtoupper(trim($_POST['cif'])),
-            'direccion'         => strtoupper(trim($_POST['direccion'])),
-            'municipio'         => strtoupper(trim($_POST['municipio'])),
-            'cp'                => trim($_POST['cp']),
-            'pais'              => strtoupper(trim($_POST['pais'])),
-            'telefono'          => trim($_POST['telefono']),
-            'fax'               => trim($_POST['fax']),
-            'mail'             => trim($_POST['email']), 
-            'nombre_representante'  => strtoupper(trim($_POST['nombre_rep_legal'])),
-            'dni_representante'     => strtoupper(trim($_POST['dni_rep_legal'])),
-            'cargo'   => strtoupper(trim($_POST['cargo_rep_legal']))
+            'nombre_empresa'         => strtoupper(trim($_POST['nombre_empresa'])),
+            'cif'                    => strtoupper(trim($_POST['cif'])),
+            'direccion'              => strtoupper(trim($_POST['direccion'])),
+            'localidad'              => strtoupper(trim($_POST['localidad'])),
+            'cp'                     => trim($_POST['cp']),
+            'telefono'               => trim($_POST['telefono']        ?? ''),
+            'fax'                    => trim($_POST['fax']             ?? ''),
+            'representante'          => strtoupper(trim($_POST['representante'] ?? '')),
+            'fecha_nueva_renovacion' => $_POST['fecha_nueva_renovacion'] ?? null ?: null,
+            'observaciones'          => trim($_POST['observaciones']   ?? '') ?: null,
         ];
 
         // Llamamos a la función de actualizar del modelo que creamos antes

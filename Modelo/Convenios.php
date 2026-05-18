@@ -12,7 +12,7 @@ class Convenios {
     }
 
     public function buscar($termino) {
-        $query = "SELECT id_convenio, nombre_empresa, cif, municipio, telefono, mail, nombre_representante 
+        $query = "SELECT num_convenio, nombre_empresa, cif, localidad, telefono, representante 
                   FROM convenios 
                   WHERE nombre_empresa LIKE ? OR cif LIKE ?";
         $stmt = $this->conn->prepare($query);
@@ -21,12 +21,12 @@ class Convenios {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function añadirAFavoritos($id_tutor, $id_convenio) {
+    public function añadirAFavoritos($id_tutor, $num_convenio) {
         try {
-            $sql = "INSERT INTO mi_listado (id_tutor, id_convenio) VALUES (:id_t, :id_conv)";
+            $sql = "INSERT INTO mi_listado (id_tutor, num_convenio) VALUES (:id_t, :num_conv)";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':id_t', $id_tutor);
-            $stmt->bindParam(':id_conv', $id_convenio);
+            $stmt->bindParam(':num_conv', $num_convenio);
             return $stmt->execute();
         } catch (PDOException $e) {
             // El código 23000 es para violaciones de integridad (como duplicados)
@@ -39,7 +39,7 @@ class Convenios {
 
     public function obtenerFavoritos($id_tutor) {
         $sql = "SELECT c.* FROM convenios c
-                INNER JOIN mi_listado m ON c.id_convenio = m.id_convenio
+                INNER JOIN mi_listado m ON c.num_convenio = m.num_convenio
                 WHERE m.id_tutor = :id_tutor";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':id_tutor', $id_tutor);
@@ -47,24 +47,24 @@ class Convenios {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    public function eliminarDeFavoritos($id_tutor, $id_convenio) {
-        $query = "DELETE FROM mi_listado WHERE id_tutor = ? AND id_convenio = ?";
+    public function eliminarDeFavoritos($id_tutor, $num_convenio) {
+        $query = "DELETE FROM mi_listado WHERE id_tutor = ? AND num_convenio = ?";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$id_tutor, $id_convenio]);
+        return $stmt->execute([$id_tutor, $num_convenio]);
     }
 
-    public function estaEnUso($id_convenio, $id_ciclo) {
+    public function estaEnUso($num_convenio, $id_ciclo) {
         // Relacionamos las asignaciones con curso_academico a través del id_alumno
         $query = "SELECT COUNT(*) 
                 FROM asignaciones a
                 INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
-                WHERE a.id_convenio = :id_convenio 
+                WHERE a.num_convenio = :num_convenio 
                 AND ca.id_ciclo = :id_ciclo";
                 
         $stmt = $this->conn->prepare($query);
         $stmt->execute([
-            'id_convenio' => $id_convenio,
-            'id_ciclo'    => $id_ciclo
+            'num_convenio' => $num_convenio,
+            'id_ciclo'     => $id_ciclo
         ]);
         
         return $stmt->fetchColumn() > 0;
@@ -72,25 +72,22 @@ class Convenios {
 
     public function guardarNuevoConvenioPendiente($datos) {
         $query = "INSERT INTO convenios_nuevos 
-                    (nombre_empresa, cif, direccion, municipio, cp, pais, telefono, fax, mail, 
-                    nombre_representante, dni_representante, cargo, id_ciclo)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (nombre_empresa, cif, direccion, localidad, cp, telefono, fax,
+                    representante, especialidad, fecha_nueva_renovacion)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([
             $datos['nombre_empresa'],
             $datos['cif'],
             $datos['direccion'],
-            $datos['municipio'],
+            $datos['localidad'],
             $datos['cp'],
-            $datos['pais'],
             $datos['telefono'],
             $datos['fax'],
-            $datos['mail'],
-            $datos['nombre_representante'],
-            $datos['dni_representante'],
-            $datos['cargo'],
-            $datos['id_ciclo']
+            $datos['representante'],
+            $datos['especialidad'],
+            $datos['fecha_nueva_renovacion'] ?? null,
         ]);
     }
 
@@ -98,13 +95,13 @@ class Convenios {
      * Obtiene solo los convenios nuevos que NO han sido aprobados aún.
      * Al usar el LEFT JOIN, si no hay registro en convenios_aprobados, ca.id_convenio_nuevo será NULL.
      */
-    public function listarPendientesDeAprobacion($id_ciclo) {
+    public function listarPendientesDeAprobacion($especialidad) {
         $sql = "SELECT cn.* FROM convenios_nuevos cn
                 LEFT JOIN convenios_aprobados ca ON cn.id_convenio_nuevo = ca.id_convenio_nuevo
-                WHERE cn.id_ciclo = ? AND ca.id_convenio_nuevo IS NULL";
+                WHERE cn.especialidad = ? AND ca.id_convenio_nuevo IS NULL";
                 
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$id_ciclo]);
+        $stmt->execute([$especialidad]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -113,7 +110,7 @@ class Convenios {
      * deje de listarse como "pendiente".
      */
     public function registrarAprobacion($id_convenio_nuevo) {
-        $sql = "INSERT INTO convenios_aprobados (id_convenio_nuevo) VALUES (?)";
+        $sql = "INSERT INTO convenios_aprobados (id_convenio_nuevo, fecha_aprobacion) VALUES (?, CURDATE())";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$id_convenio_nuevo]);
     }
@@ -123,15 +120,13 @@ class Convenios {
                 nombre_empresa = ?, 
                 cif = ?, 
                 direccion = ?, 
-                municipio = ?, 
+                localidad = ?, 
                 cp = ?, 
-                pais = ?, 
                 telefono = ?, 
                 fax = ?, 
-                mail = ?, 
-                nombre_representante = ?, 
-                dni_representante = ?, 
-                cargo = ? 
+                representante = ?,
+                fecha_nueva_renovacion = ?,
+                observaciones = ?
                 WHERE id_convenio_nuevo = ?";
                 
         $stmt = $this->conn->prepare($sql);
@@ -139,15 +134,13 @@ class Convenios {
             $datos['nombre_empresa'],
             $datos['cif'],
             $datos['direccion'],
-            $datos['municipio'],
+            $datos['localidad'],
             $datos['cp'],
-            $datos['pais'],
             $datos['telefono'],
             $datos['fax'],
-            $datos['mail'],
-            $datos['nombre_representante'],
-            $datos['dni_representante'],
-            $datos['cargo'],
+            $datos['representante'],
+            $datos['fecha_nueva_renovacion'] ?? null,
+            $datos['observaciones']          ?? null,
             $id
         ]);
     }

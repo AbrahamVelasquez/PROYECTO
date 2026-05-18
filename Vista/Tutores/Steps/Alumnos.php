@@ -1,11 +1,21 @@
-<?php 
+<?php
 
 // Vista/Tutores/Steps/Alumnos.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+// Paginación PHP
+$pp_alum  = leerPorPagina('pp_alum', 10);
+$pag_alum = leerPaginaActual('pag_alum');
+$total_alum = count($alumnos ?? []);
+$alumnosPag = paginarArray($alumnos ?? [], $pp_alum, $pag_alum);
+
+// Paginación PHP
+$pp_alum  = leerPorPagina('pp_alum', 10);
+$pag_alum = leerPaginaActual('pag_alum');
+$total_alum = count($alumnos ?? []);
+$alumnosPag = paginarArray($alumnos ?? [], $pp_alum, $pag_alum);
 
 // Incluimos el Header (Título y Filtros)
 include __DIR__ . '/../Components/Header_Alumnos.php'; 
@@ -57,6 +67,22 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
     }
 </style>
 
+<!-- Barra superior: contador + config paginación -->
+<div class="flex items-center justify-between mb-2">
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+        <?php if ($pp_alum > 0 && $total_alum > $pp_alum): ?>
+            Mostrando <?= ($pag_alum - 1) * $pp_alum + 1 ?>–<?= min($pag_alum * $pp_alum, $total_alum) ?> de <?= $total_alum ?>
+        <?php elseif ($total_alum > 0): ?>
+            <?= $total_alum ?> alumno<?= $total_alum !== 1 ? 's' : '' ?>
+        <?php endif; ?>
+    </span>
+    <button type="button" onclick="document.getElementById('modal-pag-alum').style.display='flex'" title="Configurar filas por página"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span><?= $pp_alum > 0 ? $pp_alum . '/pág' : 'Todos' ?></span>
+    </button>
+</div>
+
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
   <table class="w-full text-left border-collapse bg-white">
     <thead>
@@ -79,11 +105,11 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
     </thead>
     <!-- id="tablaAlumnosBody" eso se colocó para funcionalidades de javascript que se usan en el header, para búsqueda -->
     <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 uppercase bg-white text-[10px]">
-      <?php if (empty($alumnos)): ?>
+      <?php if (empty($alumnosPag)): ?>
         <tr><td colspan="14" class="py-10 text-center text-slate-400 italic">No hay resultados.</td></tr>
       <?php else: ?>
-        <?php foreach ($alumnos as $al): 
-            $tieneEmpresa = !empty($al['id_convenio']);
+        <?php foreach ($alumnosPag as $al): 
+            $tieneEmpresa = !empty($al['num_convenio']);
             $tieneDireccion = !empty($al['direccion']);
             $f_inicio = ($al['fecha_inicio'] && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
             $f_final = ($al['fecha_final'] && $al['fecha_final'] !== '0000-00-00') ? $al['fecha_final'] : null;
@@ -98,7 +124,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                 $estado = "COMPLETADO"; $colorEstado = "bg-emerald-100 text-emerald-700 border-emerald-200";
             }
         ?>
-        <tr class="hover:bg-slate-50/50 transition-colors">
+        <tr class="alum-fila hover:bg-slate-50/50 transition-colors" data-id-alumno="<?= $al['id_alumno'] ?>" data-estado="<?= $estado ?>">
             <td class="p-3 text-center">
                 <button type="button" onclick="abrirModalEditar(<?= $al['id_alumno'] ?>)" class="group p-2 rounded-lg hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
@@ -132,16 +158,39 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
                 </td>
             <?php else: ?>
                 <td class="p-4 text-slate-700"><?= htmlspecialchars($al['nombre_empresa']) ?></td>
-                <td class="text-center text-slate-500"><?= str_pad($al['id_convenio'], 4, "0", STR_PAD_LEFT) ?></td>
+                <td class="text-center text-slate-500"><?= htmlspecialchars($al['num_convenio'] ?? '—') ?></td>
                 <td class="border-section p-4">
-                    <?= $tieneDireccion ? '<div class="text-[9px] lowercase leading-tight text-slate-600">'.htmlspecialchars($al['direccion']).'<br><span class="font-bold text-slate-400">'.htmlspecialchars($al['municipio']).'</span></div>' 
+                    <?= $tieneDireccion ? '<div class="text-[9px] lowercase leading-tight text-slate-600">'.htmlspecialchars($al['direccion']).'<br><span class="font-bold text-slate-400">'.htmlspecialchars($al['localidad']).'</span></div>' 
                                       : '<span class="text-orange-500 font-black italic text-[8px]">⚠️ FALTA DIR.</span>' ?>
                 </td>
                 <td class="text-center"><?= $f_inicio ? date("d/m/y", strtotime($f_inicio)) : '<span class="text-orange-500 font-bold italic">--/--/--</span>' ?></td>
                 <td class="text-center"><?= $f_final ? date("d/m/y", strtotime($f_final)) : '<span class="text-orange-500 font-bold italic">--/--/--</span>' ?></td>
                 <td class="text-center">
-                    <?= $tieneHorario ? '<span class="text-slate-600">'.htmlspecialchars($al['horario']).'</span>' 
-                                     : '<span class="text-orange-500 font-black italic text-[8px]">⚠️ SIN HORARIO</span>' ?>
+            <?php if (!$tieneHorario): ?>
+                <span class="text-orange-500 font-black italic text-[8px]">⚠️ SIN HORARIO</span>
+            <?php else:
+                $excepciones = trim($al['horario_excepciones'] ?? '');
+                $bloques = $excepciones ? json_decode($excepciones, true) : null;
+                if (!empty($bloques) && is_array($bloques)):
+                    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+                    foreach ($bloques as $bloque):
+                        if (empty($bloque['dias'])) continue;
+                        $dias = $bloque['dias'];
+                        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+                        // Si son consecutivos mostramos rango (L-J), si no los pegamos (LXV)
+                        $esConsecutivo = true;
+                        for ($i = 1; $i < count($dias); $i++) {
+                            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+                        }
+                        $labelDias = (count($dias) > 1 && $esConsecutivo)
+                            ? $dias[0] . '-' . $dias[count($dias)-1]
+                            : implode('', $dias);
+            ?>
+                <span class="block text-slate-600 leading-tight"><?= htmlspecialchars($labelDias . ' ' . $bloque['inicio'] . '-' . $bloque['fin']) ?></span>
+            <?php   endforeach;
+                else: ?>
+                <span class="text-slate-600"><?= htmlspecialchars($al['horario']) ?></span>
+            <?php endif; endif; ?>
                 </td>
                 <td class="text-center border-section font-bold">
                     <?= $tieneHorario ? number_format($al['horas_dia'], 0) : '-' ?>
@@ -196,9 +245,11 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
   </table>
 </div>
 
-<?php 
+<?= renderizarNavPaginacion($total_alum, $pag_alum, $pp_alum, 'pag_alum', 'orange') ?>
+
+<?php
 // Incluimos todos los Modales
-include __DIR__ . '/../Components/Modales_Alumnos.php'; 
+include __DIR__ . '/../Components/Modales_Alumnos.php';
 ?>
 
 <script>
@@ -292,7 +343,7 @@ function abrirModalEditar(idAlumno) {
         document.getElementById('edit_sexo').value = al.sexo ?? '';
         document.getElementById('edit_correo').value = al.correo ?? '';
         document.getElementById('edit_telefono').value = al.telefono || '';
-        document.getElementById('edit_id_convenio').value = al.id_convenio ?? '';
+        document.getElementById('edit_id_convenio').value = al.num_convenio ?? '';
         document.getElementById('edit_fecha_inicio').value = al.fecha_inicio && al.fecha_inicio !== '0000-00-00' ? al.fecha_inicio : '';
         document.getElementById('edit_fecha_final').value = al.fecha_final && al.fecha_final !== '0000-00-00' ? al.fecha_final : '';
         document.getElementById('edit_horario').value = al.horario ?? '';
@@ -352,20 +403,17 @@ function seleccionarTodosExportar(master) {
 }
 
 function mostrarErrorExportar(nombreAlumno, checkbox) {
-    // Si el checkbox no está deshabilitado (es decir, no ha sido enviado realmente aún)
     if (!checkbox.disabled) {
-        // Forzamos que se mantenga desmarcado
         checkbox.checked = false;
-        
-        // Inyectamos el nombre en el modal de exportación
         const spanNombre = document.getElementById('nombreAlumnoExportError');
         if (spanNombre) spanNombre.innerText = nombreAlumno;
-        
-        // Mostramos el modal
         const modal = document.getElementById('modalErrorExportar');
         if (modal) modal.style.display = 'flex';
     }
     return false;
 }
 
+
 </script>
+
+<?php $pag_prefix = 'alum'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '2']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
