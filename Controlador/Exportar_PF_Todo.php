@@ -2,7 +2,7 @@
 
 // Controlador/Exportar_PF_Todo.php
 // Invocado desde: index.php?controlador=Tutores&accion=exportarTodoPF (POST)
-// Recibe: ids_asignacion[] → genera un Excel por cada uno y los devuelve en ZIP
+// Recibe: ids_asignacion[] → genera UN SOLO Excel con todos los alumnos en la hoja "datos variables"
 
 require_once __DIR__ . '/../Core/Conexion.php';
 require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
@@ -43,6 +43,42 @@ function fmtFechaT(string $fecha): string {
     catch (Exception $e) { return $fecha; }
 }
 
+function formatearHorarioPFT(string $excepciones, string $horarioSimple, string $diasSemana = ''): string {
+    $NOMBRES_CORTO = ['L'=>'Lunes','M'=>'Martes','X'=>'Miércoles','J'=>'Jueves','V'=>'Viernes','S'=>'Sábado','D'=>'Domingo'];
+
+    if (empty($excepciones)) {
+        if (empty($diasSemana) || empty($horarioSimple)) return $horarioSimple;
+        // Convierte "L-V" → "Lunes a Viernes"
+        $partesDias = explode('-', $diasSemana);
+        if (count($partesDias) === 2) {
+            $inicio = $NOMBRES_CORTO[trim($partesDias[0])] ?? trim($partesDias[0]);
+            $fin    = $NOMBRES_CORTO[trim($partesDias[1])] ?? trim($partesDias[1]);
+            return "$inicio a $fin: $horarioSimple";
+        }
+        // Si es un solo día (ej: "L")
+        $dia = $NOMBRES_CORTO[trim($diasSemana)] ?? $diasSemana;
+        return "$dia: $horarioSimple";
+    }
+
+    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+    $bloques = json_decode($excepciones, true) ?? [];
+    $partes  = [];
+    foreach ($bloques as $b) {
+        if (empty($b['dias'])) continue;
+        $dias = $b['dias'];
+        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+        $esConsecutivo = true;
+        for ($i = 1; $i < count($dias); $i++) {
+            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+        }
+        $labelDias = (count($dias) > 1 && $esConsecutivo)
+            ? $NOMBRES_CORTO[$dias[0]] . ' a ' . $NOMBRES_CORTO[$dias[count($dias)-1]]
+            : implode(', ', array_map(fn($d) => $NOMBRES_CORTO[$d], $dias));
+        $partes[] = $labelDias . ': ' . $b['inicio'] . '-' . $b['fin'];
+    }
+    return implode(", ", $partes);
+}
+
 function obtenerRAsCicloT(int $idCiclo): array {
     if (!$idCiclo) return [];
     try {
@@ -67,12 +103,12 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
     try {
         $conn = Conexion::getConexion();
         $sql  = "SELECT a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
-                        asig.id_asignacion, asig.id_convenio, asig.horario,
-                        asig.num_total_horas, asig.horas_dia,
+                        asig.id_asignacion, asig.num_convenio, asig.horario, asig.horario_excepciones,
+                        asig.num_total_horas, asig.horas_dia, asig.dias_semana,
                         asig.fecha_inicio, asig.fecha_final,
                         asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
-                        conv.nombre_empresa, conv.cif, conv.mail AS email_empresa,
-                        conv.telefono AS tel_empresa, conv.direccion, conv.municipio,
+                        conv.nombre_empresa, conv.cif, conv.representante AS email_empresa,
+                        conv.telefono AS tel_empresa, conv.direccion, conv.localidad,
                         ci.id_ciclo, ci.nombre_ciclo,
                         cu.id_curso,
                         ca.anio_inicio, ca.anio_fin,
@@ -81,14 +117,14 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
                         t.email AS tutor_email, t.telefono AS tutor_tel,
                         cu2.nombre_curso AS nombre_curso_tutor
                  FROM asignaciones asig
-                 INNER JOIN alumnos a         ON asig.id_alumno    = a.id_alumno
+                 INNER JOIN alumnos a              ON asig.id_alumno    = a.id_alumno
                  INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                 LEFT  JOIN convenios conv    ON asig.id_convenio  = conv.id_convenio
-                 INNER JOIN curso_academico ca ON a.id_alumno      = ca.id_alumno
-                 INNER JOIN ciclos ci          ON ca.id_ciclo       = ci.id_ciclo
-                 INNER JOIN cursos cu          ON ci.id_curso       = cu.id_curso
-                 LEFT  JOIN tutores t          ON t.id_ciclo        = ci.id_ciclo
-                 LEFT  JOIN cursos cu2         ON ci.id_curso       = cu2.id_curso
+                 LEFT  JOIN convenios conv         ON asig.num_convenio = conv.num_convenio
+                 INNER JOIN curso_academico ca     ON a.id_alumno       = ca.id_alumno
+                 INNER JOIN ciclos ci              ON ca.id_ciclo       = ci.id_ciclo
+                 INNER JOIN cursos cu              ON ci.id_curso       = cu.id_curso
+                 LEFT  JOIN tutores t              ON t.id_ciclo        = ci.id_ciclo
+                 LEFT  JOIN cursos cu2             ON ci.id_curso       = cu2.id_curso
                  WHERE asig.id_asignacion = ?
                  LIMIT 1";
         $stmt = $conn->prepare($sql);
@@ -98,149 +134,20 @@ function obtenerDatosAsignacion(int $idAsignacion): ?array {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// 4. GENERAR UN EXCEL PARA UNA ASIGNACIÓN
+// 4. MARCAR COMO EXPORTADO SI ESTABA PENDIENTE (exportado = 0)
 // ──────────────────────────────────────────────────────────────────────────────
-function generarExcelAsignacion(array $d, string $plantilla): string {
-    $spreadsheet = IOFactory::load($plantilla);
-
-    // Años
-    $anioIni = substr((string)($d['anio_inicio'] ?? date('Y')), -2);
-    $anioFin = substr((string)($d['anio_fin']    ?? date('Y') + 1), -2);
-
-    // Curso
-    $nombreCurso = strtolower($d['nombre_curso_tutor'] ?? '');
-    $abreviatura = match(true) {
-        str_contains($nombreCurso, 'primero') => '1º',
-        str_contains($nombreCurso, 'segundo') => '2º',
-        str_contains($nombreCurso, 'tercero') => '3º',
-        default => $nombreCurso,
-    };
-    $cursoTexto = $abreviatura;
-    $idCurso    = (int)($d['id_curso'] ?? 1);
-
-    // Alumno
-    $nomAlu  = strtoupper($d['nombre']    ?? '');
-    $ape1Alu = strtoupper($d['apellido1'] ?? '');
-    $ape2Alu = strtoupper($d['apellido2'] ?? '');
-
-    // Tutor empresa
-    $tutorEmp   = strtoupper(trim($d['nombre_tutor_empresa'] ?? ''));
-    $tutorParts = explode(' ', $tutorEmp, 2);
-    $tutorNom   = $tutorParts[0] ?? '';
-    $tutorApe   = $tutorParts[1] ?? '';
-
-    $fechaIni = fmtFechaT($d['fecha_inicio'] ?? '');
-    $fechaFin = fmtFechaT($d['fecha_final']  ?? '');
-
-    $idCiclo = (int)($d['id_ciclo'] ?? 0);
-    $ras     = obtenerRAsCicloT($idCiclo);
-
-    // Deducir el periodo dominante de los RAs (el más frecuente)
-    $contadorPeriodos = [];
-    foreach ($ras as $ra) {
-        $p = (string)$ra['periodo'];
-        $contadorPeriodos[$p] = ($contadorPeriodos[$p] ?? 0) + 1;
-    }
-
-    // El periodo con más RAs es el seleccionado, el resto van a Off
-    $periodoDominante = '';
-    if (!empty($contadorPeriodos)) {
-        arsort($contadorPeriodos);
-        $periodoDominante = array_key_first($contadorPeriodos);
-    }
-
-    $periodosActivos = [];
-    if ($periodoDominante !== '') {
-        $periodosActivos[$periodoDominante] = true;
-    }
-
-    // ── Hoja datos fijos ──────────────────────────────────────────────────────
-    $wsFijos = $spreadsheet->getSheetByName('datos fijos');
-    setValorHojaT($wsFijos, 'anio_inicio', $anioIni);
-    setValorHojaT($wsFijos, 'anio_fin',    $anioFin);
-    setValorHojaT($wsFijos, 'regimen',     'General');
-    setValorHojaT($wsFijos, 'nombre_ciclo', strtoupper($d['nombre_ciclo'] ?? ''));
-    setValorHojaT($wsFijos, 'codigo_ciclo', $d['id_ciclo'] ?? '');
-    setValorHojaT($wsFijos, 'grado_ciclo',  'superior');
-    setValorHojaT($wsFijos, 'curso',        $cursoTexto);
-    setValorHojaT($wsFijos, 'cod_curso',    $d['id_ciclo'] ?? '');
-
-    setValorHojaT($wsFijos, 'centro_docente',              'IES CIUDAD ESCOLAR');
-    setValorHojaT($wsFijos, 'email_centro_docente',         'ies.ciudadescolar@educa.madrid.org');
-    setValorHojaT($wsFijos, 'telef_centro_docente',         '917341244');
-    setValorHojaT($wsFijos, 'Tutor_centro_docente',         strtoupper(trim(($d['tutor_nombre'] ?? '') . ' ' . ($d['tutor_apellidos'] ?? ''))));
-    setValorHojaT($wsFijos, 'email_tutor_centro_docente',   $d['tutor_email'] ?? '');
-    setValorHojaT($wsFijos, 'telef_tutor_centro_docente',   $d['tutor_tel']   ?? '');
-
-    for ($i = 1; $i <= 14; $i++) {
-        $ra = $ras[$i - 1] ?? null;
-        setValorHojaT($wsFijos, "num_periodo_mod_ras_{$i}", $ra ? $ra['periodo']       : null);
-        setValorHojaT($wsFijos, "nombre_modulo_{$i}",        $ra ? $ra['nombre_modulo'] : null);
-        setValorHojaT($wsFijos, "codigo_modulo_{$i}",         $ra ? $ra['id_modulo']    : null);
-        setValorHojaT($wsFijos, "listado_ras_{$i}",           $ra ? $ra['numero_ra']    : null);
-        setValorHojaT($wsFijos, "ras_{$i}_intregro_emp",
-            $ra ? ($ra['impartido_empresa'] == 1 ? 'si' : 'no') : null
-        );
-    }
-
-    setValorHojaT($wsFijos, 'periodo_1º', !empty($periodosActivos['1']) ? 'Sí' : 'Off');
-    setValorHojaT($wsFijos, 'periodo_2º', !empty($periodosActivos['2']) ? 'Sí' : 'Off');
-    setValorHojaT($wsFijos, 'periodo_3º', !empty($periodosActivos['3']) ? 'Sí' : 'Off');
-
-    // ── Hoja datos variables ──────────────────────────────────────────────────
-    $wsVar     = $spreadsheet->getSheetByName('datos variables');
-    $maxColStr = $wsVar->getHighestColumn();
-    $maxColIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($maxColStr);
-    $headers   = [];
-    for ($col = 1; $col <= $maxColIdx; $col++) {
-        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
-        $header    = $wsVar->getCell("{$colLetter}1")->getValue();
-        if ($header !== null && $header !== '') $headers[$header] = $col;
-    }
-
-    $setVar = function(string $name, $value) use ($wsVar, $headers): void {
-        if (!isset($headers[$name])) return;
-        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headers[$name]);
-        $wsVar->getCell("{$colLetter}2")->setValue($value);
-    };
-
-    $setVar('num_convenio',            $d['id_convenio']  ?? '');
-    $setVar('num_anexo',               $d['anexo']        ?? '');
-    $setVar('Alumno',                  trim("$nomAlu $ape1Alu $ape2Alu"));
-    $setVar('nom_alumno',              $nomAlu);
-    $setVar('apellidos_alumno',        trim("$ape1Alu $ape2Alu"));
-    $setVar('ape1_alumno',             $ape1Alu);
-    $setVar('ape2_alumno',             $ape2Alu);
-    $setVar('email_alumno',            $d['correo']   ?? '');
-    $setVar('telef_alumno',            $d['telefono'] ?? '');
-    $setVar('Empresa',                 strtoupper($d['nombre_empresa'] ?? ''));
-    $setVar('cif_nif_empresa',         strtoupper($d['cif']           ?? ''));
-    $setVar('email_empresa',           $d['email_empresa'] ?? '');
-    $setVar('telef_empresa',           $d['tel_empresa']   ?? '');
-    $setVar('tutor_empresa',           $tutorEmp);
-    $setVar('tutor_empresa_nombre',    $tutorNom);
-    $setVar('tutor_empresa_apellidos', $tutorApe);
-    $setVar('email_tutor_empresa',     $d['correo_tutor_empresa'] ?? '');
-    $setVar('telef_tutor_empresa',     $d['tel_tutor_empresa']    ?? '');
-    $setVar('total_horas',             $d['num_total_horas'] ?? '');
-    $setVar('num_periodo_1',           '1');
-    $setVar('fecha_ini',               $fechaIni);
-    $setVar('fecha_fin',               $fechaFin);
-    $setVar('fecha_ini-fecha_fin_1',   ($fechaIni && $fechaFin) ? "$fechaIni - $fechaFin" : '');
-    $setVar('horario_cada_dia_1',      $d['horario'] ?? '');
-    $setVar('inter_diario',            'Sí');
-    $setVar('adaptaciones?',           'no');
-    $setVar('autorizacion_extra?',     'no');
-
-    // Guardar en temporal
-    $tmpFile = tempnam(sys_get_temp_dir(), 'pf_') . '.xlsx';
-    $writer  = new Xlsx($spreadsheet);
-    $writer->save($tmpFile);
-    return $tmpFile;
+function marcarExportadoSiPendiente(int $idAsignacion): void {
+    try {
+        $conn = Conexion::getConexion();
+        $sql  = "UPDATE asignaciones_firmadas SET exportado = 1
+                 WHERE id_asignacion = ? AND exportado = 0";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$idAsignacion]);
+    } catch (PDOException $e) { /* silencioso */ }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// 5. CONSTRUIR Y ENVIAR
+// 5. CARGAR PLANTILLA
 // ──────────────────────────────────────────────────────────────────────────────
 $plantilla = __DIR__ . '/../Recursos/Exportar/plantilla_ffe.xlsx';
 if (!file_exists($plantilla)) {
@@ -249,59 +156,201 @@ if (!file_exists($plantilla)) {
     exit;
 }
 
-$archivosGenerados = []; // ['nombre_archivo' => 'ruta_tmp']
-
+// Obtener datos de todos los alumnos
+$todosLosDatos = [];
 foreach ($ids as $idAsig) {
     $datos = obtenerDatosAsignacion($idAsig);
-    if (!$datos) continue;
-
-    $tmpPath  = generarExcelAsignacion($datos, $plantilla);
-    $ape1Safe = preg_replace('/[^A-Za-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT', strtoupper($datos['apellido1'] ?? 'ALU')));
-    $nomSafe  = preg_replace('/[^A-Za-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT', strtoupper($datos['nombre']    ?? '')));
-    $nombreArchivo = "PlanFormativo_{$ape1Safe}_{$nomSafe}.xlsx";
-
-    $archivosGenerados[$nombreArchivo] = $tmpPath;
+    if ($datos) {
+        $todosLosDatos[] = $datos;
+    }
 }
 
-if (empty($archivosGenerados)) {
+if (empty($todosLosDatos)) {
     http_response_code(404);
-    echo 'No se pudo generar ningún plan formativo.';
+    echo 'No se pudo obtener datos de ninguna asignación.';
     exit;
 }
 
-// ── Un solo fichero → descarga directa ───────────────────────────────────────
-if (count($archivosGenerados) === 1) {
-    $nombre = array_key_first($archivosGenerados);
-    $ruta   = $archivosGenerados[$nombre];
+// ──────────────────────────────────────────────────────────────────────────────
+// 6. RELLENAR HOJA "datos fijos" (datos del ciclo/tutor, iguales para todos)
+// ──────────────────────────────────────────────────────────────────────────────
+$d0      = $todosLosDatos[0];
+$idCiclo = (int)($d0['id_ciclo'] ?? 0);
+$ras     = obtenerRAsCicloT($idCiclo);
 
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . $nombre . '"');
-    header('Content-Length: ' . filesize($ruta));
-    header('Cache-Control: no-cache');
-    readfile($ruta);
-    unlink($ruta);
-    exit;
+$anioIni = substr((string)($d0['anio_inicio'] ?? date('Y')), -2);
+$anioFin = substr((string)($d0['anio_fin']    ?? date('Y') + 1), -2);
+
+$nombreCurso = strtolower($d0['nombre_curso_tutor'] ?? '');
+$abreviatura = match(true) {
+    str_contains($nombreCurso, 'primero') => '1º',
+    str_contains($nombreCurso, 'segundo') => '2º',
+    str_contains($nombreCurso, 'tercero') => '3º',
+    default => $nombreCurso,
+};
+
+// Periodo dominante de los RAs
+$contadorPeriodos = [];
+foreach ($ras as $ra) {
+    $p = (string)$ra['periodo'];
+    $contadorPeriodos[$p] = ($contadorPeriodos[$p] ?? 0) + 1;
+}
+$periodoDominante = '';
+if (!empty($contadorPeriodos)) {
+    arsort($contadorPeriodos);
+    $periodoDominante = array_key_first($contadorPeriodos);
+}
+$periodosActivos = $periodoDominante !== '' ? [$periodoDominante => true] : [];
+
+$spreadsheet = IOFactory::load($plantilla);
+$wsFijos = $spreadsheet->getSheetByName('datos fijos');
+
+setValorHojaT($wsFijos, 'anio_inicio',  $anioIni);
+setValorHojaT($wsFijos, 'anio_fin',     $anioFin);
+setValorHojaT($wsFijos, 'regimen',      'General');
+setValorHojaT($wsFijos, 'nombre_ciclo', strtoupper($d0['nombre_ciclo'] ?? ''));
+setValorHojaT($wsFijos, 'codigo_ciclo', $d0['id_ciclo'] ?? '');
+setValorHojaT($wsFijos, 'grado_ciclo',  'superior');
+setValorHojaT($wsFijos, 'curso',        $abreviatura);
+setValorHojaT($wsFijos, 'cod_curso',    $d0['id_ciclo'] ?? '');
+
+setValorHojaT($wsFijos, 'centro_docente',            'IES CIUDAD ESCOLAR');
+setValorHojaT($wsFijos, 'email_centro_docente',       'ies.ciudadescolar@educa.madrid.org');
+setValorHojaT($wsFijos, 'telef_centro_docente',       '917341244');
+setValorHojaT($wsFijos, 'Tutor_centro_docente',       strtoupper(trim(($d0['tutor_nombre'] ?? '') . ' ' . ($d0['tutor_apellidos'] ?? ''))));
+setValorHojaT($wsFijos, 'email_tutor_centro_docente', $d0['tutor_email'] ?? '');
+setValorHojaT($wsFijos, 'telef_tutor_centro_docente', $d0['tutor_tel']   ?? '');
+
+for ($i = 1; $i <= 14; $i++) {
+    $ra = $ras[$i - 1] ?? null;
+    setValorHojaT($wsFijos, "num_periodo_mod_ras_{$i}", $ra ? $ra['periodo']       : null);
+    setValorHojaT($wsFijos, "nombre_modulo_{$i}",        $ra ? $ra['nombre_modulo'] : null);
+    setValorHojaT($wsFijos, "codigo_modulo_{$i}",         $ra ? $ra['id_modulo']    : null);
+    setValorHojaT($wsFijos, "listado_ras_{$i}",           $ra ? $ra['numero_ra']    : null);
+    setValorHojaT($wsFijos, "ras_{$i}_intregro_emp",
+        $ra ? ($ra['impartido_empresa'] == 1 ? 'si' : 'no') : null
+    );
 }
 
-// ── Varios ficheros → ZIP ─────────────────────────────────────────────────────
-$zipTmp = tempnam(sys_get_temp_dir(), 'planes_') . '.zip';
-$zip    = new ZipArchive();
-$zip->open($zipTmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+setValorHojaT($wsFijos, 'periodo_1º', !empty($periodosActivos['1']) ? 'Sí' : 'Off');
+setValorHojaT($wsFijos, 'periodo_2º', !empty($periodosActivos['2']) ? 'Sí' : 'Off');
+setValorHojaT($wsFijos, 'periodo_3º', !empty($periodosActivos['3']) ? 'Sí' : 'Off');
 
-foreach ($archivosGenerados as $nombre => $ruta) {
-    $zip->addFile($ruta, $nombre);
+// ──────────────────────────────────────────────────────────────────────────────
+// 7. RELLENAR HOJA "datos variables" — UNA FILA POR ALUMNO (fila 2 en adelante)
+// ──────────────────────────────────────────────────────────────────────────────
+$wsVar = $spreadsheet->getSheetByName('datos variables');
+
+// Leer cabeceras de la fila 1
+$maxColStr = $wsVar->getHighestColumn();
+$maxColIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($maxColStr);
+$headers   = [];
+for ($col = 1; $col <= $maxColIdx; $col++) {
+    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+    $header    = $wsVar->getCell("{$colLetter}1")->getValue();
+    if ($header !== null && $header !== '') {
+        $headers[$header] = $col;
+    }
 }
-$zip->close();
 
-header('Content-Type: application/zip');
-header('Content-Disposition: attachment; filename="PlanesFormativos_' . date('Ymd') . '.zip"');
-header('Content-Length: ' . filesize($zipTmp));
-header('Cache-Control: no-cache');
-readfile($zipTmp);
+$setVar = function(int $fila, string $name, $value) use ($wsVar, $headers): void {
+    if (!isset($headers[$name])) return;
+    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headers[$name]);
+    $wsVar->getCell("{$colLetter}{$fila}")->setValue($value);
+};
 
-// Limpiar temporales
-unlink($zipTmp);
-foreach ($archivosGenerados as $ruta) {
-    if (file_exists($ruta)) unlink($ruta);
+// Clonar el estilo (bordes, fuente, alineación) de la fila 2 a una fila destino
+$copiarEstiloFilaPlantilla = function(int $filaDestino) use ($wsVar, $maxColIdx): void {
+    if ($filaDestino === 2) return; // la fila 2 ya tiene estilo de la plantilla
+    for ($col = 1; $col <= $maxColIdx; $col++) {
+        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+        $celdaOrigen  = $wsVar->getCell("{$colLetter}2");
+        $celdaDestino = $wsVar->getCell("{$colLetter}{$filaDestino}");
+        // Clonar border
+        $celdaDestino->getStyle()->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'font' => [
+                'name' => $celdaOrigen->getStyle()->getFont()->getName(),
+                'size' => $celdaOrigen->getStyle()->getFont()->getSize(),
+            ],
+            'alignment' => [
+                'horizontal' => $celdaOrigen->getStyle()->getAlignment()->getHorizontal(),
+                'vertical'   => $celdaOrigen->getStyle()->getAlignment()->getVertical(),
+                'wrapText'   => $celdaOrigen->getStyle()->getAlignment()->getWrapText(),
+            ],
+        ]);
+    }
+};
+
+$filaActual = 2; // fila 1 = cabeceras
+
+foreach ($todosLosDatos as $d) {
+
+    // Marcar como exportado si aún estaba pendiente
+    marcarExportadoSiPendiente((int)$d['id_asignacion']);
+    
+    // Aplicar estilo de la fila plantilla (fila 2) a esta fila
+    $copiarEstiloFilaPlantilla($filaActual);
+
+    $nomAlu  = strtoupper($d['nombre']    ?? '');
+    $ape1Alu = strtoupper($d['apellido1'] ?? '');
+    $ape2Alu = strtoupper($d['apellido2'] ?? '');
+
+    $tutorEmp   = strtoupper(trim($d['nombre_tutor_empresa'] ?? ''));
+    $tutorParts = explode(' ', $tutorEmp, 2);
+    $tutorNom   = $tutorParts[0] ?? '';
+    $tutorApe   = $tutorParts[1] ?? '';
+
+    $fechaIni = fmtFechaT($d['fecha_inicio'] ?? '');
+    $fechaFin = fmtFechaT($d['fecha_final']  ?? '');
+
+    $setVar($filaActual, 'num_convenio',            $d['num_convenio'] ?? '');
+    $setVar($filaActual, 'num_anexo',               $d['anexo']        ?? '');
+    $setVar($filaActual, 'Alumno',                  trim("$nomAlu $ape1Alu $ape2Alu"));
+    $setVar($filaActual, 'nom_alumno',              $nomAlu);
+    $setVar($filaActual, 'apellidos_alumno',        trim("$ape1Alu $ape2Alu"));
+    $setVar($filaActual, 'ape1_alumno',             $ape1Alu);
+    $setVar($filaActual, 'ape2_alumno',             $ape2Alu);
+    $setVar($filaActual, 'email_alumno',            $d['correo']   ?? '');
+    $setVar($filaActual, 'telef_alumno',            $d['telefono'] ?? '');
+    $setVar($filaActual, 'Empresa',                 strtoupper($d['nombre_empresa'] ?? ''));
+    $setVar($filaActual, 'cif_nif_empresa',         strtoupper($d['cif']           ?? ''));
+    $setVar($filaActual, 'email_empresa',           $d['email_empresa'] ?? '');
+    $setVar($filaActual, 'telef_empresa',           $d['tel_empresa']   ?? '');
+    $setVar($filaActual, 'tutor_empresa',           $tutorEmp);
+    $setVar($filaActual, 'tutor_empresa_nombre',    $tutorNom);
+    $setVar($filaActual, 'tutor_empresa_apellidos', $tutorApe);
+    $setVar($filaActual, 'email_tutor_empresa',     $d['correo_tutor_empresa'] ?? '');
+    $setVar($filaActual, 'telef_tutor_empresa',     $d['tel_tutor_empresa']    ?? '');
+    $setVar($filaActual, 'total_horas',             $d['num_total_horas'] ?? '');
+    $setVar($filaActual, 'num_periodo_1',           '1');
+    $setVar($filaActual, 'fecha_ini',               $fechaIni);
+    $setVar($filaActual, 'fecha_fin',               $fechaFin);
+    $setVar($filaActual, 'fecha_ini-fecha_fin_1',   ($fechaIni && $fechaFin) ? "$fechaIni - $fechaFin" : '');
+    $setVar($filaActual, 'horario_cada_dia_1', formatearHorarioPFT(
+        $d['horario_excepciones'] ?? '',
+        $d['horario'] ?? '',
+        $d['dias_semana'] ?? ''
+    ));
+    $setVar($filaActual, 'inter_diario',            'Sí');
+    $setVar($filaActual, 'adaptaciones?',           'no');
+    $setVar($filaActual, 'autorizacion_extra?',     'no');
+
+    $filaActual++;
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 8. ENVIAR COMO DESCARGA
+// ──────────────────────────────────────────────────────────────────────────────
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="datos_ffe.xlsx"');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
 exit;

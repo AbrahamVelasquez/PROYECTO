@@ -47,8 +47,12 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
                                 telEmpresa, nombreCiclo, idCurso, idCicloOriginal, nombreTutorActual,
                                 correoTutorActual, telTutorActual, anioInicio, anioFin, idAsignacionReal,
                                 nombreTutorEmpresa, correoTutorEmpresa, telTutorEmpresa, anexo, idConvenio,
-                                horario, horasTotales, fechaInicio, fechaFinal, horarioExcepciones) {
+                                horario, horasTotales, fechaInicio, fechaFinal, trElement) {
 
+    // Leer desde data-* para evitar problemas con JSON y comillas
+    const horarioExcepciones = trElement.dataset.horarioExcepciones ?? '';
+    const diasSemana = trElement.dataset.diasSemana ?? '';
+    
     const vistaTabla = document.getElementById('vista-tabla');
     const vistaEdicion = document.getElementById('vista-edicion');
 
@@ -114,6 +118,9 @@ window.mostrarEdicion = function(id, nombre, email, empresa, telefono, nif, emai
             document.getElementById('pf_edit_horario_excepciones').value = horarioExcepciones ?? '';
         if (typeof pfRenderizarExcepciones === 'function')
             pfRenderizarExcepciones(horarioExcepciones ?? '');
+
+        if (document.getElementById('pf_edit_dias_semana'))
+        document.getElementById('pf_edit_dias_semana').value = diasSemana ?? '';
 
         // Botón devolver (sigue usando el ID de alumno original si es necesario)
         const btnDevolver = document.getElementById('btn-devolver-alumno');

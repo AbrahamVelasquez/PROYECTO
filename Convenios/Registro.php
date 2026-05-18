@@ -62,16 +62,12 @@ if ($esExterno && empty($id_ciclo)) {
               <input type="text" name="direccion" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-2">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Municipio</label>
-              <input type="text" name="municipio" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Localidad</label>
+              <input type="text" name="localidad" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">CP</label>
               <input type="text" name="cp" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
-            </div>
-            <div class="md:col-span-1">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">País</label>
-              <input type="text" name="pais" value="ESPAÑA" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Tfno</label>
@@ -82,26 +78,18 @@ if ($esExterno && empty($id_ciclo)) {
               <input type="text" name="fax" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-2">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Mail</label>
-              <input type="email" name="email" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
+              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Fecha de renovación</label>
+              <input type="date" name="fecha_nueva_renovacion" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
           </div>
         </section>
 
         <section class="pt-6 border-t border-slate-100 space-y-6">
           <h2 class="text-xs font-black uppercase text-orange-600 tracking-tighter italic">Datos del Representante Legal</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Nombre y apellidos</label>
-              <input type="text" name="nombre_rep_legal" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
-            </div>
-            <div class="md:col-span-1">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">DNI</label>
-              <input type="text" name="dni_rep_legal" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
-            </div>
-            <div class="md:col-span-1">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Cargo</label>
-              <input type="text" name="cargo_rep_legal" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="representante" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
           </div>
         </section>

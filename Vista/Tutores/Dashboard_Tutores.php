@@ -15,6 +15,9 @@ validarAcceso('tutor');
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Gestión FFE — Instituto FP</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Anti-parpadeo: aplica tema antes de pintar -->
+    <script>if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}</script>
+    <link rel="stylesheet" href="Public/css/dark-mode.css">
     <style>
         /* Estilos base para pestañas */
         [data-tab] { display: none; }
@@ -85,6 +88,7 @@ validarAcceso('tutor');
     </footer>
 
     <script src="Public/js/script_tabs.js"></script>
+    <script src="Public/js/dark-mode.js"></script>
 
 </body>
 </html>

@@ -308,7 +308,8 @@ validarAcceso('tutor');
                 </tbody>
             </table>
         </div>
-
+        
+        <input type="hidden" name="dias_semana" id="pf_edit_dias_semana">
         <input type="hidden" id="edit_id_asignacion" name="id_asignacion" value="<?= $_GET['editar'] ?? '' ?>">
 
         <?php include 'Buttons_PF_Edicion.php'; ?>

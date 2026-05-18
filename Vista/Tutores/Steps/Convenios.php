@@ -1,11 +1,29 @@
-<?php 
+<?php
 
 // Vista/Tutores/Steps/Convenios.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
+
+// Paginación PHP — Resultados de búsqueda
+$pp_rs  = leerPorPagina('pp_rs', 10);
+$pag_rs = leerPaginaActual('pag_rs');
+$total_rs = count($convenios ?? []);
+$conveniosPag = paginarArray($convenios ?? [], $pp_rs, $pag_rs);
+
+// Paginación PHP — Mi Listado Personal
+$pp_lp  = leerPorPagina('pp_lp', 6);
+$pag_lp = leerPaginaActual('pag_lp');
+$total_lp = count($misConvenios ?? []);
+$misConveniosPag = paginarArray($misConvenios ?? [], $pp_lp, $pag_lp);
+
+// Paginación PHP — Convenios en Proceso
+$pp_cp  = leerPorPagina('pp_cp', 10);
+$pag_cp = leerPaginaActual('pag_cp');
+$total_cp = count($conveniosProceso ?? []);
+$conveniosProcesoPag = paginarArray($conveniosProceso ?? [], $pp_cp, $pag_cp);
 
 // Preparamos la URL completa (ajusta la base si es necesario)
 $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -16,9 +34,9 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
 ?>
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold flex items-center gap-3">🏢 Gestión de Convenios</h2>
-    
+
     <div class="flex items-center gap-2">
-        <button type="button" 
+        <button type="button"
                 onclick="copiarUrlRegistro('<?= $urlCompartir ?>', this)"
                 class="inline-flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all shadow-sm cursor-pointer group">
             <span id="btn-text">📋 Copiar enlace</span>
@@ -27,23 +45,42 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             </svg>
         </button>
 
-        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
+        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>"
            class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
             <span class="text-sm">+</span> Registro Convenio
         </a>
     </div>
 </div>
 
-<form action="index.php" method="POST" class="flex gap-3 w-full mb-10">
-    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>" 
-        placeholder="CIF O NOMBRE DE EMPRESA..." 
+<form action="index.php" method="GET" class="flex gap-3 w-full mb-10">
+    <input type="hidden" name="tab" value="1">
+    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_GET['busqueda_convenio'] ?? '') ?>"
+        placeholder="CIF O NOMBRE DE EMPRESA..."
         class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all">
     <button type="submit" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg cursor-pointer">Buscar</button>
+    <button type="button" onclick="this.closest('form').querySelector('[name=busqueda_convenio]').value=''; this.closest('form').submit();"
+        class="flex items-center gap-1.5 px-6 py-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-widest shadow-sm whitespace-nowrap">
+        Mostrar todos
+    </button>
 </form>
 
-<?php if (isset($_POST['busqueda_convenio']) && trim($_POST['busqueda_convenio']) !== ''): ?>
+<?php if (isset($_GET['busqueda_convenio']) && trim($_GET['busqueda_convenio']) !== ''): ?>
     <div class="mb-10">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Resultados de la búsqueda</h3>
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Resultados de la búsqueda</h3>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                <?php if ($pp_rs > 0 && $total_rs > $pp_rs): ?>
+                    Mostrando <?= ($pag_rs - 1) * $pp_rs + 1 ?>–<?= min($pag_rs * $pp_rs, $total_rs) ?> de <?= $total_rs ?>
+                <?php elseif ($total_rs > 0): ?>
+                    <?= $total_rs ?> resultado<?= $total_rs !== 1 ? 's' : '' ?>
+                <?php endif; ?>
+            </span>
+            <button type="button" onclick="document.getElementById('modal-pag-rs').style.display='flex'" title="Configurar filas por página"
+                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span><?= $pp_rs > 0 ? $pp_rs . '/pág' : 'Todos' ?></span>
+            </button>
+        </div>
         <div class="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
             <table class="w-full text-left border-collapse min-w-[1000px]">
                 <thead class="bg-slate-900 text-white">
@@ -56,23 +93,22 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                         <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-center">Acción</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <?php if (!empty($convenios)): foreach ($convenios as $c): ?>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-5 text-center font-mono text-sm text-slate-400 font-bold">#<?= $c['id_convenio'] ?></td>
+                <tbody id="rs-tbody" class="divide-y divide-slate-100">
+                    <?php if (!empty($convenios)): foreach ($conveniosPag as $c): ?>
+                        <tr class="rs-fila hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-5 text-center font-mono text-sm text-slate-400 font-bold"><?= htmlspecialchars($c['num_convenio']) ?></td>
                             <td class="px-4 py-5">
                                 <div class="font-bold text-slate-900 uppercase text-sm italic"><?= $c['nombre_empresa'] ?></div>
                                 <div class="text-xs text-slate-400 font-mono"><?= $c['cif'] ?></div>
                             </td>
-                            <td class="px-4 py-5 text-sm font-bold text-slate-600 uppercase"><?= $c['municipio'] ?></td>
+                            <td class="px-4 py-5 text-sm font-bold text-slate-600 uppercase"><?= $c['localidad'] ?></td>
                             <td class="px-4 py-5">
                                 <div class="text-sm font-bold text-slate-700"><?= $c['telefono'] ?></div>
-                                <div class="text-xs text-orange-600 font-medium"><?= $c['mail'] ?></div>
                             </td>
-                            <td class="px-4 py-5 text-sm font-bold text-slate-500 uppercase"><?= $c['nombre_representante'] ?></td>
+                            <td class="px-4 py-5 text-sm font-bold text-slate-500 uppercase"><?= $c['representante'] ?></td>
                             <td class="px-4 py-5 text-center">
                                 <form action="index.php" method="POST">
-                                    <input type="hidden" name="id_convenio_fav" value="<?= $c['id_convenio'] ?>">
+                                    <input type="hidden" name="num_convenio_fav" value="<?= htmlspecialchars($c['num_convenio']) ?>">
                                     
                                     <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
                                     
@@ -84,18 +120,32 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_POST['busqueda_convenio']) ?>".</td></tr>
+                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_GET['busqueda_convenio']) ?>".</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
+    <?= renderizarNavPaginacion($total_rs, $pag_rs, $pp_rs, 'pag_rs', 'orange', ['tab' => '1']) ?>
     </div>
 <?php endif; ?>
 
 <div class="mt-12">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">Mi Listado Personal</h3>
-        <span id="lp-contador" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"></span>
+        <div class="flex items-center gap-2">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                <?php if ($pp_lp > 0 && $total_lp > $pp_lp): ?>
+                    Mostrando <?= ($pag_lp - 1) * $pp_lp + 1 ?>–<?= min($pag_lp * $pp_lp, $total_lp) ?> de <?= $total_lp ?>
+                <?php elseif ($total_lp > 0): ?>
+                    <?= $total_lp ?> registro<?= $total_lp !== 1 ? 's' : '' ?>
+                <?php endif; ?>
+            </span>
+            <button type="button" onclick="document.getElementById('modal-pag-lp').style.display='flex'" title="Configurar filas por página"
+                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span><?= $pp_lp > 0 ? $pp_lp . '/pág' : 'Todos' ?></span>
+            </button>
+        </div>
     </div>
     <div class="overflow-hidden rounded-2xl border-2 border-orange-100 bg-white">
         <table class="w-full text-left border-collapse table-fixed">
@@ -106,18 +156,18 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                 </tr>
             </thead>
             <tbody id="lp-tbody" class="divide-y divide-orange-50">
-                <?php if (!empty($misConvenios)): foreach ($misConvenios as $mc): ?>
+                <?php if (!empty($misConvenios)): foreach ($misConveniosPag as $mc): ?>
                     <tr class="lp-fila hover:bg-orange-50/50 transition-colors">
                         <td class="px-6 py-5">
                             <div class="font-bold text-slate-900 uppercase text-sm"><?= $mc['nombre_empresa'] ?></div>
-                            <div class="text-xs text-slate-400 font-bold"><?= $mc['municipio'] ?></div>
+                            <div class="text-xs text-slate-400 font-bold"><?= $mc['localidad'] ?></div>
                         </td>
                         <td class="px-6 py-5 text-center">
                             <form action="index.php" method="POST" class="flex justify-center">
-                                <input type="hidden" name="id_convenio_eliminar" value="<?= $mc['id_convenio'] ?>">
+                                <input type="hidden" name="num_convenio_eliminar" value="<?= htmlspecialchars($mc['num_convenio']) ?>">
                                 <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
                                 <input type="hidden" name="btnEliminarFav" value="1">
-                                <button type="button" onclick="abrirConfirmarEliminar(<?= $mc['id_convenio'] ?>, '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
+                                <button type="button" onclick="abrirConfirmarEliminar('<?= htmlspecialchars($mc['num_convenio']) ?>', '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
                                         class="group flex items-center gap-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all border border-red-100 shadow-sm cursor-pointer">
                                     <span class="text-[10px] font-black uppercase">Eliminar</span>
                                     <span class="text-xs group-hover:rotate-90 transition-transform">✕</span>
@@ -134,22 +184,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
         </table>
     </div>
 
-    <!-- Controles de paginación -->
-    <div id="lp-paginacion" class="flex items-center justify-between mt-3 hidden">
-        <button id="lp-prev" onclick="lpCambiarPagina(lpPaginaActual - 1)"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Anterior
-        </button>
-
-        <div id="lp-paginas" class="flex items-center gap-1.5"></div>
-
-        <button id="lp-next" onclick="lpCambiarPagina(lpPaginaActual + 1)"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-400 disabled:hover:border-slate-200">
-            Siguiente
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-    </div>
+    <?= renderizarNavPaginacion($total_lp, $pag_lp, $pp_lp, 'pag_lp', 'orange', ['tab' => '1']) ?>
 </div>
 
 <div class="mt-8">
@@ -157,21 +192,34 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
         <h3 class="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2">
             ⏳ Convenios en Proceso
         </h3>
+        <div class="flex items-center gap-2">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                <?php if ($pp_cp > 0 && $total_cp > $pp_cp): ?>
+                    Mostrando <?= ($pag_cp - 1) * $pp_cp + 1 ?>–<?= min($pag_cp * $pp_cp, $total_cp) ?> de <?= $total_cp ?>
+                <?php elseif ($total_cp > 0): ?>
+                    <?= $total_cp ?> convenio<?= $total_cp !== 1 ? 's' : '' ?>
+                <?php endif; ?>
+                </span>
+            <button type="button" onclick="document.getElementById('modal-pag-cp').style.display='flex'" title="Configurar filas por página"
+                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 transition-all cursor-pointer uppercase tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span><?= $pp_cp > 0 ? $pp_cp . '/pág' : 'Todos' ?></span>
+            </button>
+        </div>
     </div>
     <div class="overflow-hidden rounded-2xl border-2 border-amber-100 bg-white shadow-sm">
-        <table class="w-full text-left border-collapse table-fixed"> <thead class="bg-amber-500 text-white">
+        <table class="w-full text-left border-collapse table-fixed">
+            <thead class="bg-amber-500 text-white">
                 <tr>
                     <th class="w-32 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Editar</th>
-                    
                     <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-left">Empresa</th>
-                    
                     <th class="w-48 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Acción</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-amber-50">
                 <?php if (!empty($conveniosProceso)): ?>
-                    <?php foreach ($conveniosProceso as $convP): ?>
-                        <tr class="hover:bg-amber-50/50 transition-colors">
+                    <?php foreach ($conveniosProcesoPag as $convP): ?>
+                        <tr class="cp-fila hover:bg-amber-50/50 transition-colors">
                             <td class="px-6 py-5 text-center">
                                 <button type="button" onclick='abrirEditarConvenioNuevo(<?= json_encode($convP) ?>)'
                                     class="text-amber-500 hover:text-amber-700 transition-colors p-2.5 rounded-xl hover:bg-amber-100/50 inline-flex items-center justify-center border border-transparent hover:border-amber-200">
@@ -180,22 +228,19 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                     </svg>
                                 </button>
                             </td>
-
                             <td class="px-6 py-5">
                                 <div class="font-bold text-slate-900 uppercase text-sm tracking-tight">
                                     <?= htmlspecialchars($convP['nombre_empresa']) ?>
                                 </div>
                                 <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                                    <?= htmlspecialchars($convP['municipio']) ?>
+                                    <?= htmlspecialchars($convP['localidad']) ?>
                                 </div>
                             </td>
-
                             <td class="px-6 py-5 text-center">
                                 <form action="index.php" method="POST" class="flex justify-center">
                                     <input type="hidden" name="accion" value="aprobarNuevo">
                                     <input type="hidden" name="id_convenio_nuevo" value="<?= $convP['id_convenio_nuevo'] ?>">
-                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
-                                    <button type="button" 
+                                    <button type="button"
                                             onclick="abrirConfirmarAprobar('<?= $convP['id_convenio_nuevo'] ?>', '<?= addslashes($convP['nombre_empresa']) ?>')"
                                             class="group flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-5 py-2.5 rounded-xl transition-all border border-emerald-100 shadow-sm hover:shadow-emerald-200 cursor-pointer active:scale-95">
                                         <span class="text-[10px] font-black uppercase tracking-widest">Aprobar</span>
@@ -215,104 +260,11 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             </tbody>
         </table>
     </div>
+    <?= renderizarNavPaginacion($total_cp, $pag_cp, $pp_cp, 'pag_cp', 'amber', ['tab' => '1']) ?>
 </div>
 
-<script>
-// ─── PAGINACIÓN: MI LISTADO PERSONAL ─────────────────────────────────────────
-const LP_POR_PAGINA = 6;
-let lpPaginaActual = 1;
-
-function lpInicializar() {
-    const filas = document.querySelectorAll('#lp-tbody .lp-fila');
-    const total = filas.length;
-
-    if (total <= LP_POR_PAGINA) return; // Sin paginación si caben todas
-
-    document.getElementById('lp-paginacion').classList.remove('hidden');
-    lpRenderizar();
-}
-
-function lpCambiarPagina(nuevaPagina) {
-    const filas = document.querySelectorAll('#lp-tbody .lp-fila');
-    const totalPaginas = Math.ceil(filas.length / LP_POR_PAGINA);
-    if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
-    lpPaginaActual = nuevaPagina;
-    lpRenderizar();
-}
-
-function lpRenderizar() {
-    const filas = Array.from(document.querySelectorAll('#lp-tbody .lp-fila'));
-    const total = filas.length;
-    const totalPaginas = Math.ceil(total / LP_POR_PAGINA);
-    const inicio = (lpPaginaActual - 1) * LP_POR_PAGINA;
-    const fin    = Math.min(inicio + LP_POR_PAGINA, total);
-
-    // Mostrar/ocultar filas
-    filas.forEach((fila, i) => {
-        fila.style.display = (i >= inicio && i < fin) ? '' : 'none';
-    });
-
-    // Contador "Mostrando X–Y de Z"
-    const contador = document.getElementById('lp-contador');
-    if (contador) contador.textContent = `Mostrando ${inicio + 1}–${fin} de ${total}`;
-
-    // Botones prev/next
-    document.getElementById('lp-prev').disabled = lpPaginaActual === 1;
-    document.getElementById('lp-next').disabled = lpPaginaActual === totalPaginas;
-
-    // Números de página
-    const contenedor = document.getElementById('lp-paginas');
-    contenedor.innerHTML = '';
-
-    // Lógica: mostrar siempre primera, última y ±1 de la actual, con "…" entre saltos
-    const pagsMostrar = new Set([1, totalPaginas, lpPaginaActual, lpPaginaActual - 1, lpPaginaActual + 1]
-        .filter(p => p >= 1 && p <= totalPaginas));
-    const pagsOrdenadas = [...pagsMostrar].sort((a, b) => a - b);
-
-    let anterior = null;
-    pagsOrdenadas.forEach(p => {
-        if (anterior !== null && p - anterior > 1) {
-            const sep = document.createElement('span');
-            sep.className = 'text-slate-300 text-xs font-bold px-1';
-            sep.textContent = '···';
-            contenedor.appendChild(sep);
-        }
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = p;
-        btn.onclick = () => lpCambiarPagina(p);
-        btn.className = p === lpPaginaActual
-            ? 'w-8 h-8 rounded-lg bg-orange-600 text-white text-[10px] font-black cursor-pointer shadow-sm'
-            : 'w-8 h-8 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-black hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer';
-        contenedor.appendChild(btn);
-        anterior = p;
-    });
-}
-
-document.addEventListener('DOMContentLoaded', lpInicializar);
-// ─────────────────────────────────────────────────────────────────────────────
-
-    function copiarUrlRegistro(url, elemento) {
-        // Copiar al portapapeles
-        navigator.clipboard.writeText(url).then(() => {
-            const span = elemento.querySelector('#btn-text');
-            const originalText = span.innerText;
-            
-            // Feedback visual
-            span.innerText = '¡COPIADO!';
-            elemento.classList.remove('bg-slate-100', 'text-slate-600');
-            elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
-            
-            // Revertir después de 2 segundos
-            setTimeout(() => {
-                span.innerText = originalText;
-                elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
-                elemento.classList.add('bg-slate-100', 'text-slate-600');
-            }, 2000);
-        }).catch(err => {
-            console.error('Error al copiar: ', err);
-        });
-    }
-</script>
+<?php $pag_prefix = 'rs'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php $pag_prefix = 'lp'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php $pag_prefix = 'cp'; $pag_color = 'amber';  $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 
 <?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

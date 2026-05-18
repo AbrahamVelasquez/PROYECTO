@@ -2,10 +2,58 @@
 
 // Vista/Tutores/Components/PF_Tabla.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
+
+$alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($_SESSION['id_ciclo']);
+
+// Leer filtros de GET
+$pfBusqueda    = strtolower(trim($_GET['pf_busqueda']    ?? ''));
+$pfOrdenar     = $_GET['pf_ordenar']     ?? 'alumno';
+$pfFiltroEstado = $_GET['pf_filtro_estado'] ?? 'todos';
+
+// PHP filter
+$rowsPF = $alumnosFirmados;
+
+if ($pfBusqueda !== '') {
+    $rowsPF = array_values(array_filter($rowsPF, function($al) use ($pfBusqueda) {
+        $nombreFull = strtolower($al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ' ' . $al['nombre']);
+        $empresa = strtolower($al['nombre_empresa'] ?? '');
+        return str_contains($nombreFull, $pfBusqueda) || str_contains($empresa, $pfBusqueda);
+    }));
+}
+
+if ($pfFiltroEstado !== 'todos') {
+    $exportado = $pfFiltroEstado === 'exportado' ? 1 : 0;
+    $rowsPF = array_values(array_filter($rowsPF, fn($al) => (int)($al['exportado'] ?? 0) === $exportado));
+}
+
+// PHP sort
+usort($rowsPF, function($a, $b) use ($pfOrdenar) {
+    if ($pfOrdenar === 'empresa') {
+        return strcmp($a['nombre_empresa'] ?? '', $b['nombre_empresa'] ?? '');
+    } elseif ($pfOrdenar === 'estado') {
+        return ($a['exportado'] ?? 0) <=> ($b['exportado'] ?? 0);
+    }
+    // alumno
+    $na = ($a['apellido1'] ?? '') . ' ' . ($a['apellido2'] ?? '') . ' ' . ($a['nombre'] ?? '');
+    $nb = ($b['apellido1'] ?? '') . ' ' . ($b['apellido2'] ?? '') . ' ' . ($b['nombre'] ?? '');
+    return strcmp($na, $nb);
+});
+
+// Paginación PHP
+$pp_pf  = leerPorPagina('pp_pf', 10);
+$pag_pf = leerPaginaActual('pag_pf');
+$total_pf = count($rowsPF);
+$rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
+
+// Paginación PHP
+$pp_pf  = leerPorPagina('pp_pf', 10);
+$pag_pf = leerPaginaActual('pag_pf');
+$total_pf = count($alumnosFirmados ?? []);
+$rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
 
 ?>
 <div class="flex justify-between items-center mb-6 mt-2">
@@ -28,36 +76,63 @@ validarAcceso('tutor');
     </div>
 </div>
 
-<form id="formFiltros" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+<form id="formFiltros" method="GET" action="index.php" class="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+    <input type="hidden" name="tab" value="3">
     <div class="flex-1 relative w-full">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" id="busqueda" 
-            placeholder="BUSCAR POR NOMBRE O EMPRESA..." 
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+        <input type="text" id="busqueda" name="pf_busqueda"
+            value="<?= htmlspecialchars($_GET['pf_busqueda'] ?? '') ?>"
+            placeholder="BUSCAR POR NOMBRE O EMPRESA..."
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase"
+            oninput="clearTimeout(window._pfT); window._pfT = setTimeout(()=>document.getElementById('formFiltros').submit(), 400)">
     </div>
-    
+
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ordenar por:</span>
-        <select id="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="alumno">ALUMNO</option>
-            <option value="empresa">EMPRESA</option>
-            <option value="estado">ESTADO</option>
+        <select id="ordenar" name="pf_ordenar"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase"
+            onchange="this.closest('form').submit()">
+            <option value="alumno"  <?= $pfOrdenar === 'alumno'  ? 'selected' : '' ?>>ALUMNO</option>
+            <option value="empresa" <?= $pfOrdenar === 'empresa' ? 'selected' : '' ?>>EMPRESA</option>
+            <option value="estado"  <?= $pfOrdenar === 'estado'  ? 'selected' : '' ?>>ESTADO</option>
         </select>
     </div>
 
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado:</span>
-        <select id="filtroEstado" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="todos">TODOS</option>
-            <option value="exportado">🟢 EXPORTADO</option>
-            <option value="no exportado">🔴 NO EXPORTADO</option>
+        <select id="filtroEstado" name="pf_filtro_estado"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase"
+            onchange="this.closest('form').submit()">
+            <option value="todos"        <?= $pfFiltroEstado === 'todos'         ? 'selected' : '' ?>>TODOS</option>
+            <option value="exportado"    <?= $pfFiltroEstado === 'exportado'     ? 'selected' : '' ?>>🟢 EXPORTADO</option>
+            <option value="no exportado" <?= $pfFiltroEstado === 'no exportado'  ? 'selected' : '' ?>>🔴 NO EXPORTADO</option>
         </select>
     </div>
 
-    <button type="button" id="btnBuscar" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
-        BUSCADO AUTOMÁTICO
+    <button type="submit" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-[10px] hover:bg-slate-800 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
+        BUSCAR
     </button>
+    <a href="index.php?tab=3"
+        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+        Mostrar todos
+    </a>
 </form>
+
+<!-- Barra superior: contador + config paginación -->
+<div class="flex items-center justify-between mb-2">
+    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+        <?php if ($pp_pf > 0 && $total_pf > $pp_pf): ?>
+            Mostrando <?= ($pag_pf - 1) * $pp_pf + 1 ?>–<?= min($pag_pf * $pp_pf, $total_pf) ?> de <?= $total_pf ?>
+        <?php elseif ($total_pf > 0): ?>
+            <?= $total_pf ?> alumno<?= $total_pf !== 1 ? 's' : '' ?>
+        <?php endif; ?>
+    </span>
+    <button type="button" onclick="document.getElementById('modal-pag-pf').style.display='flex'" title="Configurar filas por página"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span><?= $pp_pf > 0 ? $pp_pf . '/pág' : 'Todos' ?></span>
+    </button>
+</div>
 
 <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
     <table class="w-full text-left border-collapse bg-white table-fixed">
@@ -70,16 +145,11 @@ validarAcceso('tutor');
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]" id="tablaCuerpo">
-            <?php 
-            $alumnosFirmados = $alumnoModelo->listarAlumnosFirmados($_SESSION['id_ciclo']); 
-            
+            <?php             
             if (empty($alumnosFirmados)): ?>
                 <tr>
                 <td colspan="4" class="p-12 text-center">
                     <div class="flex flex-col items-center justify-center gap-4">
-                    <!-- No lo voy a usar por ahora pero lo guardaré el simbolo de cero con la raya -->
-                    <!-- <span class="text-5xl text-slate-300">∅</span> -->
-                    
                     <p class="text-slate-600 font-black tracking-widest uppercase text-sm">
                         No hay alumnos con asignaciones firmadas actualmente
                     </p>
@@ -90,13 +160,13 @@ validarAcceso('tutor');
                 </td>
                 </tr>
             <?php else: 
-                foreach ($alumnosFirmados as $al): 
+                foreach ($rowsPFPag as $al): 
                     $nombreFull = $al['apellido1'] . ( $al['apellido2'] ? " {$al['apellido2']}" : "" ) . ", " . $al['nombre'];
                 ?>
-                <tr class="hover:bg-slate-50/50 transition-colors"
+                <tr class="pf-fila hover:bg-slate-50/50 transition-colors"
                     data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
                     data-exportado="<?= $al['exportado'] ? '1' : '0' ?>"
-                    data-id-convenio="<?= intval($al['id_convenio'] ?? 0) ?>"
+                    data-id-convenio="<?= htmlspecialchars($al['num_convenio'] ?? '') ?>"
                     data-nombre-empresa="<?= htmlspecialchars($al['nombre_empresa'] ?? '') ?>"
                     data-cif="<?= htmlspecialchars($al['nif_empresa'] ?? '') ?>"
                     data-anexo="<?= intval($al['anexo'] ?? 0) ?>"
@@ -107,9 +177,10 @@ validarAcceso('tutor');
                     data-horas-totales="<?= intval($al['num_total_horas'] ?? 0) ?>"
                     data-fecha-inicio="<?= htmlspecialchars($al['fecha_inicio'] ?? '') ?>"
                     data-fecha-final="<?= htmlspecialchars($al['fecha_final'] ?? '') ?>"
-                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>">
+                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>"
+                    data-dias-semana="<?= htmlspecialchars($al['dias_semana'] ?? '') ?>">
                     <td class="p-3 text-center">
-                        <button type="button" 
+                        <button type="button"
                             onclick="window.mostrarEdicion(
                                 <?= $al['id_alumno'] ?>,
                                 '<?= addslashes($nombreFull) ?>',
@@ -131,13 +202,13 @@ validarAcceso('tutor');
                                 '<?= addslashes($al['nombre_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>',
-                                <?= intval($al['anexo'] ?? 0) ?>,      
-                                <?= intval($al['id_convenio'] ?? 0) ?>,
+                                <?= intval($al['anexo'] ?? 0) ?>,
+                                '<?= addslashes($al['num_convenio'] ?? '') ?>',
                                 '<?= addslashes($al['horario'] ?? '') ?>',
                                 <?= intval($al['num_total_horas'] ?? 0) ?>,
                                 '<?= addslashes($al['fecha_inicio'] ?? '') ?>',
                                 '<?= addslashes($al['fecha_final'] ?? '') ?>',
-                                '<?= addslashes($al['horario_excepciones'] ?? '') ?>'
+                                this.closest('tr')
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
@@ -159,93 +230,14 @@ validarAcceso('tutor');
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php endforeach; 
+                <?php endforeach;
             endif; ?>
         </tbody>
     </table>
 </div>
 
+<?= renderizarNavPaginacion($total_pf, $pag_pf, $pp_pf, 'pag_pf', 'orange', ['tab' => '3']) ?>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const inputBusqueda = document.querySelector('#busqueda');
-    const btnBuscar = document.querySelector('#btnBuscar');
-    const selectOrdenar = document.querySelector('#ordenar');
-    const selectEstado = document.querySelector('#filtroEstado'); // Selector de estado añadido
-    const tablaCuerpo = document.querySelector('#tablaCuerpo');
 
-    // --- FUNCIÓN BUSCAR Y FILTRAR ---
-    const realizarBusqueda = () => {
-        const texto = inputBusqueda.value.toLowerCase().trim();
-        const estadoFiltro = selectEstado.value; // Obtener el valor del filtro (todos, exportado, no exportado)
-        const filas = Array.from(tablaCuerpo.querySelectorAll('tr'));
-
-        filas.forEach(fila => {
-            // Saltamos la fila si es la de "No hay alumnos" (que suele tener un colspan)
-            if (fila.cells.length < 4) return;
-
-            const nombreAlumno = fila.children[1].textContent.toLowerCase();
-            const nombreEmpresa = fila.children[2].textContent.toLowerCase();
-            
-            // Localizamos el span del estado y extraemos el valor del data-attribute
-            const statusSpan = fila.querySelector('.status-tag');
-            const estadoActual = statusSpan ? statusSpan.getAttribute('data-estado') : '';
-
-            // Lógica combinada: debe coincidir el texto Y el estado
-            const coincideTexto = texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto);
-            const coincideEstado = estadoFiltro === 'todos' || estadoActual === estadoFiltro;
-
-            if (coincideTexto && coincideEstado) {
-                fila.style.display = "";
-            } else {
-                fila.style.display = "none";
-            }
-        });
-    };
-
-    // --- FUNCIÓN ORDENAR ---
-    const ordenarTabla = () => {
-        const criterio = selectOrdenar.value;
-        const filas = Array.from(tablaCuerpo.querySelectorAll('tr:not(.no-data)')); // Evitar ordenar fila de vacíos
-        
-        if (filas.length === 0) return;
-
-        // Mapeo de columna según el select
-        const indiceColumna = {
-            'alumno': 1,
-            'empresa': 2,
-            'estado': 3
-        }[criterio] || 1;
-
-        filas.sort((a, b) => {
-            const valA = a.children[indiceColumna].textContent.trim();
-            const valB = b.children[indiceColumna].textContent.trim();
-            return valA.localeCompare(valB, 'es', { sensitivity: 'base' });
-        });
-
-        // Reinyectar las filas ordenadas
-        filas.forEach(fila => tablaCuerpo.appendChild(fila));
-    };
-
-    // --- EVENTOS ---
-    
-    // Botón Buscar
-    btnBuscar.addEventListener('click', realizarBusqueda);
-    
-    // Búsqueda en tiempo real
-    inputBusqueda.addEventListener('input', realizarBusqueda);
-
-    // Cambio de Filtro de Estado
-    selectEstado.addEventListener('change', realizarBusqueda);
-
-    // Cambio de Orden
-    selectOrdenar.addEventListener('change', ordenarTabla);
-    
-    // Manejo de tecla Enter
-    inputBusqueda.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            realizarBusqueda();
-        }
-    });
-});
-</script>
+<?php $pag_prefix = 'pf'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '3']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

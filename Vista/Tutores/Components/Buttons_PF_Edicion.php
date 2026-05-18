@@ -72,7 +72,7 @@ function recogerDatosFormulario(idAsignacion) {
         'tutor_centro_correo':  document.getElementById('pf_edit_tutor_centro_correo')?.value  ?? '',
         'tutor_centro_tel':     document.getElementById('pf_edit_tutor_centro_tel')?.value     ?? '',
         // Empresa
-        'id_convenio':          document.getElementById('pf_id_convenio')?.value           ?? '',
+        'num_convenio':         document.getElementById('pf_id_convenio')?.value           ?? '',
         'nombre_empresa':       document.getElementById('pf_edit_nombre_empresa')?.value   ?? '',
         'nif_empresa':          document.getElementById('pf_edit_nif_empresa')?.value      ?? '',
         'email_empresa':        document.getElementById('pf_edit_email_empresa')?.value    ?? '',
@@ -87,6 +87,7 @@ function recogerDatosFormulario(idAsignacion) {
         'fecha_final':          document.getElementById('pf_edit_fecha_final')?.value      ?? '',
         'horario':              document.getElementById('pf_edit_horario')?.value          ?? '',
         'horario_excepciones':  document.getElementById('pf_edit_horario_excepciones')?.value ?? '',
+        'dias_semana':          document.getElementById('pf_edit_dias_semana')?.value ?? '',
         // Periodo del select (nuevo)
         'periodo_planificacion': document.getElementById('pf_edit_periodo_planificacion')?.value ?? '1',
         // Intervalos (con id directos)
@@ -196,6 +197,7 @@ window.guardarBorrador = async function(idAsignacion) {
         'horas_totales':  'pf_edit_horas_totales',
         'fecha_inicio':   'pf_edit_fecha_inicio',
         'fecha_final':    'pf_edit_fecha_final',
+        'dias_semana':    'pf_edit_dias_semana',
     };
     for (const [key, id] of Object.entries(campos)) {
         const el = document.getElementById(id);

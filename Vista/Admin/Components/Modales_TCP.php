@@ -61,43 +61,55 @@ validarAcceso('admin');
                     <input type="text" name="telefono" id="rev_tel" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Email</label>
-                    <input type="email" name="mail" id="rev_mail" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
-                </div>
-                <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Fax</label>
                     <input type="text" name="fax" id="rev_fax" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Fecha Nueva Renovación</label>
+                    <input type="date" name="fecha_nueva_renovacion" id="rev_fecha_nueva" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Dirección</label>
                     <input type="text" name="direccion" id="rev_dir" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Municipio</label>
-                    <input type="text" name="municipio" id="rev_mun" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Localidad</label>
+                    <input type="text" name="localidad" id="rev_localidad" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">CP</label>
                     <input type="text" name="cp" id="rev_cp" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">País</label>
-                    <input type="text" name="pais" id="rev_pais" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
-                </div>
                 <div class="md:col-span-3 mt-4 pt-4 border-t border-slate-200 flex items-center gap-2">
                     <span class="text-[10px] font-black bg-emerald-600 text-white px-3 py-1 rounded-lg shadow-sm shadow-emerald-100">REPRESENTANTE LEGAL</span>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre Representante</label>
-                    <input type="text" name="nombre_representante" id="rev_rep_nom" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre y Apellidos</label>
+                    <input type="text" name="representante" id="rev_representante" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">DNI</label>
-                    <input type="text" name="dni_representante" id="rev_rep_dni" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                <div class="md:col-span-3 mt-4 pt-4 border-t border-slate-200 flex items-center gap-2">
+                    <span class="text-[10px] font-black bg-slate-700 text-white px-3 py-1 rounded-lg">DATOS ADICIONALES</span>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Cargo</label>
-                    <input type="text" name="cargo" id="rev_rep_cargo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Especialidad</label>
+                    <select name="especialidad" id="rev_especialidad" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-100">
+                        <option value="">— Sin especialidad —</option>
+                        <?php
+                            $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
+                            foreach ($todosLosCiclos as $c):
+                                $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
+                                $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
+                        ?>
+                            <option value="<?= $c['id_ciclo'] ?>"
+                                    data-label="<?= $prefijo ?> <?= htmlspecialchars($c['nombre_ciclo']) ?>">
+                                <?= $prefijo ?> <?= htmlspecialchars($c['nombre_ciclo']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Observaciones</label>
+                    <textarea name="observaciones" id="rev_observaciones" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none resize-none focus:ring-2 focus:ring-emerald-100 transition-all"></textarea>
                 </div>
             </div>
 
@@ -151,6 +163,12 @@ validarAcceso('admin');
     </div>
 </div>
 
+<style>
+html.dark #formRevision                { background-color: #0f172a !important; }
+html.dark #formRevision label          { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+html.dark #modalRevisionConvenio label { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+</style>
+
 <script>
 let idParaValidar = null;
 
@@ -176,21 +194,61 @@ window.onclick = function(event) {
 }
 
 function abrirModalRevision(datos) {
-    document.getElementById('rev_id').value = datos.id_convenio_nuevo;
-    document.getElementById('rev_nombre').value = datos.nombre_empresa;
-    document.getElementById('rev_cif').value = datos.cif;
-    document.getElementById('rev_tel').value = datos.telefono;
-    document.getElementById('rev_mail').value = datos.mail;
-    document.getElementById('rev_fax').value = datos.fax;
-    document.getElementById('rev_dir').value = datos.direccion;
-    document.getElementById('rev_mun').value = datos.municipio;
-    document.getElementById('rev_cp').value = datos.cp;
-    document.getElementById('rev_pais').value = datos.pais;
-    document.getElementById('rev_rep_nom').value = datos.nombre_representante;
-    document.getElementById('rev_rep_dni').value = datos.dni_representante;
-    document.getElementById('rev_rep_cargo').value = datos.cargo;
+    document.getElementById('rev_id').value            = datos.id_convenio_nuevo;
+    document.getElementById('rev_nombre').value        = datos.nombre_empresa    ?? '';
+    document.getElementById('rev_cif').value           = datos.cif               ?? '';
+    document.getElementById('rev_tel').value           = datos.telefono          ?? '';
+    document.getElementById('rev_fax').value           = datos.fax               ?? '';
+    document.getElementById('rev_fecha_nueva').value   = datos.fecha_nueva_renovacion ?? '';
+    document.getElementById('rev_dir').value           = datos.direccion         ?? '';
+    document.getElementById('rev_localidad').value     = datos.localidad         ?? '';
+    document.getElementById('rev_cp').value            = datos.cp                ?? '';
+    document.getElementById('rev_representante').value = datos.representante     ?? '';
+    document.getElementById('rev_observaciones').value = datos.observaciones     ?? '';
+
+    // Especialidad: colorear opciones y marcar la actual
+    const selectEsp = document.getElementById('rev_especialidad');
+    const espActual = datos.especialidad ? String(datos.especialidad) : '';
+
+    Array.from(selectEsp.options).forEach(option => {
+        const label = option.getAttribute('data-label') ?? option.text;
+        if (option.value === espActual && espActual !== '') {
+            option.innerText             = label + ' — ESPECIALIDAD ACTUAL';
+            option.style.backgroundColor = '#e0f2fe';
+            option.style.color           = '#075985';
+        } else if (option.value === '') {
+            option.innerText             = '— Sin especialidad —';
+            option.style.backgroundColor = '';
+            option.style.color           = '';
+        } else {
+            option.innerText             = label;
+            option.style.backgroundColor = '#f8fafc';
+            option.style.color           = '#334155';
+        }
+    });
+
+    selectEsp.value = espActual;
+    const selectedOpt = selectEsp.options[selectEsp.selectedIndex];
+    if (selectedOpt) {
+        selectEsp.style.backgroundColor = selectedOpt.style.backgroundColor;
+        selectEsp.style.color           = selectedOpt.style.color;
+        selectEsp.style.boxShadow       = '0 4px 6px -1px rgb(0 0 0 / 0.1)';
+    }
+
     document.getElementById('modalRevisionConvenio').style.display = 'flex';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const selectEsp = document.getElementById('rev_especialidad');
+    if (selectEsp) {
+        selectEsp.addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            this.style.backgroundColor = opt ? opt.style.backgroundColor : '';
+            this.style.color           = opt ? opt.style.color           : '';
+            this.style.boxShadow       = '0 4px 6px -1px rgb(0 0 0 / 0.1)';
+        });
+    }
+});
 
 function cerrarModalRevision() {
     document.getElementById('modalRevisionConvenio').style.display = 'none';

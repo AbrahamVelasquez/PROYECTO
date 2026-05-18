@@ -1,7 +1,17 @@
 <?php
 // Vista/Admin/Sections/Listado_Alumnos.php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
 validarAcceso('admin');
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
+// Paginación PHP
+$pp_ladm    = leerPorPagina('pp_ladm', 10);
+$pag_ladm   = leerPaginaActual('pag_ladm');
+$total_ladm = count($alumnos ?? []);
+$alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
+
 ?>
 
 <style>
@@ -52,21 +62,26 @@ validarAcceso('admin');
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <!-- Filtros (GET form) -->
+    <form id="ladm-filter-form" method="GET" action="index.php" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input type="hidden" name="accion" value="mostrarAlumnos">
 
         <!-- Buscador -->
         <div class="relative flex-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input type="search" id="buscadorAlumnos"
+            <input type="search" id="buscadorAlumnos" name="ladm_busqueda"
+                value="<?= htmlspecialchars($_GET['ladm_busqueda'] ?? '') ?>"
                 placeholder="Buscar por nombre o apellidos…"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
+                oninput="clearTimeout(window._ladmT); window._ladmT = setTimeout(()=>document.getElementById('ladm-filter-form').submit(), 400)"/>
         </div>
 
         <!-- Filtro ciclo -->
-        <select id="filtroCiclo" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroCiclo" name="ladm_ciclo"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todos los ciclos</option>
             <?php
             $ciclosVistos = [];
@@ -74,14 +89,17 @@ validarAcceso('admin');
                 $key = $al['nombre_ciclo'] . ' ' . ucfirst($al['grado']);
                 if (!in_array($key, $ciclosVistos)) {
                     $ciclosVistos[] = $key;
-                    echo '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($key) . '</option>';
+                    $selected = (strtolower($key) === $ladmCiclo) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($key)) . '" ' . $selected . '>' . htmlspecialchars($key) . '</option>';
                 }
             }
             ?>
         </select>
 
         <!-- Filtro empresa -->
-        <select id="filtroEmpresa" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
+        <select id="filtroEmpresa" name="ladm_empresa"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            onchange="this.closest('form').submit()">
             <option value="">Todas las empresas</option>
             <?php
             $empresasVistas = [];
@@ -89,12 +107,33 @@ validarAcceso('admin');
                 $emp = $al['nombre_empresa'];
                 if (!in_array($emp, $empresasVistas)) {
                     $empresasVistas[] = $emp;
-                    echo '<option value="' . htmlspecialchars($emp) . '">' . htmlspecialchars($emp) . '</option>';
+                    $selected = (strtolower($emp) === $ladmEmpresa) ? 'selected' : '';
+                    echo '<option value="' . htmlspecialchars(strtolower($emp)) . '" ' . $selected . '>' . htmlspecialchars($emp) . '</option>';
                 }
             }
             ?>
         </select>
 
+        <a href="index.php?accion=mostrarAlumnos"
+            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
+            Mostrar todos
+        </a>
+    </form>
+
+    <!-- Barra superior: contador + config paginación -->
+    <div class="flex items-center justify-between mb-2">
+        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            <?php if ($pp_ladm > 0 && $total_ladm > $pp_ladm): ?>
+                Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
+            <?php elseif ($total_ladm > 0): ?>
+                <?= $total_ladm ?> alumno<?= $total_ladm !== 1 ? 's' : '' ?>
+            <?php endif; ?>
+        </span>
+        <button type="button" onclick="document.getElementById('modal-pag-ladm').style.display='flex'" title="Configurar filas por página"
+            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span><?= $pp_ladm > 0 ? $pp_ladm . '/pág' : 'Todos' ?></span>
+        </button>
     </div>
 
     <!-- Tabla -->
@@ -115,7 +154,7 @@ validarAcceso('admin');
                     <th class="p-4 w-24 text-center">Firmar</th>
                 </tr>
             </thead>
-            <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 text-[11px] uppercase">
+            <tbody class="divide-y divide-slate-100 text-[11px] uppercase">
 
                 <?php if (empty($alumnos)): ?>
                     <tr>
@@ -123,14 +162,20 @@ validarAcceso('admin');
                             No hay alumnos con FCT firmada registrados.
                         </td>
                     </tr>
+                <?php elseif (empty($rowsLadmPag)): ?>
+                    <tr>
+                        <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
+                            No hay alumnos que coincidan con los filtros.
+                        </td>
+                    </tr>
                 <?php else: ?>
-                    <?php foreach ($alumnos as $al):
+                    <?php foreach ($alumnosPag as $al):
                         $f_inicio   = (!empty($al['fecha_inicio']) && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
                         $f_final    = (!empty($al['fecha_final'])  && $al['fecha_final']  !== '0000-00-00') ? $al['fecha_final']  : null;
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
                         $cicloLabel   = htmlspecialchars($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
                     ?>
-                    <tr class="hover:bg-slate-50/60 transition-colors" data-ciclo="<?= $cicloLabel ?>" data-empresa="<?= htmlspecialchars($al['nombre_empresa']) ?>">
+                    <tr class="hover:bg-slate-50/60 transition-colors">
 
                         <!-- Alumno -->
                         <td class="p-4">
@@ -167,7 +212,7 @@ validarAcceso('admin');
                         <td class="p-4">
                             <?php if (!empty($al['direccion'])): ?>
                                 <p class="text-[9px] normal-case leading-tight text-slate-600"><?= htmlspecialchars($al['direccion']) ?></p>
-                                <p class="text-[9px] font-bold text-slate-400"><?= htmlspecialchars($al['municipio']) ?></p>
+                                <p class="text-[9px] font-bold text-slate-400"><?= htmlspecialchars($al['localidad'] ?? '') ?></p>
                             <?php else: ?>
                                 <span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin dir.</span>
                             <?php endif; ?>
@@ -185,7 +230,30 @@ validarAcceso('admin');
 
                         <!-- Horario -->
                         <td class="p-4 text-center text-slate-600">
-                            <?= $tieneHorario ? htmlspecialchars($al['horario']) : '<span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>' ?>
+                            <?php if (!$tieneHorario): ?>
+                                <span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>
+                            <?php else:
+                                $excepciones = trim($al['horario_excepciones'] ?? '');
+                                $bloques = $excepciones ? json_decode($excepciones, true) : null;
+                                if (!empty($bloques) && is_array($bloques)):
+                                    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+                                    foreach ($bloques as $bloque):
+                                        if (empty($bloque['dias'])) continue;
+                                        $dias = $bloque['dias'];
+                                        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+                                        $esConsecutivo = true;
+                                        for ($i = 1; $i < count($dias); $i++) {
+                                            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+                                        }
+                                        $labelDias = (count($dias) > 1 && $esConsecutivo)
+                                            ? $dias[0] . '-' . $dias[count($dias)-1]
+                                            : implode('', $dias);
+                            ?>
+                                    <span class="block text-slate-600 leading-tight"><?= htmlspecialchars($labelDias . ' ' . $bloque['inicio'] . '-' . $bloque['fin']) ?></span>
+                            <?php   endforeach;
+                                else: ?>
+                                    <span class="text-slate-600"><?= htmlspecialchars($al['horario']) ?></span>
+                            <?php endif; endif; ?>
                         </td>
 
                         <!-- H/Día -->
@@ -213,110 +281,9 @@ validarAcceso('admin');
         </table>
     </div>
 
-    <!-- Pie -->
-    <p class="text-right text-xs text-slate-400">
-        Total: <span class="font-semibold text-slate-600"><?= count($alumnos ?? []) ?></span> alumnos firmados
-    </p>
 
-</div>
+    <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarListadoAlumnos']) ?>
 
-<!-- Modal confirmar firma -->
-<div id="modalConfirmarFirma" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) cerrarModalFirma()">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs">✍️</span>
-                CONFIRMAR FIRMA
-            </h3>
-            <button onclick="cerrarModalFirma()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
-        </div>
+</div><!-- end .space-y-6 -->
 
-        <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Confirmar que este alumno está firmado?</p>
-        <p id="modalFirmaNombre" class="text-sm font-black text-slate-900 mb-4 text-center uppercase"></p>
-
-        <div class="mb-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">
-                Número de anexo <span class="text-red-500">*</span>
-            </label>
-            <input type="text" id="inputFirmaAnexo" placeholder="Ej: 1234"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-center outline-none focus:ring-2 focus:ring-emerald-200 transition-all">
-        </div>
-        <p id="errorAnexo" style="display:none" class="text-[10px] font-bold text-red-500 text-center mb-4 uppercase tracking-wide">
-            ⚠ El número de anexo es obligatorio
-        </p>
-
-        <div class="flex gap-3 justify-center mt-4">
-            <button onclick="cerrarModalFirma()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
-            <button id="btnConfirmarFirmaAccion" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
-        </div>
-    </div>
-</div>
-
-
-<script>
-(() => {
-    const buscador      = document.getElementById('buscadorAlumnos');
-    const filtroCiclo   = document.getElementById('filtroCiclo');
-    const filtroEmpresa = document.getElementById('filtroEmpresa');
-    const filas         = document.querySelectorAll('#tablaAlumnosBody tr[data-ciclo]');
-
-    function filtrar() {
-        const q       = buscador.value.toLowerCase().trim();
-        const ciclo   = filtroCiclo.value.toLowerCase().trim();
-        const empresa = filtroEmpresa.value.toLowerCase().trim();
-
-        filas.forEach(fila => {
-            const texto       = fila.textContent.toLowerCase();
-            const filaCiclo   = (fila.dataset.ciclo   || '').toLowerCase();
-            const filaEmpresa = (fila.dataset.empresa || '').toLowerCase();
-            const coincideQ = !q       || texto.includes(q);
-            const coincideC = !ciclo   || filaCiclo   === ciclo;
-            const coincideE = !empresa || filaEmpresa === empresa;
-            fila.style.display = (coincideQ && coincideC && coincideE) ? '' : 'none';
-        });
-    }
-
-    buscador?.addEventListener('input', filtrar);
-    filtroCiclo?.addEventListener('change', filtrar);
-    filtroEmpresa?.addEventListener('change', filtrar);
-})();
-
-let _firmaIdAsignacion = null;
-
-function abrirModalFirmaAdmin(idAsignacion, nombre) {
-    _firmaIdAsignacion = idAsignacion;
-    document.getElementById('modalFirmaNombre').innerText = nombre;
-    document.getElementById('inputFirmaAnexo').value = '';
-    document.getElementById('errorAnexo').style.display = 'none';
-    document.getElementById('modalConfirmarFirma').style.display = 'flex';
-}
-
-function cerrarModalFirma() {
-    document.getElementById('modalConfirmarFirma').style.display = 'none';
-    document.getElementById('inputFirmaAnexo').value = '';
-    document.getElementById('errorAnexo').style.display = 'none';
-    _firmaIdAsignacion = null;
-}
-
-document.getElementById('btnConfirmarFirmaAccion').addEventListener('click', function () {
-    const anexo = document.getElementById('inputFirmaAnexo').value.trim();
-    const error = document.getElementById('errorAnexo');
-
-    if (!anexo) {
-        error.style.display = 'block';
-        document.getElementById('inputFirmaAnexo').focus();
-        return;
-    }
-
-    const f = document.createElement('form');
-    f.method = 'POST';
-    f.action = 'index.php';
-    f.innerHTML = `
-        <input type="hidden" name="accion"        value="firmarAlumnoAdmin">
-        <input type="hidden" name="id_asignacion" value="${_firmaIdAsignacion}">
-        <input type="hidden" name="anexo"         value="${anexo}">
-    `;
-    document.body.appendChild(f);
-    f.submit();
-});
-</script>
+<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
