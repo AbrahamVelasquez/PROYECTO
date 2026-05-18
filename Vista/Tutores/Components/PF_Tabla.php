@@ -239,5 +239,49 @@ $rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
 <?= renderizarNavPaginacion($total_pf, $pag_pf, $pp_pf, 'pag_pf', 'orange', ['tab' => '3']) ?>
 
 <script>
+function pfOrdenar() {
+    const criterio = document.getElementById('ordenar').value;
+    const tbody = document.getElementById('tablaCuerpo');
+    const filas = Array.from(tbody.querySelectorAll('tr.pf-fila'));
+    if (!filas.length) return;
+    const col = { 'alumno': 1, 'empresa': 2, 'estado': 3 }[criterio] || 1;
+    filas.sort((a, b) => a.children[col].textContent.trim().localeCompare(b.children[col].textContent.trim(), 'es', { sensitivity: 'base' }));
+    filas.forEach(f => tbody.appendChild(f));
+}
+
+function pfFiltrar() {
+    const texto = (document.getElementById('busqueda')?.value || '').toLowerCase().trim();
+    const estadoFiltro = document.getElementById('filtroEstado')?.value || 'todos';
+    const tbody = document.getElementById('tablaCuerpo');
+    const todasFilas = Array.from(tbody.querySelectorAll('tr.pf-fila'));
+    todasFilas.forEach(fila => {
+        const nombreAlumno  = fila.children[1].textContent.toLowerCase();
+        const nombreEmpresa = fila.children[2].textContent.toLowerCase();
+        const statusSpan    = fila.querySelector('.status-tag');
+        const estadoActual  = statusSpan ? statusSpan.getAttribute('data-estado') : '';
+        const visible = (texto === '' || nombreAlumno.includes(texto) || nombreEmpresa.includes(texto))
+                     && (estadoFiltro === 'todos' || estadoActual === estadoFiltro);
+        fila.style.display = visible ? '' : 'none';
+    });
+}
+
+function limpiarFiltrosPF() {
+    document.getElementById('busqueda').value = '';
+    document.getElementById('filtroEstado').value = 'todos';
+    document.getElementById('ordenar').value = 'alumno';
+    pfFiltrar();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnBuscar')?.addEventListener('click', pfFiltrar);
+    document.getElementById('busqueda')?.addEventListener('input', pfFiltrar);
+    document.getElementById('filtroEstado')?.addEventListener('change', pfFiltrar);
+    document.getElementById('busqueda')?.addEventListener('keypress', e => {
+        if (e.key === 'Enter') { e.preventDefault(); pfFiltrar(); }
+    });
+    document.getElementById('ordenar')?.addEventListener('change', () => { pfOrdenar(); pfFiltrar(); });
+    pfFiltrar();
+});
+</script>
 
 <?php $pag_prefix = 'pf'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '3']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

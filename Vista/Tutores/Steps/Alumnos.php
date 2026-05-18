@@ -1,15 +1,12 @@
-<?php
+<?php 
 
 // Vista/Tutores/Steps/Alumnos.php
 
+// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-// Paginación PHP
-$pp_alum  = leerPorPagina('pp_alum', 10);
-$pag_alum = leerPaginaActual('pag_alum');
-$total_alum = count($alumnos ?? []);
-$alumnosPag = paginarArray($alumnos ?? [], $pp_alum, $pag_alum);
+validarAcceso('tutor'); 
 
 // Paginación PHP
 $pp_alum  = leerPorPagina('pp_alum', 10);
