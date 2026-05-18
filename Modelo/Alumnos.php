@@ -15,15 +15,15 @@ class Alumnos {
     public function listarPorCiclo($idCiclo, $busqueda = '', $estadoFiltro = '', $ordenar = '', $misConveniosIds = []) {
         // Base de la consulta - Se añade asig.enviado
         $query = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo, a.correo,
-                                asig.id_asignacion, asig.id_convenio, asig.fecha_inicio, asig.fecha_final, 
-                                asig.horario, asig.horas_dia, asig.num_total_horas, asig.enviado,
-                                conv.nombre_empresa, conv.municipio, conv.direccion,
+                                asig.id_asignacion, asig.num_convenio, asig.fecha_inicio, asig.fecha_final, 
+                                asig.horario, asig.horario_excepciones, asig.horas_dia, asig.num_total_horas, asig.enviado,
+                                conv.nombre_empresa, conv.localidad, conv.direccion,
                                 (f.id_firmada IS NOT NULL) as firmado 
                         FROM alumnos a
                         INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
                         LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
                         LEFT JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                        LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+                        LEFT JOIN convenios conv ON asig.num_convenio = conv.num_convenio
                         WHERE ca.id_ciclo = :idCiclo";
 
         // Filtro por texto (Nombre, Apellidos o DNI)
@@ -57,7 +57,7 @@ class Alumnos {
         $estado = " ORDER BY
             /* Primero: Estado general */
             CASE 
-                WHEN asig.id_convenio IS NULL THEN 0
+                WHEN asig.num_convenio IS NULL THEN 0
                 WHEN (
                     asig.fecha_inicio IS NULL OR asig.fecha_inicio = '0000-00-00' OR
                     asig.fecha_final  IS NULL OR asig.fecha_final  = '0000-00-00' OR
@@ -85,7 +85,7 @@ class Alumnos {
 
             case 'mis_convenios':
                 $query .= " ORDER BY 
-                            CASE WHEN conv.id_convenio IS NULL THEN 1 ELSE 0 END ASC, 
+                            CASE WHEN conv.num_convenio IS NULL THEN 1 ELSE 0 END ASC, 
                             conv.nombre_empresa ASC, 
                             a.apellido1 ASC, 
                             a.nombre ASC";
@@ -126,7 +126,7 @@ class Alumnos {
 
     public function obtenerPorId($idAlumno) {
         $query = "SELECT a.*,
-                        asig.id_asignacion, asig.id_convenio, asig.fecha_inicio,
+                        asig.id_asignacion, asig.num_convenio, asig.fecha_inicio,
                         asig.fecha_final, asig.horario, asig.horas_dia, asig.num_total_horas,
                         IFNULL(asig.enviado, 0) as enviado,
                         asig.nombre_tutor_empresa, asig.correo_tutor_empresa, asig.tel_tutor_empresa,
@@ -216,14 +216,14 @@ class Alumnos {
 
             if ($asignacion) {
                 // UPDATE asignación existente
-                $q2 = "UPDATE asignaciones SET id_convenio=:idConvenio, fecha_inicio=:fechaInicio,
+                $q2 = "UPDATE asignaciones SET num_convenio=:idConvenio, fecha_inicio=:fechaInicio,
                         fecha_final=:fechaFinal, horario=:horario, horas_dia=:horasDia, num_total_horas=:horasTotales,
                         enviado=:enviado, nombre_tutor_empresa=:nombreTutorEmpresa, correo_tutor_empresa=:correoTutorEmpresa,
                         tel_tutor_empresa=:telTutorEmpresa, horario_excepciones=:horarioExcepciones
                         WHERE id_alumno=:idAlumno";
             } else {
                 // INSERT nueva asignación
-                $q2 = "INSERT INTO asignaciones (id_alumno, id_convenio, fecha_inicio, fecha_final, horario, horas_dia, num_total_horas, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa, horario_excepciones)
+                $q2 = "INSERT INTO asignaciones (id_alumno, num_convenio, fecha_inicio, fecha_final, horario, horas_dia, num_total_horas, enviado, nombre_tutor_empresa, correo_tutor_empresa, tel_tutor_empresa, horario_excepciones)
                         VALUES (:idAlumno, :idConvenio, :fechaInicio, :fechaFinal, :horario, :horasDia, :horasTotales, :enviado, :nombreTutorEmpresa, :correoTutorEmpresa, :telTutorEmpresa, :horarioExcepciones)";
             }
 
@@ -314,7 +314,7 @@ class Alumnos {
 
         $sql = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.correo, a.telefono,
                         f.id_asignacion,
-                        asig.id_convenio,
+                        asig.num_convenio,
                         asig.horario,
                         asig.horario_excepciones,
                         asig.num_total_horas,
@@ -322,7 +322,7 @@ class Alumnos {
                         asig.fecha_final,
                         conv.nombre_empresa, 
                         conv.cif AS nif_empresa,
-                        conv.mail AS email_empresa, 
+                        conv.representante AS email_empresa, 
                         conv.telefono AS telefono_empresa,
                         asig.nombre_tutor_empresa, 
                         asig.correo_tutor_empresa, 
@@ -338,7 +338,7 @@ class Alumnos {
                 INNER JOIN curso_academico ca ON a.id_alumno = ca.id_alumno
                 INNER JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
                 INNER JOIN asignaciones_firmadas f ON asig.id_asignacion = f.id_asignacion
-                LEFT JOIN convenios conv ON asig.id_convenio = conv.id_convenio
+                LEFT JOIN convenios conv ON asig.num_convenio = conv.num_convenio
                 INNER JOIN ciclos ci ON ca.id_ciclo = ci.id_ciclo
                 INNER JOIN cursos cu ON ci.id_curso = cu.id_curso
                 WHERE ca.id_ciclo = :idCiclo
@@ -384,14 +384,14 @@ class Alumnos {
             $this->conn->beginTransaction();
 
             // 1. Obtener IDs relacionados
-            $stmt = $this->conn->prepare("SELECT id_alumno, id_convenio FROM asignaciones WHERE id_asignacion = ?");
+            $stmt = $this->conn->prepare("SELECT id_alumno, num_convenio FROM asignaciones WHERE id_asignacion = ?");
             $stmt->execute([$idAsignacion]);
             $relaciones = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$relaciones) return false;
 
             $idAlu = $relaciones['id_alumno'];
-            $idConv = $relaciones['id_convenio'];
+            $idConv = $relaciones['num_convenio'];
 
             // Solo actualizar datos si vienen del formulario de edición individual
             $tieneFormData = isset($datos['email_alumno']) || isset($datos['nombre_empresa']);
@@ -402,7 +402,7 @@ class Alumnos {
                 $this->conn->prepare($sqlAlu)->execute([$datos['email_alumno'] ?? null, $datos['tel_alumno'] ?? null, $idAlu]);
 
                 // 3. Actualizar CONVENIOS
-                $sqlConv = "UPDATE convenios SET nombre_empresa = ?, cif = ?, mail = ?, telefono = ? WHERE id_convenio = ?";
+                $sqlConv = "UPDATE convenios SET nombre_empresa = ?, cif = ?, representante = ?, telefono = ? WHERE num_convenio = ?";
                 $this->conn->prepare($sqlConv)->execute([$datos['nombre_empresa'] ?? null, $datos['nif_empresa'] ?? null, $datos['email_empresa'] ?? null, $datos['tel_empresa'] ?? null, $idConv]);
 
                 // 4. Actualizar ASIGNACIONES (Tutor empresa)
@@ -413,7 +413,8 @@ class Alumnos {
                                 horario = ?, 
                                 num_total_horas = ?,
                                 fecha_inicio = ?,
-                                fecha_final = ?
+                                fecha_final = ?,
+                                dias_semana = ?
                             WHERE id_asignacion = ?";
 
                 $this->conn->prepare($sqlAsig)->execute([
@@ -424,6 +425,7 @@ class Alumnos {
                     $datos['horas_totales'] !== '' ? ($datos['horas_totales'] ?? null) : null,
                     $datos['fecha_inicio']    ?? null,
                     $datos['fecha_final']     ?? null,
+                    $datos['dias_semana']     ?? null,
                     $idAsignacion
                 ]);
             }

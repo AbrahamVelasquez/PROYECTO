@@ -32,12 +32,13 @@ function obtenerAlumnosWord(array $ids): array {
         $conn = Conexion::getConexion();
         $ph   = implode(',', array_fill(0, count($ids), '?'));
         $sql  = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo,
-                        asig.id_convenio, asig.horario, asig.num_total_horas, asig.horas_dia,
+                        asig.num_convenio, asig.horario, asig.num_total_horas, asig.horas_dia,
                         asig.fecha_inicio, asig.fecha_final, asig.nombre_tutor_empresa,
-                        conv.nombre_empresa, conv.municipio, conv.direccion
+                        asig.horario_excepciones,
+                        conv.nombre_empresa, conv.localidad, conv.direccion
                  FROM alumnos a
-                 LEFT JOIN asignaciones asig ON a.id_alumno = asig.id_alumno
-                 LEFT JOIN convenios conv    ON asig.id_convenio = conv.id_convenio
+                 LEFT JOIN asignaciones asig ON a.id_alumno  = asig.id_alumno
+                 LEFT JOIN convenios conv    ON asig.num_convenio = conv.num_convenio
                  WHERE a.id_alumno IN ($ph)
                  ORDER BY a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
         $stmt = $conn->prepare($sql);
@@ -121,6 +122,35 @@ $templateProcessor->setValue('cicloFormativo', htmlspecialchars($cicloFormativo)
 $templateProcessor->setValue('nombreTutor', htmlspecialchars($nombreTutor));
 $templateProcessor->setValue('dniTutor', htmlspecialchars($dniTutor));
 
+function formatearHorarioExportacion(array $al): string {
+    $excepciones = trim($al['horario_excepciones'] ?? '');
+    if (empty($excepciones)) return $al['horario'] ?? '';
+
+    try {
+        $bloques = json_decode($excepciones, true);
+        if (!is_array($bloques) || empty($bloques)) return $al['horario'] ?? '';
+
+        $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+        $partes = [];
+        foreach ($bloques as $bloque) {
+            if (empty($bloque['dias'])) continue;
+            $dias = $bloque['dias'];
+            usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+            $esConsecutivo = true;
+            for ($i = 1; $i < count($dias); $i++) {
+                if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+            }
+            $labelDias = (count($dias) > 1 && $esConsecutivo)
+                ? $dias[0] . '-' . $dias[count($dias)-1]
+                : implode('', $dias);
+            $partes[] = $labelDias . ' ' . $bloque['inicio'] . '-' . $bloque['fin'];
+        }
+        return implode("\n", $partes);
+    } catch (Exception $e) {
+        return $al['horario'] ?? '';
+    }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // 5. CREAR OBJETO TABLA (CONFIGURACIÓN DE MÁRGENES Y CENTRADO)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -165,11 +195,11 @@ foreach ($alumnos as $al) {
         $al['sexo'] ?? '',
         $al['dni'] ?? '',
         $al['nombre_empresa'] ?? '',
-        $al['id_convenio'] ? str_pad((string)$al['id_convenio'], 4, '0', STR_PAD_LEFT) : '',
-        trim(($al['direccion'] ?? '') . ($al['municipio'] ? ', ' . $al['municipio'] : '')),
+        $al['num_convenio'] ?? '',
+        trim(($al['direccion'] ?? '') . ($al['localidad'] ? ', ' . $al['localidad'] : '')),
         fmtFecha($al['fecha_inicio'] ?? ''),
         fmtFecha($al['fecha_final'] ?? ''),
-        $al['horario'] ?? '',
+        formatearHorarioExportacion($al),
         $al['num_total_horas'] ? $al['num_total_horas'] . 'h' : '',
         $al['horas_dia'] ? $al['horas_dia'] . 'h' : '',
         $al['nombre_tutor_empresa'] ?? ''

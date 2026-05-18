@@ -158,11 +158,11 @@ validarAcceso('tutor');
             
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Convenio / Empresa</label>
-                <select name="id_convenio" id="edit_id_convenio" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+                <select name="num_convenio" id="edit_id_convenio" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
                     <option value="">-- Sin asignar --</option>
                     <?php foreach ($misConvenios as $conv): ?>
-                       <option value="<?= $conv['id_convenio'] ?>">
-                            <?= str_pad($conv['id_convenio'], 4, "0", STR_PAD_LEFT) ?> — <?= htmlspecialchars($conv['nombre_empresa']) ?>
+                       <option value="<?= htmlspecialchars($conv['num_convenio']) ?>">
+                            <?= htmlspecialchars($conv['num_convenio']) ?> — <?= htmlspecialchars($conv['nombre_empresa']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -265,7 +265,7 @@ validarAcceso('tutor');
                 <?php 
                 $hayCandidatos = false;
                 foreach ($alumnos as $al): 
-                    $tieneEmpresa = !empty($al['id_convenio']);
+                    $tieneEmpresa = !empty($al['num_convenio']);
                     $tieneDireccion = !empty($al['direccion']);
                     $tieneFechas = ($al['fecha_inicio'] && $al['fecha_final'] && $al['fecha_inicio'] !== '0000-00-00');
                     $tieneHorario = (!empty($al['horario']) && $al['horas_dia'] > 0);

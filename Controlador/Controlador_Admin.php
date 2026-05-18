@@ -21,9 +21,9 @@ class Admin_Controlador {
 
     // Acción para ver la tabla de tutores
     public function mostrarTutores() {
-        $busqueda = $_POST['busqueda'] ?? '';
-        $ordenar = $_POST['ordenar'] ?? 'id';
-        $filtro_curso = $_POST['filtro_curso'] ?? '';
+        $busqueda     = $_REQUEST['busqueda'] ?? '';
+        $ordenar      = $_REQUEST['ordenar'] ?? 'id';
+        $filtro_curso = $_REQUEST['filtro_curso'] ?? '';
 
         // $admin = new Admin(); // <-- ELIMINADO: Ya usamos $this->admin
         $tutores = $this->admin->obtenerTutores($busqueda, $ordenar, $filtro_curso);
@@ -81,10 +81,10 @@ class Admin_Controlador {
 
     // En Controlador_Admin.php
     public function mostrarConvenios() {
-        $busqueda = $_POST['busqueda'] ?? '';
+        $busqueda = $_REQUEST['busqueda'] ?? '';
         // Cambia 'nombre' por 'nombre_empresa' o como se llame en tu BD
-        $ordenar = $_POST['ordenar'] ?? 'nombre_empresa'; 
-        
+        $ordenar  = $_REQUEST['ordenar'] ?? 'nombre_empresa';      
+
         $convenios = $this->admin->obtenerConvenios($busqueda, $ordenar);
         
         $subVista = 'Admin/Sections/Tabla_Convenios.php';
@@ -103,30 +103,27 @@ class Admin_Controlador {
     public function validarConvenio() {
         if (isset($_POST['nombre_empresa'])) {
             $datos = [
-                'id_convenio_nuevo'    => $_POST['id_convenio_nuevo'],
-                'nombre_empresa'       => $_POST['nombre_empresa'],
-                'cif'                  => $_POST['cif'],
-                'direccion'            => $_POST['direccion'],
-                'municipio'            => $_POST['municipio'],
-                'cp'                   => $_POST['cp'],
-                'pais'                 => $_POST['pais'],
-                'telefono'             => $_POST['telefono'],
-                'fax'                  => $_POST['fax'],
-                'mail'                 => $_POST['mail'],
-                'nombre_representante' => $_POST['nombre_representante'],
-                'dni_representante'    => $_POST['dni_representante'],
-                'cargo'                => $_POST['cargo']
+                'id_convenio_nuevo'      => $_POST['id_convenio_nuevo'],
+                'nombre_empresa'         => $_POST['nombre_empresa'],
+                'cif'                    => $_POST['cif'],
+                'direccion'              => $_POST['direccion'],
+                'localidad'              => $_POST['localidad']              ?? null,
+                'cp'                     => $_POST['cp'],
+                'telefono'               => $_POST['telefono']               ?? null,
+                'fax'                    => $_POST['fax']                    ?? null,
+                'representante'          => $_POST['representante']          ?? null,
+                'especialidad'           => $_POST['especialidad']           ?? null,
+                'num_convenio'           => $_POST['num_convenio']           ?? null,
+                'fecha_alta_renovacion'  => $_POST['fecha_alta_renovacion']  ?? null,
+                'fecha_nueva_renovacion' => $_POST['fecha_nueva_renovacion'] ?? null,
+                'observaciones'          => $_POST['observaciones']          ?? null,
             ];
 
-            // --- EL CAMBIO ESTÁ AQUÍ ---
             if (isset($_POST['solo_guardar'])) {
-                // Solo actualizamos el borrador en la tabla de pendientes
                 $this->admin->actualizarConvenioPendiente($datos);
             } else {
-                // Si no hay 'solo_guardar', entonces validamos y movemos a la tabla definitiva
                 $this->admin->procesarValidacionManual($datos);
             }
-            // ---------------------------
         } 
         else if (isset($_POST['id_convenio_nuevo'])) {
             $id = $_POST['id_convenio_nuevo'];
@@ -151,38 +148,30 @@ class Admin_Controlador {
      * Procesa la actualización de un convenio y sincroniza con pendientes
      */
     public function actualizarConvenio() {
-        // Verificamos que los datos mínimos existan
-        if (isset($_POST['id_convenio']) && (isset($_POST['cif_original']) || isset($_POST['nombre_original']) )) {
+        if (isset($_POST['num_convenio']) && (isset($_POST['cif_original']) || isset($_POST['nombre_original']))) {
             
-            $id_convenio = $_POST['id_convenio'];
-            $cif_original = $_POST['cif_original']; // CIF antiguo para rastrear el registro
-            $nombre_original = $_POST['nombre_original']; // Capturamos el nombre previo
+            $num_convenio    = $_POST['num_convenio'];
+            $cif_original    = $_POST['cif_original'];
+            $nombre_original = $_POST['nombre_original'];
             
             $datosActualizados = [
-                'nombre_empresa'      => $_POST['nombre_empresa'],
-                'cif'                 => $_POST['cif'],
-                'telefono'            => $_POST['telefono'],
-                'mail'                => $_POST['mail'],
-                'fax'                 => $_POST['fax'],
-                'direccion'           => $_POST['direccion'],
-                'municipio'           => $_POST['municipio'],
-                'cp'                  => $_POST['cp'],
-                'pais'                => $_POST['pais'],
-                'nombre_representante'=> $_POST['nombre_representante'],
-                'dni_representante'   => $_POST['dni_representante'],
-                'cargo'               => $_POST['cargo']
+                'nombre_empresa'         => $_POST['nombre_empresa'],
+                'cif'                    => $_POST['cif'],
+                'telefono'               => $_POST['telefono']               ?? null,
+                'fax'                    => $_POST['fax']                    ?? null,
+                'direccion'              => $_POST['direccion']               ?? null,
+                'localidad'              => $_POST['localidad']               ?? null,
+                'cp'                     => $_POST['cp']                     ?? null,
+                'representante'          => $_POST['representante']           ?? null,
+                'especialidad'           => $_POST['especialidad']           ?? null ?: null,
+                'fecha_alta_renovacion'  => $_POST['fecha_alta_renovacion']  ?? null ?: null,
+                'fecha_nueva_renovacion' => $_POST['fecha_nueva_renovacion'] ?? null ?: null,
+                'observaciones'          => $_POST['observaciones']          ?? null ?: null,
             ];
 
-            // 1. Instanciamos el modelo si no está disponible globalmente
-            // $admin = new Admin(); // <-- ELIMINADO: Ya usamos $this->admin
-
-            // 2. Actualizamos la tabla 'convenios' (la oficial)
-            $this->admin->actualizarConvenio($id_convenio, $datosActualizados);
-
-            // 3. Sincronizamos con la tabla 'convenios_nuevos' por si existe borrador con ese CIF o Nombre
+            $this->admin->actualizarConvenio($num_convenio, $datosActualizados);
             $this->admin->sincronizarConvenioPendiente($cif_original, $nombre_original, $datosActualizados);
 
-            // 4. Redirección
             header("Location: index.php?accion=mostrarConvenios&res=success");
             exit();
         }

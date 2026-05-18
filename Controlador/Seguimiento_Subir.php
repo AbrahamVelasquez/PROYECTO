@@ -1,6 +1,6 @@
 <?php
 // Controlador/Seguimiento_Subir.php
-// Ruta destino: /Documentacion/{ciclo}/{alumno}/{Plan_Formativo|Fichas}/
+// Ruta destino: /Documentacion/{ciclo}/{Plan_Formativo|Fichas}/
 
 require_once __DIR__ . '/../Core/Conexion.php';
 require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $tipo   = $_POST['tipo']   ?? '';
 $ciclo  = $_POST['ciclo']  ?? '';
-$alumno = $_POST['alumno'] ?? '';
+$alumno = $_POST['alumno'] ?? ''; // prefijo — se usa solo para validar, no como carpeta
 
 if (!in_array($tipo, ['plan_formativo', 'fichas'], true) || empty($ciclo) || empty($alumno)) {
     echo json_encode(['success' => false, 'error' => 'Parámetros inválidos.']);
@@ -37,10 +37,10 @@ if (!isset($_FILES['fichero']) || $_FILES['fichero']['error'] !== UPLOAD_ERR_OK)
 }
 
 $subcarpeta = $tipo === 'plan_formativo' ? 'Plan_Formativo' : 'Fichas';
-$baseDoc   = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/';
-$rutaDest  = $baseDoc . $ciclo . '/' . $alumno . '/' . $subcarpeta . '/';
+$baseDoc    = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/';
+$rutaDest   = $baseDoc . $ciclo . '/' . $subcarpeta . '/';
 
-// Crear carpetas solo si no existen
+// Crear carpeta si no existe
 if (!is_dir($rutaDest)) {
     if (!mkdir($rutaDest, 0755, true)) {
         echo json_encode(['success' => false, 'error' => 'No se pudo crear la carpeta destino.']);

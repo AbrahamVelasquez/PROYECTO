@@ -1,6 +1,6 @@
 <?php
 // Controlador/Seguimiento_Eliminar.php
-// Ruta: /Documentacion/{ciclo}/{alumno}/{Plan_Formativo|Fichas}/{nombre}
+// Ruta: /Documentacion/{ciclo}/{Plan_Formativo|Fichas}/{alumno}/{nombre}
 
 require_once __DIR__ . '/../Core/Conexion.php';
 require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
@@ -33,7 +33,7 @@ if (empty($ciclo) || empty($alumno) || empty($nombre)) {
 }
 
 $subcarpeta = $tipo === 'plan_formativo' ? 'Plan_Formativo' : 'Fichas';
-$ruta = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/' . $ciclo . '/' . $alumno . '/' . $subcarpeta . '/' . $nombre;
+$ruta = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/' . $ciclo . '/' . $subcarpeta . '/' . $nombre;
 
 if (!file_exists($ruta) || !is_file($ruta)) {
     echo json_encode(['success' => false, 'error' => 'Fichero no encontrado.']);
