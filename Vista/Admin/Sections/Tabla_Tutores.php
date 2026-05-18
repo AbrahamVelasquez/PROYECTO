@@ -6,11 +6,12 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
-validarAcceso('admin');
+validarAcceso('admin'); 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 // Paginación PHP
-$pp_tut  = leerPorPagina('pp_tut', 10);
-$pag_tut = leerPaginaActual('pag_tut');
+$pp_tut    = leerPorPagina('pp_tut', 10);
+$pag_tut   = leerPaginaActual('pag_tut');
 $total_tut = count($tutores ?? []);
 $tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
 
@@ -87,7 +88,7 @@ function limpiarFormTutores(btn) {
         <?php if ($pp_tut > 0 && $total_tut > $pp_tut): ?>
             Mostrando <?= ($pag_tut - 1) * $pp_tut + 1 ?>–<?= min($pag_tut * $pp_tut, $total_tut) ?> de <?= $total_tut ?>
         <?php elseif ($total_tut > 0): ?>
-            <?= $total_tut ?> tutor<?= $total_tut !== 1 ? 'es' : '' ?>
+            <?= $total_tut ?> tutor<?= $total_tut !== 1 ? 's' : '' ?>
         <?php endif; ?>
     </span>
     <button type="button" onclick="document.getElementById('modal-pag-tut').style.display='flex'" title="Configurar filas por página"
@@ -177,7 +178,8 @@ function limpiarFormTutores(btn) {
     </table>
 </div>
 
-<?= renderizarNavPaginacion($total_tut, $pag_tut, $pp_tut, 'pag_tut', 'orange') ?>
+
+<?= renderizarNavPaginacion($total_tut, $pag_tut, $pp_tut, 'pag_tut', 'orange', ['accion' => 'mostrarTutores']) ?>
 
 <?php $pag_prefix = 'tut'; $pag_color = 'orange'; $pag_extra_params = ['accion' => 'mostrarTutores']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 

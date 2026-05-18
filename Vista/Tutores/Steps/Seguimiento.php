@@ -3,7 +3,6 @@
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
-
 validarAcceso('tutor');
 
 $alumnosSeguimiento = array_filter($alumnosFirmados ?? [], fn($a) => $a['exportado'] == 1);
@@ -40,73 +39,44 @@ function normalizarTextoSeg(string $texto): string {
     return preg_replace('/[^A-Z0-9]+/', '_', $texto);
 }
 
-function carpetaAlumno(array $al): string {
+function prefijoDeFichero(array $al, string $carpetaCiclo): string {
     $ape1 = normalizarTextoSeg($al['apellido1'] ?? '');
     $ape2 = normalizarTextoSeg($al['apellido2'] ?? '');
-    $nom  = normalizarTextoSeg($al['nombre']    ?? '');
-    return trim($ape1 . '_' . $ape2 . '_' . $nom, '_');
+    // carpetaCiclo es "2DAW" → queremos "DAW2" para que coincida con el nombre del fichero
+    $cicloTag = preg_replace('/^(\d+)([A-Z]+)$/', '$2$1', strtoupper($carpetaCiclo));
+    $partes = array_filter([$ape1, $ape2, $cicloTag]);
+    return implode('_', $partes);
 }
 
-function contarArchivosSeg(string $ruta): int {
+function contarArchivosSeg(string $ruta, string $prefijo = ''): int {
     if (!is_dir($ruta)) return 0;
-    return count(array_filter(scandir($ruta), fn($f) => !in_array($f, ['.', '..']) && is_file($ruta . $f)));
+    $ficheros = array_filter(
+        scandir($ruta),
+        fn($f) => !in_array($f, ['.', '..'])
+               && is_file($ruta . $f)
+               && ($prefijo === '' || stripos($f, $prefijo) === 0)
+    );
+    return count($ficheros);
 }
 
 // Pre-computar todas las filas con sus campos derivados
 $rowsSeg = [];
 $hayAlgunPF = false; $hayAlgunaFicha = false;
 foreach ($alumnosSeguimiento as $al) {
-    $carpeta   = carpetaAlumno($al);
-    $numPF     = contarArchivosSeg($baseDoc . $carpetaCiclo . '/' . $carpeta . '/Plan_Formativo/');
-    $numFichas = contarArchivosSeg($baseDoc . $carpetaCiclo . '/' . $carpeta . '/Fichas/');
-
-    if ($numPF > 0 && $numFichas > 0)       { $estadoLabel = 'Completado'; $estadoColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; $ordenEstado = 4; }
-    elseif ($numPF > 0 && $numFichas == 0)  { $estadoLabel = 'Parcial';    $estadoColor = 'bg-amber-100 text-amber-700 border-amber-200';   $ordenEstado = 2; }
-    elseif ($numPF == 0 && $numFichas > 0)  { $estadoLabel = 'Parcial';    $estadoColor = 'bg-amber-100 text-amber-700 border-amber-200';   $ordenEstado = 3; }
-    else                                     { $estadoLabel = 'Pendiente';  $estadoColor = 'bg-red-100 text-red-700 border-red-200';          $ordenEstado = 1; }
-
-    if ($numPF > 0)     $hayAlgunPF     = true;
-    if ($numFichas > 0) $hayAlgunaFicha = true;
-
-    $rowsSeg[] = array_merge($al, [
-        'carpeta'       => $carpeta,
-        'numPF'         => $numPF,
-        'numFichas'     => $numFichas,
-        'estadoLabel'   => $estadoLabel,
-        'estadoColor'   => $estadoColor,
-        'ordenEstado'   => $ordenEstado,
-        'nombreCompleto'=> strtoupper($al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ', ' . $al['nombre']),
-    ]);
+    $prefijo = prefijoDeFichero($al, $carpetaCiclo);
+    if (contarArchivosSeg($baseDoc . $carpetaCiclo . '/Plan_Formativo/', $prefijo) > 0) $hayAlgunPF     = true;
+    if (contarArchivosSeg($baseDoc . $carpetaCiclo . '/Fichas/',         $prefijo) > 0) $hayAlgunaFicha = true;
 }
 
 if ($hayAlgunPF && $hayAlgunaFicha)      { $estadoGlobal = 'Completado'; $estadoGlobalColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; }
 elseif ($hayAlgunPF || $hayAlgunaFicha)  { $estadoGlobal = 'Parcial';    $estadoGlobalColor = 'bg-amber-100 text-amber-700 border-amber-200'; }
 else                                      { $estadoGlobal = 'Pendiente';  $estadoGlobalColor = 'bg-red-100 text-red-700 border-red-200'; }
 
-// Leer filtros de GET
-$segBuscador     = strtoupper(trim($_GET['seg_buscador']     ?? ''));
-$segOrden        = $_GET['seg_orden']        ?? 'estado';
-$segFiltroEstado = $_GET['seg_filtro_estado'] ?? '';
-
-// Aplicar filtros PHP
-if ($segBuscador !== '') {
-    $rowsSeg = array_values(array_filter($rowsSeg, fn($r) => str_contains($r['nombreCompleto'], $segBuscador)));
-}
-if ($segFiltroEstado !== '') {
-    $rowsSeg = array_values(array_filter($rowsSeg, fn($r) => $r['estadoLabel'] === $segFiltroEstado));
-}
-
-// Ordenar
-usort($rowsSeg, function($a, $b) use ($segOrden) {
-    if ($segOrden === 'nombre') return strcmp($a['nombreCompleto'], $b['nombreCompleto']);
-    return $a['ordenEstado'] - $b['ordenEstado'];
-});
-
 // Paginación PHP
 $pp_seg  = leerPorPagina('pp_seg', 6);
 $pag_seg = leerPaginaActual('pag_seg');
-$total_seg = count($rowsSeg);
-$rowsSegPag = paginarArray($rowsSeg, $pp_seg, $pag_seg);
+$total_seg = count($alumnosSeguimiento);
+$alumnosSeguimientoPag = paginarArray(array_values($alumnosSeguimiento), $pp_seg, $pag_seg);
 ?>
 
 <!-- Cabecera -->
@@ -200,25 +170,32 @@ $rowsSegPag = paginarArray($rowsSeg, $pp_seg, $pag_seg);
                 <th class="p-4 text-center w-36">Estado Subida</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 bg-white text-[10px]">
-            <?php if (empty($rowsSegPag)): ?>
-            <tr>
-                <td colspan="4" class="py-12 text-center text-slate-400 text-xs italic font-bold uppercase tracking-widest">
-                    No hay alumnos que coincidan con los filtros.
-                </td>
-            </tr>
-            <?php else: ?>
-            <?php foreach ($rowsSegPag as $al):
-                $carpeta    = $al['carpeta'];
-                $carpetaJs  = htmlspecialchars($carpeta, ENT_QUOTES);
+        <tbody id="segTablaCuerpo" class="divide-y divide-slate-100 bg-white text-[10px]">
+            <?php foreach ($alumnosSeguimientoPag as $al):
+                $prefijo   = prefijoDeFichero($al, $carpetaCiclo);
+                $numPF     = contarArchivosSeg($baseDoc . $carpetaCiclo . '/Plan_Formativo/', $prefijo);
+                $numFichas = contarArchivosSeg($baseDoc . $carpetaCiclo . '/Fichas/',         $prefijo);
+
+                if ($numPF > 0 && $numFichas > 0)  { $estadoLabel = 'Completado'; $estadoColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; $ordenEstado = 4; }
+                elseif ($numPF > 0 && $numFichas == 0) { $estadoLabel = 'Parcial';    $estadoColor = 'bg-amber-100 text-amber-700 border-amber-200';   $ordenEstado = 2; }
+                elseif ($numPF == 0 && $numFichas > 0) { $estadoLabel = 'Parcial';    $estadoColor = 'bg-amber-100 text-amber-700 border-amber-200';   $ordenEstado = 3; }
+                else                                    { $estadoLabel = 'Pendiente';  $estadoColor = 'bg-red-100 text-red-700 border-red-200';          $ordenEstado = 1; }
+
+                $nombreCompleto = $al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ', ' . $al['nombre'];
+                $prefijoJs = htmlspecialchars($prefijo, ENT_QUOTES);
             ?>
-            <tr class="hover:bg-slate-50/50 transition-colors uppercase">
+            <tr class="hover:bg-slate-50/50 transition-colors uppercase seg-fila"
+                data-nombre="<?= htmlspecialchars(strtoupper($nombreCompleto), ENT_QUOTES) ?>"
+                data-estado="<?= $estadoLabel ?>"
+                data-orden-estado="<?= $ordenEstado ?>"
+                data-carpeta="<?= $prefijoJs ?>">
+
                 <td class="p-4 font-bold text-slate-700">
                     <?= htmlspecialchars($al['apellido1'] . ' ' . ($al['apellido2'] ?? '') . ', ' . $al['nombre']) ?>
                 </td>
                 <td class="p-4 text-center">
                     <button type="button"
-                        onclick="abrirModalDocumentos('plan_formativo', '<?= $carpetaJs ?>')"
+                        onclick="abrirModalDocumentos('plan_formativo', '<?= $prefijoJs ?>')"
                         class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[9px] font-black text-slate-600 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer uppercase tracking-wide">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         Ver Documentos
@@ -229,7 +206,7 @@ $rowsSegPag = paginarArray($rowsSeg, $pp_seg, $pag_seg);
                 </td>
                 <td class="p-4 text-center">
                     <button type="button"
-                        onclick="abrirModalDocumentos('fichas', '<?= $carpetaJs ?>')"
+                        onclick="abrirModalDocumentos('fichas', '<?= $prefijoJs ?>')"
                         class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[9px] font-black text-slate-600 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 transition-all cursor-pointer uppercase tracking-wide">
                         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         Ver Documentos
@@ -256,8 +233,6 @@ $rowsSegPag = paginarArray($rowsSeg, $pp_seg, $pag_seg);
 
 <script>
 window.SEGUIMIENTO_CICLO = '<?= htmlspecialchars($carpetaCiclo, ENT_QUOTES) ?>';
-</script>
+
 
 <?php $pag_prefix = 'seg'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '4']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
-
-<?php include __DIR__ . '/../Components/Modales_Seguimiento.php'; ?>

@@ -8,8 +8,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 validarAcceso('admin');
 
 // Paginación PHP
-$pp_pend  = leerPorPagina('pp_pend', 10);
-$pag_pend = leerPaginaActual('pag_pend');
+$pp_pend    = leerPorPagina('pp_pend', 10);
+$pag_pend   = leerPaginaActual('pag_pend');
 $total_pend = count($pendientes ?? []);
 $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
 
@@ -76,7 +76,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                 </tr>
             <?php else: ?>
                 <?php foreach ($pendientesPag as $p): ?>
-                <tr class="hover:bg-emerald-50/30 transition-all group">
+                <tr class="pend-fila hover:bg-emerald-50/30 transition-all group">
                     <td class="py-5 px-6">
                         <div class="font-bold text-slate-800 uppercase text-sm group-hover:text-emerald-700 transition-colors">
                             <?= htmlspecialchars($p['nombre_empresa']) ?>
@@ -84,7 +84,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                         <div class="text-[10px] text-slate-400 font-mono"><?= htmlspecialchars($p['cif']) ?></div>
                     </td>
                     <td class="py-5 px-6 text-xs text-slate-500 font-medium">
-                        <?= date('d/m/Y H:i', strtotime($p['fecha_aprobacion'])) ?>
+                        <?= date('d/m/Y', strtotime($p['fecha_aprobacion'])) ?>
                     </td>
                     <td class="py-5 px-6">
                         <div class="flex items-center justify-center gap-3">

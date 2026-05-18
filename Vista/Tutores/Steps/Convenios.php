@@ -25,7 +25,7 @@ $pag_cp = leerPaginaActual('pag_cp');
 $total_cp = count($conveniosProceso ?? []);
 $conveniosProcesoPag = paginarArray($conveniosProceso ?? [], $pp_cp, $pag_cp);
 
-// Preparamos la URL de registro
+// Preparamos la URL completa (ajusta la base si es necesario)
 $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
 $id_ciclo = $_SESSION['id_ciclo'] ?? '';
@@ -93,24 +93,26 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                         <th class="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-center">Acción</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody id="rs-tbody" class="divide-y divide-slate-100">
                     <?php if (!empty($convenios)): foreach ($conveniosPag as $c): ?>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-5 text-center font-mono text-sm text-slate-400 font-bold">#<?= $c['id_convenio'] ?></td>
+                        <tr class="rs-fila hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-5 text-center font-mono text-sm text-slate-400 font-bold"><?= htmlspecialchars($c['num_convenio']) ?></td>
                             <td class="px-4 py-5">
                                 <div class="font-bold text-slate-900 uppercase text-sm italic"><?= $c['nombre_empresa'] ?></div>
                                 <div class="text-xs text-slate-400 font-mono"><?= $c['cif'] ?></div>
                             </td>
-                            <td class="px-4 py-5 text-sm font-bold text-slate-600 uppercase"><?= $c['municipio'] ?></td>
+                            <td class="px-4 py-5 text-sm font-bold text-slate-600 uppercase"><?= $c['localidad'] ?></td>
                             <td class="px-4 py-5">
                                 <div class="text-sm font-bold text-slate-700"><?= $c['telefono'] ?></div>
-                                <div class="text-xs text-orange-600 font-medium"><?= $c['mail'] ?></div>
                             </td>
-                            <td class="px-4 py-5 text-sm font-bold text-slate-500 uppercase"><?= $c['nombre_representante'] ?></td>
+                            <td class="px-4 py-5 text-sm font-bold text-slate-500 uppercase"><?= $c['representante'] ?></td>
                             <td class="px-4 py-5 text-center">
                                 <form action="index.php" method="POST">
-                                    <input type="hidden" name="id_convenio_fav" value="<?= $c['id_convenio'] ?>">
-                                    <button type="submit" name="btnFavorito"
+                                    <input type="hidden" name="num_convenio_fav" value="<?= htmlspecialchars($c['num_convenio']) ?>">
+                                    
+                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                    
+                                    <button type="submit" name="btnFavorito" 
                                             class="px-4 py-2 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase hover:bg-orange-600 hover:text-white transition-all cursor-pointer">
                                         ⭐ Añadir
                                     </button>
@@ -123,7 +125,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                 </tbody>
             </table>
         </div>
-        <?= renderizarNavPaginacion($total_rs, $pag_rs, $pp_rs, 'pag_rs', 'orange', ['tab' => '1']) ?>
+    <?= renderizarNavPaginacion($total_rs, $pag_rs, $pp_rs, 'pag_rs', 'orange', ['tab' => '1']) ?>
     </div>
 <?php endif; ?>
 
@@ -153,18 +155,19 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                     <th class="w-48 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-center">Gestión</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-orange-50">
+            <tbody id="lp-tbody" class="divide-y divide-orange-50">
                 <?php if (!empty($misConvenios)): foreach ($misConveniosPag as $mc): ?>
-                    <tr class="hover:bg-orange-50/50 transition-colors">
+                    <tr class="lp-fila hover:bg-orange-50/50 transition-colors">
                         <td class="px-6 py-5">
                             <div class="font-bold text-slate-900 uppercase text-sm"><?= $mc['nombre_empresa'] ?></div>
-                            <div class="text-xs text-slate-400 font-bold"><?= $mc['municipio'] ?></div>
+                            <div class="text-xs text-slate-400 font-bold"><?= $mc['localidad'] ?></div>
                         </td>
                         <td class="px-6 py-5 text-center">
                             <form action="index.php" method="POST" class="flex justify-center">
-                                <input type="hidden" name="id_convenio_eliminar" value="<?= $mc['id_convenio'] ?>">
+                                <input type="hidden" name="num_convenio_eliminar" value="<?= htmlspecialchars($mc['num_convenio']) ?>">
+                                <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
                                 <input type="hidden" name="btnEliminarFav" value="1">
-                                <button type="button" onclick="abrirConfirmarEliminar(<?= $mc['id_convenio'] ?>, '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
+                                <button type="button" onclick="abrirConfirmarEliminar('<?= htmlspecialchars($mc['num_convenio']) ?>', '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
                                         class="group flex items-center gap-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all border border-red-100 shadow-sm cursor-pointer">
                                     <span class="text-[10px] font-black uppercase">Eliminar</span>
                                     <span class="text-xs group-hover:rotate-90 transition-transform">✕</span>
@@ -180,6 +183,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             </tbody>
         </table>
     </div>
+
     <?= renderizarNavPaginacion($total_lp, $pag_lp, $pp_lp, 'pag_lp', 'orange', ['tab' => '1']) ?>
 </div>
 
@@ -195,7 +199,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                 <?php elseif ($total_cp > 0): ?>
                     <?= $total_cp ?> convenio<?= $total_cp !== 1 ? 's' : '' ?>
                 <?php endif; ?>
-            </span>
+                </span>
             <button type="button" onclick="document.getElementById('modal-pag-cp').style.display='flex'" title="Configurar filas por página"
                 class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 transition-all cursor-pointer uppercase tracking-wide">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -215,7 +219,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             <tbody class="divide-y divide-amber-50">
                 <?php if (!empty($conveniosProceso)): ?>
                     <?php foreach ($conveniosProcesoPag as $convP): ?>
-                        <tr class="hover:bg-amber-50/50 transition-colors">
+                        <tr class="cp-fila hover:bg-amber-50/50 transition-colors">
                             <td class="px-6 py-5 text-center">
                                 <button type="button" onclick='abrirEditarConvenioNuevo(<?= json_encode($convP) ?>)'
                                     class="text-amber-500 hover:text-amber-700 transition-colors p-2.5 rounded-xl hover:bg-amber-100/50 inline-flex items-center justify-center border border-transparent hover:border-amber-200">
@@ -229,7 +233,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                     <?= htmlspecialchars($convP['nombre_empresa']) ?>
                                 </div>
                                 <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                                    <?= htmlspecialchars($convP['municipio']) ?>
+                                    <?= htmlspecialchars($convP['localidad']) ?>
                                 </div>
                             </td>
                             <td class="px-6 py-5 text-center">
@@ -258,23 +262,6 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
     </div>
     <?= renderizarNavPaginacion($total_cp, $pag_cp, $pp_cp, 'pag_cp', 'amber', ['tab' => '1']) ?>
 </div>
-
-<script>
-function copiarUrlRegistro(url, elemento) {
-    navigator.clipboard.writeText(url).then(() => {
-        const span = elemento.querySelector('#btn-text');
-        const originalText = span.innerText;
-        span.innerText = '¡COPIADO!';
-        elemento.classList.remove('bg-slate-100', 'text-slate-600');
-        elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
-        setTimeout(() => {
-            span.innerText = originalText;
-            elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
-            elemento.classList.add('bg-slate-100', 'text-slate-600');
-        }, 2000);
-    }).catch(err => { console.error('Error al copiar: ', err); });
-}
-</script>
 
 <?php $pag_prefix = 'rs'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 <?php $pag_prefix = 'lp'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

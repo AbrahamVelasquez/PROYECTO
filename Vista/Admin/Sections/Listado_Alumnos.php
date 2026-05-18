@@ -4,41 +4,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.ph
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 validarAcceso('admin');
-
-// Leer filtros de GET
-$ladmBusqueda = strtolower(trim($_GET['ladm_busqueda'] ?? ''));
-$ladmCiclo    = strtolower(trim($_GET['ladm_ciclo']    ?? ''));
-$ladmEmpresa  = strtolower(trim($_GET['ladm_empresa']  ?? ''));
-
-// PHP filter
-$rowsLadm = $alumnos ?? [];
-
-if ($ladmBusqueda !== '') {
-    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmBusqueda) {
-        $texto = strtolower(
-            ($al['apellido1'] ?? '') . ' ' . ($al['apellido2'] ?? '') . ' ' . ($al['nombre'] ?? '') . ' ' .
-            ($al['dni'] ?? '') . ' ' . ($al['nombre_empresa'] ?? '') . ' ' . ($al['nombre_ciclo'] ?? '')
-        );
-        return str_contains($texto, $ladmBusqueda);
-    }));
-}
-if ($ladmCiclo !== '') {
-    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmCiclo) {
-        $cicloKey = strtolower($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
-        return $cicloKey === $ladmCiclo;
-    }));
-}
-if ($ladmEmpresa !== '') {
-    $rowsLadm = array_values(array_filter($rowsLadm, function($al) use ($ladmEmpresa) {
-        return strtolower($al['nombre_empresa']) === $ladmEmpresa;
-    }));
-}
+require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 // Paginación PHP
-$pp_ladm  = leerPorPagina('pp_ladm', 10);
-$pag_ladm = leerPaginaActual('pag_ladm');
-$total_ladm = count($rowsLadm);
-$rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
+$pp_ladm    = leerPorPagina('pp_ladm', 10);
+$pag_ladm   = leerPaginaActual('pag_ladm');
+$total_ladm = count($alumnos ?? []);
+$alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
 
 ?>
 
@@ -155,8 +127,6 @@ $rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
                 Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
             <?php elseif ($total_ladm > 0): ?>
                 <?= $total_ladm ?> alumno<?= $total_ladm !== 1 ? 's' : '' ?>
-            <?php elseif (!empty($alumnos)): ?>
-                Sin resultados
             <?php endif; ?>
         </span>
         <button type="button" onclick="document.getElementById('modal-pag-ladm').style.display='flex'" title="Configurar filas por página"
@@ -199,7 +169,7 @@ $rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($rowsLadmPag as $al):
+                    <?php foreach ($alumnosPag as $al):
                         $f_inicio   = (!empty($al['fecha_inicio']) && $al['fecha_inicio'] !== '0000-00-00') ? $al['fecha_inicio'] : null;
                         $f_final    = (!empty($al['fecha_final'])  && $al['fecha_final']  !== '0000-00-00') ? $al['fecha_final']  : null;
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
@@ -242,7 +212,7 @@ $rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
                         <td class="p-4">
                             <?php if (!empty($al['direccion'])): ?>
                                 <p class="text-[9px] normal-case leading-tight text-slate-600"><?= htmlspecialchars($al['direccion']) ?></p>
-                                <p class="text-[9px] font-bold text-slate-400"><?= htmlspecialchars($al['municipio']) ?></p>
+                                <p class="text-[9px] font-bold text-slate-400"><?= htmlspecialchars($al['localidad'] ?? '') ?></p>
                             <?php else: ?>
                                 <span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin dir.</span>
                             <?php endif; ?>
@@ -260,7 +230,30 @@ $rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
 
                         <!-- Horario -->
                         <td class="p-4 text-center text-slate-600">
-                            <?= $tieneHorario ? htmlspecialchars($al['horario']) : '<span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>' ?>
+                            <?php if (!$tieneHorario): ?>
+                                <span class="text-orange-400 font-black italic text-[9px]">⚠️ Sin horario</span>
+                            <?php else:
+                                $excepciones = trim($al['horario_excepciones'] ?? '');
+                                $bloques = $excepciones ? json_decode($excepciones, true) : null;
+                                if (!empty($bloques) && is_array($bloques)):
+                                    $ORDEN = ['L'=>0,'M'=>1,'X'=>2,'J'=>3,'V'=>4,'S'=>5,'D'=>6];
+                                    foreach ($bloques as $bloque):
+                                        if (empty($bloque['dias'])) continue;
+                                        $dias = $bloque['dias'];
+                                        usort($dias, fn($a,$b) => $ORDEN[$a] - $ORDEN[$b]);
+                                        $esConsecutivo = true;
+                                        for ($i = 1; $i < count($dias); $i++) {
+                                            if ($ORDEN[$dias[$i]] !== $ORDEN[$dias[$i-1]] + 1) { $esConsecutivo = false; break; }
+                                        }
+                                        $labelDias = (count($dias) > 1 && $esConsecutivo)
+                                            ? $dias[0] . '-' . $dias[count($dias)-1]
+                                            : implode('', $dias);
+                            ?>
+                                    <span class="block text-slate-600 leading-tight"><?= htmlspecialchars($labelDias . ' ' . $bloque['inicio'] . '-' . $bloque['fin']) ?></span>
+                            <?php   endforeach;
+                                else: ?>
+                                    <span class="text-slate-600"><?= htmlspecialchars($al['horario']) ?></span>
+                            <?php endif; endif; ?>
                         </td>
 
                         <!-- H/Día -->
@@ -288,79 +281,9 @@ $rowsLadmPag = paginarArray($rowsLadm, $pp_ladm, $pag_ladm);
         </table>
     </div>
 
-    <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarAlumnos']) ?>
 
-</div>
+    <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarListadoAlumnos']) ?>
 
-<!-- Modal confirmar firma -->
-<div id="modalConfirmarFirma" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) cerrarModalFirma()">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs">✍️</span>
-                CONFIRMAR FIRMA
-            </h3>
-            <button onclick="cerrarModalFirma()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
-        </div>
+</div><!-- end .space-y-6 -->
 
-        <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Confirmar que este alumno está firmado?</p>
-        <p id="modalFirmaNombre" class="text-sm font-black text-slate-900 mb-4 text-center uppercase"></p>
-
-        <div class="mb-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">
-                Número de anexo <span class="text-red-500">*</span>
-            </label>
-            <input type="text" id="inputFirmaAnexo" placeholder="Ej: 1234"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-center outline-none focus:ring-2 focus:ring-emerald-200 transition-all">
-        </div>
-        <p id="errorAnexo" style="display:none" class="text-[10px] font-bold text-red-500 text-center mb-4 uppercase tracking-wide">
-            ⚠ El número de anexo es obligatorio
-        </p>
-
-        <div class="flex gap-3 justify-center mt-4">
-            <button onclick="cerrarModalFirma()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
-            <button id="btnConfirmarFirmaAccion" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let _firmaIdAsignacion = null;
-
-function abrirModalFirmaAdmin(idAsignacion, nombre) {
-    _firmaIdAsignacion = idAsignacion;
-    document.getElementById('modalFirmaNombre').innerText = nombre;
-    document.getElementById('inputFirmaAnexo').value = '';
-    document.getElementById('errorAnexo').style.display = 'none';
-    document.getElementById('modalConfirmarFirma').style.display = 'flex';
-}
-
-function cerrarModalFirma() {
-    document.getElementById('modalConfirmarFirma').style.display = 'none';
-    document.getElementById('inputFirmaAnexo').value = '';
-    document.getElementById('errorAnexo').style.display = 'none';
-    _firmaIdAsignacion = null;
-}
-
-document.getElementById('btnConfirmarFirmaAccion').addEventListener('click', function () {
-    const anexo = document.getElementById('inputFirmaAnexo').value.trim();
-    const error = document.getElementById('errorAnexo');
-    if (!anexo) {
-        error.style.display = 'block';
-        document.getElementById('inputFirmaAnexo').focus();
-        return;
-    }
-    const f = document.createElement('form');
-    f.method = 'POST';
-    f.action = 'index.php';
-    f.innerHTML = `
-        <input type="hidden" name="accion"        value="firmarAlumnoAdmin">
-        <input type="hidden" name="id_asignacion" value="${_firmaIdAsignacion}">
-        <input type="hidden" name="anexo"         value="${anexo}">
-    `;
-    document.body.appendChild(f);
-    f.submit();
-});
-</script>
-
-<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

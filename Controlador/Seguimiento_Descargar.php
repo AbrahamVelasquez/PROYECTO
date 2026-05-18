@@ -1,6 +1,6 @@
 <?php
 // Controlador/Seguimiento_Descargar.php
-// Sirve un fichero de /Documentacion/{ciclo}/{alumno}/{Plan_Formativo|Fichas}/
+// Sirve un fichero de /Documentacion/{ciclo}/{Plan_Formativo|Fichas}/{alumno}/
 
 require_once __DIR__ . '/../Core/Conexion.php';
 require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
@@ -26,7 +26,7 @@ if (empty($ciclo) || empty($alumno) || empty($nombre)) {
 }
 
 $subcarpeta = $tipo === 'plan_formativo' ? 'Plan_Formativo' : 'Fichas';
-$ruta = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/' . $ciclo . '/' . $alumno . '/' . $subcarpeta . '/' . $nombre;
+$ruta = $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Documentacion/' . $ciclo . '/' . $subcarpeta . '/' . $nombre;
 
 if (!file_exists($ruta) || !is_file($ruta)) {
     http_response_code(404);

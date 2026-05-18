@@ -49,6 +49,12 @@ $pag_pf = leerPaginaActual('pag_pf');
 $total_pf = count($rowsPF);
 $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
 
+// Paginación PHP
+$pp_pf  = leerPorPagina('pp_pf', 10);
+$pag_pf = leerPaginaActual('pag_pf');
+$total_pf = count($alumnosFirmados ?? []);
+$rowsPFPag = paginarArray($alumnosFirmados ?? [], $pp_pf, $pag_pf);
+
 ?>
 <div class="flex justify-between items-center mb-6 mt-2">
     <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
@@ -139,7 +145,8 @@ $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 uppercase bg-white text-[10px]" id="tablaCuerpo">
-            <?php if (empty($alumnosFirmados)): ?>
+            <?php             
+            if (empty($alumnosFirmados)): ?>
                 <tr>
                 <td colspan="4" class="p-12 text-center">
                     <div class="flex flex-col items-center justify-center gap-4">
@@ -152,20 +159,14 @@ $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
                     </div>
                 </td>
                 </tr>
-            <?php elseif (empty($rowsPFPag)): ?>
-                <tr>
-                    <td colspan="4" class="py-12 text-center text-slate-400 text-xs italic font-bold uppercase tracking-widest">
-                        No hay alumnos que coincidan con los filtros.
-                    </td>
-                </tr>
-            <?php else:
-                foreach ($rowsPFPag as $al):
+            <?php else: 
+                foreach ($rowsPFPag as $al): 
                     $nombreFull = $al['apellido1'] . ( $al['apellido2'] ? " {$al['apellido2']}" : "" ) . ", " . $al['nombre'];
                 ?>
                 <tr class="pf-fila hover:bg-slate-50/50 transition-colors"
                     data-id-asignacion="<?= intval($al['id_asignacion']) ?>"
                     data-exportado="<?= $al['exportado'] ? '1' : '0' ?>"
-                    data-id-convenio="<?= intval($al['id_convenio'] ?? 0) ?>"
+                    data-id-convenio="<?= htmlspecialchars($al['num_convenio'] ?? '') ?>"
                     data-nombre-empresa="<?= htmlspecialchars($al['nombre_empresa'] ?? '') ?>"
                     data-cif="<?= htmlspecialchars($al['nif_empresa'] ?? '') ?>"
                     data-anexo="<?= intval($al['anexo'] ?? 0) ?>"
@@ -176,7 +177,8 @@ $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
                     data-horas-totales="<?= intval($al['num_total_horas'] ?? 0) ?>"
                     data-fecha-inicio="<?= htmlspecialchars($al['fecha_inicio'] ?? '') ?>"
                     data-fecha-final="<?= htmlspecialchars($al['fecha_final'] ?? '') ?>"
-                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>">
+                    data-horario-excepciones="<?= htmlspecialchars($al['horario_excepciones'] ?? '') ?>"
+                    data-dias-semana="<?= htmlspecialchars($al['dias_semana'] ?? '') ?>">
                     <td class="p-3 text-center">
                         <button type="button"
                             onclick="window.mostrarEdicion(
@@ -201,12 +203,12 @@ $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
                                 '<?= addslashes($al['correo_tutor_empresa'] ?? '') ?>',
                                 '<?= addslashes($al['tel_tutor_empresa'] ?? '') ?>',
                                 <?= intval($al['anexo'] ?? 0) ?>,
-                                <?= intval($al['id_convenio'] ?? 0) ?>,
+                                '<?= addslashes($al['num_convenio'] ?? '') ?>',
                                 '<?= addslashes($al['horario'] ?? '') ?>',
                                 <?= intval($al['num_total_horas'] ?? 0) ?>,
                                 '<?= addslashes($al['fecha_inicio'] ?? '') ?>',
                                 '<?= addslashes($al['fecha_final'] ?? '') ?>',
-                                '<?= addslashes($al['horario_excepciones'] ?? '') ?>'
+                                this.closest('tr')
                             )"
                             class="group p-2 rounded-lg hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100 mx-auto flex items-center justify-center cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-orange-600">
@@ -235,5 +237,7 @@ $rowsPFPag = paginarArray($rowsPF, $pp_pf, $pag_pf);
 </div>
 
 <?= renderizarNavPaginacion($total_pf, $pag_pf, $pp_pf, 'pag_pf', 'orange', ['tab' => '3']) ?>
+
+<script>
 
 <?php $pag_prefix = 'pf'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '3']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>

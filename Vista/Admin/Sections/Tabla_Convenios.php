@@ -2,15 +2,14 @@
 
 // Vista/Admin/Sections/Tabla_Convenios.php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
 
 validarAcceso('admin');
 
 // Paginación PHP
-$pp_conv  = leerPorPagina('pp_conv', 10);
-$pag_conv = leerPaginaActual('pag_conv');
+$pp_conv    = leerPorPagina('pp_conv', 10);
+$pag_conv   = leerPaginaActual('pag_conv');
 $total_conv = count($convenios ?? []);
 $conveniosPag = paginarArray($convenios ?? [], $pp_conv, $pag_conv);
 
@@ -92,16 +91,15 @@ $conveniosPag = paginarArray($convenios ?? [], $pp_conv, $pag_conv);
                         <div class="text-[10px] text-slate-400 font-mono"><?= htmlspecialchars($fila['cif']) ?></div>
                     </td>
                     <td class="py-5 px-6">
-                        <div class="text-xs text-slate-600 font-bold uppercase"><?= htmlspecialchars($fila['municipio']) ?></div>
-                        <div class="text-[10px] text-slate-400"><?= htmlspecialchars($fila['direccion']) ?></div>
+                        <div class="text-xs text-slate-600 font-bold uppercase"><?= htmlspecialchars($fila['localidad'] ?? '') ?></div>
+                        <div class="text-[10px] text-slate-400"><?= htmlspecialchars($fila['direccion'] ?? '') ?></div>
                     </td>
                     <td class="py-5 px-6 text-xs text-slate-500">
-                        <div class="font-bold"><?= htmlspecialchars($fila['mail']) ?></div>
-                        <div class="text-[9px] text-slate-400"><?= htmlspecialchars($fila['telefono'] ?? '') ?></div>
+                        <div class="font-bold"><?= htmlspecialchars($fila['telefono'] ?? '') ?></div>
+                        <div class="text-[9px] text-slate-400"><?= htmlspecialchars($fila['fax'] ?? '') ?></div>
                     </td>
                     <td class="py-5 px-6">
-                        <div class="text-[11px] font-bold text-slate-700 uppercase"><?= htmlspecialchars($fila['nombre_representante']) ?></div>
-                        <div class="text-[9px] text-slate-400 uppercase tracking-tighter"><?= htmlspecialchars($fila['cargo']) ?></div>
+                        <div class="text-[11px] font-bold text-slate-700 uppercase"><?= htmlspecialchars($fila['representante'] ?? '') ?></div>
                     </td>
                     <td class="py-5 px-6 text-center">
                         <div class="flex justify-center gap-2">
@@ -120,7 +118,7 @@ $conveniosPag = paginarArray($convenios ?? [], $pp_conv, $pag_conv);
     </table>
 </div>
 
-<?= renderizarNavPaginacion($total_conv, $pag_conv, $pp_conv, 'pag_conv', 'blue') ?>
+<?= renderizarNavPaginacion($total_conv, $pag_conv, $pp_conv, 'pag_conv', 'blue', ['accion' => 'mostrarConvenios']) ?>
 
 <?php $pag_prefix = 'conv'; $pag_color = 'blue'; $pag_extra_params = ['accion' => 'mostrarConvenios']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 
