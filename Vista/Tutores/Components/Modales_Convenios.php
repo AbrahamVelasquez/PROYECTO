@@ -1,9 +1,21 @@
 <?php
 
-// Vista/Tutores/Components/Modales_Convenios.php
+/**
+ * Vista/Tutores/Components/Modales_Convenios.php — Modales del paso 1 (Convenios)
+ *
+ * Contiene los overlays del wizard de convenios:
+ *   - Aviso "Convenio en uso": se muestra cuando el tutor intenta asignarse
+ *     un convenio que otro tutor ya tiene activo. El mensaje llega de
+ *     $_SESSION['error_convenio'] y se inyecta en el modal via JS inline
+ *     en Dashboard_Tutores.php antes del DOMContentLoaded.
+ *   - Registro de nuevo convenio: formulario completo para que el tutor
+ *     proponga una nueva empresa (queda en convenios_nuevos pendiente de
+ *     validación por el admin).
+ *
+ * El formulario de nuevo convenio envía POST a index.php con accion=registrarNuevoConvenio.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('tutor'); 
 
@@ -80,7 +92,7 @@ validarAcceso('tutor');
             <button onclick="document.getElementById('modalEditarConvenioNuevo').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
         </div>
 
-        <form method="POST" action="index.php" id="formEditarConvenioNuevo">
+        <form method="POST" action="index.php" id="formEditarConvenioNuevo" novalidate onsubmit="return validarForm(this)">
             <input type="hidden" name="accion" value="editarConvenioNuevo">
             <input type="hidden" name="id_convenio_nuevo" id="edit_conv_id">
 
@@ -89,19 +101,19 @@ validarAcceso('tutor');
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="md:col-span-3">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre Empresa <span class="text-red-500">*</span></label>
-                    <input type="text" name="nombre_empresa" id="edit_conv_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="nombre_empresa" id="edit_conv_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CIF <span class="text-red-500">*</span></label>
-                    <input type="text" name="cif" id="edit_conv_cif" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="cif" id="edit_conv_cif" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-4">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Dirección <span class="text-red-500">*</span></label>
-                    <input type="text" name="direccion" id="edit_conv_direccion" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="direccion" id="edit_conv_direccion" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Localidad <span class="text-red-500">*</span></label>
-                    <input type="text" name="localidad" id="edit_conv_localidad" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="localidad" id="edit_conv_localidad" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
                 <div class="md:col-span-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">CP <span class="text-red-500">*</span></label>
@@ -115,10 +127,7 @@ validarAcceso('tutor');
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">FAX</label>
                     <input type="text" name="fax" id="edit_conv_fax" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Fecha Nueva Renovación</label>
-                    <input type="date" name="fecha_nueva_renovacion" id="edit_conv_fecha_nueva" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
-                </div>
+
             </div>
 
             <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-4 border-b border-amber-50 pb-2">Representante Legal</p>
@@ -126,7 +135,7 @@ validarAcceso('tutor');
             <div class="grid grid-cols-1 gap-4 mb-6">
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre y Apellidos</label>
-                    <input type="text" name="representante" id="edit_conv_rep_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
+                    <input type="text" name="representante" id="edit_conv_rep_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all">
                 </div>
             </div>
 
@@ -214,7 +223,7 @@ validarAcceso('tutor');
         document.getElementById('edit_conv_rep_nombre').value = datos.representante ?? '';
 
         // Otros
-        document.getElementById('edit_conv_fecha_nueva').value  = datos.fecha_nueva_renovacion  ?? '';
+
         document.getElementById('edit_conv_observaciones').value = datos.observaciones           ?? '';
 
         document.getElementById('modalEditarConvenioNuevo').style.display = 'flex';

@@ -1,7 +1,24 @@
 <?php
 
-// Helpers/Paginador.php
-// Centraliza toda la lógica de paginación del sistema
+/**
+ * Helpers/Paginador.php — Lógica de paginación reutilizable
+ *
+ * Centraliza todo lo relacionado con paginar resultados en el sistema.
+ * Se usa tanto en vistas PHP (paginación server-side sobre arrays)
+ * como en la generación del HTML de navegación entre páginas.
+ *
+ * Funciones disponibles:
+ *   - generarPaginacion()      → calcula offset/límite para consultas SQL
+ *   - leerPaginaActual()       → lee el número de página del GET de forma segura
+ *   - leerPorPagina()          → lee cuántos registros por página quiere el usuario
+ *   - paginarArray()           → recorta un array PHP al subconjunto de la página
+ *   - renderizarNavPaginacion() → genera el HTML de la barra de navegación
+ *
+ * El sistema de paginación funciona exclusivamente via GET params para que
+ * los enlaces sean compartibles y el botón Atrás del navegador funcione bien.
+ *
+ * MVC: Helper de presentación. No accede a BD — opera sobre datos ya cargados.
+ */
 
 // ── Cálculo de metadatos (LIMIT/OFFSET) para consultas SQL ───────────────────
 function generarPaginacion($totalRegistros, $paginaActual, $registrosPorPagina = 10) {
@@ -61,8 +78,10 @@ function renderizarNavPaginacion(
     $fin       = min($pagina * $porPagina, $total);
     $c         = $color;
 
-    // URL base: GET actuales + extraParams, sin el param de página
-    $params = array_merge($_GET, $extraParams);
+    // URL base: solo preservamos los params pp_* del GET (configuración por página elegida por el usuario)
+    // El resto (tab, accion, etc.) viene exclusivamente de $extraParams para evitar contaminación entre pasos
+    $preservedGET = array_filter($_GET, fn($key) => str_starts_with($key, 'pp_'), ARRAY_FILTER_USE_KEY);
+    $params = array_merge($preservedGET, $extraParams);
     unset($params[$paramPag]);
     $qs   = http_build_query($params);
     $base = 'index.php' . ($qs ? '?' . $qs . '&' : '?') . $paramPag . '=';

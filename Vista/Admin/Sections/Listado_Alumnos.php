@@ -1,10 +1,24 @@
 <?php
-// Vista/Admin/Sections/Listado_Alumnos.php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
+/**
+ * Vista/Admin/Sections/Listado_Alumnos.php — Sección "Listado de Alumnos" del panel admin
+ *
+ * Vista de sólo lectura (no edición) que muestra todos los alumnos del sistema
+ * con sus datos de asignación: empresa, ciclo, fechas y estado.
+ * El admin puede filtrar por ciclo y exportar el listado completo.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_ladm/pag_ladm.
+ * Los tooltips de estado de cada fila se implementan con CSS puro ([data-tooltip]).
+ * Los modales están en Modales_LA.php.
+ *
+ * Variables recibidas del controlador: $alumnos (array completo).
+ */
+
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('admin');
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_ladm    = leerPorPagina('pp_ladm', 10);
@@ -62,26 +76,25 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
         </div>
     </div>
 
-    <!-- Filtros (GET form) -->
-    <form id="ladm-filter-form" method="GET" action="index.php" class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <input type="hidden" name="accion" value="mostrarAlumnos">
+    <!-- Filtros -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
         <!-- Buscador -->
-        <div class="relative flex-1">
+        <div class="relative flex-1" id="ladm-dropdown-wrapper">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input type="search" id="buscadorAlumnos" name="ladm_busqueda"
-                value="<?= htmlspecialchars($_GET['ladm_busqueda'] ?? '') ?>"
+            <input type="search" id="buscadorAlumnos"
                 placeholder="Buscar por nombre o apellidos…"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
-                oninput="clearTimeout(window._ladmT); window._ladmT = setTimeout(()=>document.getElementById('ladm-filter-form').submit(), 400)"/>
+                autocomplete="off"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
+            <ul id="ladm-dropdown"
+                class="hidden absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+            </ul>
         </div>
 
         <!-- Filtro ciclo -->
-        <select id="filtroCiclo" name="ladm_ciclo"
-            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-            onchange="this.closest('form').submit()">
+        <select id="filtroCiclo" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
             <option value="">Todos los ciclos</option>
             <?php
             $ciclosVistos = [];
@@ -89,17 +102,14 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $key = $al['nombre_ciclo'] . ' ' . ucfirst($al['grado']);
                 if (!in_array($key, $ciclosVistos)) {
                     $ciclosVistos[] = $key;
-                    $selected = (strtolower($key) === $ladmCiclo) ? 'selected' : '';
-                    echo '<option value="' . htmlspecialchars(strtolower($key)) . '" ' . $selected . '>' . htmlspecialchars($key) . '</option>';
+                    echo '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($key) . '</option>';
                 }
             }
             ?>
         </select>
 
         <!-- Filtro empresa -->
-        <select id="filtroEmpresa" name="ladm_empresa"
-            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-            onchange="this.closest('form').submit()">
+        <select id="filtroEmpresa" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200">
             <option value="">Todas las empresas</option>
             <?php
             $empresasVistas = [];
@@ -107,32 +117,23 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                 $emp = $al['nombre_empresa'];
                 if (!in_array($emp, $empresasVistas)) {
                     $empresasVistas[] = $emp;
-                    $selected = (strtolower($emp) === $ladmEmpresa) ? 'selected' : '';
-                    echo '<option value="' . htmlspecialchars(strtolower($emp)) . '" ' . $selected . '>' . htmlspecialchars($emp) . '</option>';
+                    echo '<option value="' . htmlspecialchars($emp) . '">' . htmlspecialchars($emp) . '</option>';
                 }
             }
             ?>
         </select>
 
-        <a href="index.php?accion=mostrarAlumnos"
-            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
-            Mostrar todos
-        </a>
-    </form>
+    </div>
 
     <!-- Barra superior: contador + config paginación -->
     <div class="flex items-center justify-between mb-2">
         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            <?php if ($pp_ladm > 0 && $total_ladm > $pp_ladm): ?>
-                Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
-            <?php elseif ($total_ladm > 0): ?>
-                <?= $total_ladm ?> alumno<?= $total_ladm !== 1 ? 's' : '' ?>
-            <?php endif; ?>
+            Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
         </span>
         <button type="button" onclick="document.getElementById('modal-pag-ladm').style.display='flex'" title="Configurar filas por página"
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide">
             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span><?= $pp_ladm > 0 ? $pp_ladm . '/pág' : 'Todos' ?></span>
+            <span><?= $pp_ladm . '/pág' ?></span>
         </button>
     </div>
 
@@ -154,18 +155,12 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                     <th class="p-4 w-24 text-center">Firmar</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-[11px] uppercase">
+            <tbody id="tablaAlumnosBody" class="divide-y divide-slate-100 text-[11px] uppercase">
 
                 <?php if (empty($alumnos)): ?>
                     <tr>
                         <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
                             No hay alumnos con FCT firmada registrados.
-                        </td>
-                    </tr>
-                <?php elseif (empty($rowsLadmPag)): ?>
-                    <tr>
-                        <td colspan="11" class="py-14 text-center text-slate-400 italic text-sm normal-case">
-                            No hay alumnos que coincidan con los filtros.
                         </td>
                     </tr>
                 <?php else: ?>
@@ -175,7 +170,7 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
                         $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
                         $cicloLabel   = htmlspecialchars($al['nombre_ciclo'] . ' ' . ucfirst($al['grado']));
                     ?>
-                    <tr class="hover:bg-slate-50/60 transition-colors">
+                    <tr class="ladm-fila hover:bg-slate-50/60 transition-colors" data-ciclo="<?= $cicloLabel ?>" data-empresa="<?= htmlspecialchars($al['nombre_empresa']) ?>">
 
                         <!-- Alumno -->
                         <td class="p-4">
@@ -286,4 +281,103 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
 
 </div><!-- end .space-y-6 -->
 
-<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<script>
+
+function filtrarAlumnosAdmin() {
+    const texto   = document.getElementById('buscadorAlumnos').value.trim().toUpperCase();
+    const ciclo   = document.getElementById('filtroCiclo').value.toUpperCase();
+    const empresa = document.getElementById('filtroEmpresa').value.toUpperCase();
+
+    document.querySelectorAll('#tablaAlumnosBody tr.ladm-fila').forEach(tr => {
+        const nombre      = tr.querySelector('td:first-child').textContent.toUpperCase();
+        const dataCiclo   = (tr.dataset.ciclo   || '').toUpperCase();
+        const dataEmpresa = (tr.dataset.empresa  || '').toUpperCase();
+        const visible = (!texto   || nombre.includes(texto))
+                     && (!ciclo   || dataCiclo === ciclo)
+                     && (!empresa || dataEmpresa === empresa);
+        tr.style.display = visible ? '' : 'none';
+    });
+}
+
+function limpiarFiltrosAdmin() {
+    document.getElementById('buscadorAlumnos').value = '';
+    document.getElementById('filtroCiclo').value     = '';
+    document.getElementById('filtroEmpresa').value   = '';
+    filtrarAlumnosAdmin();
+}
+
+document.getElementById('filtroCiclo').addEventListener('change',     filtrarAlumnosAdmin);
+document.getElementById('filtroEmpresa').addEventListener('change',   filtrarAlumnosAdmin);
+
+// ── Dropdown Listado Alumnos Admin ─────────────────────────────────────────
+(function(){
+    const input = document.getElementById('buscadorAlumnos');
+    const dropdown = document.getElementById('ladm-dropdown');
+    const wrapper = document.getElementById('ladm-dropdown-wrapper');
+    let activeIndex = -1;
+
+    function getSugerencias(q) {
+        const txt = q.toLowerCase().trim();
+        if (!txt) return [];
+        const vistas = new Set(), res = [];
+        document.querySelectorAll('tr.ladm-fila').forEach(tr => {
+            const nombre = (tr.querySelector('td:first-child p:first-child')?.textContent || '').trim();
+            const dni    = (tr.children[1]?.textContent || '').trim();
+            [[nombre, dni], [dni, nombre]].forEach(([v, sub]) => {
+                if (v && v.toLowerCase().includes(txt) && !vistas.has(v)) {
+                    vistas.add(v); res.push({ valor: v, sublabel: sub });
+                }
+            });
+        });
+        return res.slice(0, 10);
+    }
+    function resaltar(t, q) {
+        return t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'),
+            '<mark class="bg-slate-200 text-slate-800 rounded px-0.5">$1</mark>');
+    }
+    function ocultar() { dropdown.classList.add('hidden'); dropdown.innerHTML=''; activeIndex=-1; }
+    function seleccionar(v) { input.value=v; ocultar(); filtrarAlumnosAdmin(); }
+    function resaltarActivo() { dropdown.querySelectorAll('li').forEach((li,i)=>li.classList.toggle('bg-slate-100',i===activeIndex)); }
+
+    function mostrar(sugs) {
+        dropdown.innerHTML=''; activeIndex=-1;
+        if (!sugs.length) { ocultar(); return; }
+        sugs.forEach(s => {
+            const li = document.createElement('li');
+            li.className = 'px-5 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0';
+            li.innerHTML = `<div class="text-[11px] font-bold text-slate-800">${resaltar(s.valor, input.value)}</div>
+                            <div class="text-[10px] font-bold text-slate-400 font-mono mt-0.5">${s.sublabel}</div>`;
+            li.addEventListener('mousedown', e => { e.preventDefault(); seleccionar(s.valor); });
+            dropdown.appendChild(li);
+        });
+        dropdown.classList.remove('hidden');
+    }
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (q.length < 2) { ocultar(); return; }
+        mostrar(getSugerencias(q));
+    });
+    input.addEventListener('keydown', e => {
+        const items = dropdown.querySelectorAll('li');
+        if (e.key==='ArrowDown') { e.preventDefault(); activeIndex=Math.min(activeIndex+1,items.length-1); resaltarActivo(); }
+        else if (e.key==='ArrowUp') { e.preventDefault(); activeIndex=Math.max(activeIndex-1,-1); resaltarActivo(); }
+        else if (e.key==='Enter') {
+            e.preventDefault();
+            if (activeIndex>=0 && items[activeIndex]) { input.value=items[activeIndex].querySelector('div').textContent.trim(); ocultar(); }
+            filtrarAlumnosAdmin();
+        } else if (e.key==='Escape') ocultar();
+    });
+    document.addEventListener('click', e => { if (!wrapper.contains(e.target)) ocultar(); });
+})();
+</script>
+
+<?php 
+$pag_prefix = 'ladm'; 
+$pag_color = 'violet'; 
+$pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
+
+<?php include 'Vista/Admin/Components/Modales_LA.php'; ?>

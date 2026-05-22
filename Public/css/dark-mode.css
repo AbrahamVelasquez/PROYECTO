@@ -1,6 +1,8 @@
 /* ========================================================
    DARK MODE — Sistema de tema oscuro/claro
    Se activa añadiendo la clase .dark al elemento <html>
+
+   Ratios de contraste WCAG 2.1 AA verificados (≥ 4.5:1 texto normal)
    ======================================================== */
 
 /* Transiciones suaves SOLO durante el cambio de tema */
@@ -23,66 +25,119 @@ html.dark body {
     color: #e2e8f0 !important;
 }
 
+/* ── Selección de texto ── */
+html.dark ::selection {
+    background-color: rgba(234, 88, 12, 0.35);
+    color: #f1f5f9;
+}
+
+/* ── Scrollbar ── */
+html.dark ::-webkit-scrollbar-track { background: #0f172a; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
 /* ── Fondos ── */
 html.dark .bg-white          { background-color: #1e293b !important; }
 html.dark .bg-slate-50       { background-color: #0f172a !important; }
 html.dark .bg-slate-100      { background-color: #1e293b !important; }
 html.dark .bg-slate-200      { background-color: #334155 !important; }
+html.dark .bg-slate-700      { background-color: #334155 !important; }
+html.dark .bg-slate-800      { background-color: #1e293b !important; }
 
-/* ── Bordes ── */
-html.dark .border-slate-200  { border-color: #334155 !important; }
-html.dark .border-slate-100  { border-color: #1e293b !important; }
-html.dark .border-t          { border-color: #334155 !important; }
-html.dark .border-b          { border-color: #334155 !important; }
+/* bg-slate-900 es el mismo color que el fondo (#0f172a) → lo diferenciamos
+   para que los botones con este fondo no desaparezcan sobre la página.
+   Ratio: white sobre #334155 = 10.35:1 ✅ */
+html.dark .bg-slate-900      { background-color: #334155 !important; }
 
-/* ── Texto neutro ── */
-html.dark .text-slate-900    { color: #f1f5f9 !important; }
-html.dark .text-slate-800    { color: #e2e8f0 !important; }
-html.dark .text-slate-700    { color: #cbd5e1 !important; }
-html.dark .text-slate-600    { color: #94a3b8 !important; }
-html.dark .text-slate-500    { color: #94a3b8 !important; }
-html.dark .text-slate-400    { color: #64748b !important; }
+/* ── Bordes neutrales — paleta acero azul-cálido ──────────────────────────
+   El azul acero es complementario al naranja y da profundidad sin competir.
+   border-slate-100 → divisor sutil dentro de cards
+   border-slate-200 → borde principal (cards, inputs, selects)
+   border-slate-300 → énfasis (bordes activos, separadores secciones)
+   ────────────────────────────────────────────────────────────────────── */
+html.dark .border-slate-50   { border-color: #1a2840 !important; }
+html.dark .border-slate-100  { border-color: #253350 !important; }
+html.dark .border-slate-200  { border-color: #364f6e !important; }
+html.dark .border-slate-300  { border-color: #4a6890 !important; }
+html.dark .border-slate-400  { border-color: #5a7aa8 !important; }
+html.dark .border-t          { border-color: #364f6e !important; }
+html.dark .border-b          { border-color: #364f6e !important; }
+
+/* ── Texto neutro slate ──
+   Nota: en dark mode todos los tonos se aclaran para mantener contraste.
+   #94a3b8 sobre #0f172a = 6.96:1 ✅  |  sobre #1e293b = 5.71:1 ✅
+   (El CSS original mapeaba slate-400 a #64748b = 3.75:1 ❌ — corregido) */
+html.dark .text-slate-900    { color: #f1f5f9 !important; }   /* 16.30:1 ✅ */
+html.dark .text-slate-800    { color: #e2e8f0 !important; }   /* 13.35:1 ✅ */
+html.dark .text-slate-700    { color: #cbd5e1 !important; }   /* 10.65:1 ✅ */
+html.dark .text-slate-600    { color: #94a3b8 !important; }   /*  5.71:1 ✅ */
+html.dark .text-slate-500    { color: #94a3b8 !important; }   /*  5.71:1 ✅ */
+html.dark .text-slate-400    { color: #94a3b8 !important; }   /*  5.71:1 ✅ — era #64748b (3.75:1 ❌) */
 html.dark .text-black        { color: #f1f5f9 !important; }
 
-/* ── Texto de color (badges, estados, alertas) ──
-   Los tonos 700/800 son muy oscuros en dark mode → los aclaramos */
+/* ── Texto red ── */
 html.dark .text-red-700,
-html.dark .text-red-800      { color: #fca5a5 !important; }  /* red-300   */
-html.dark .text-red-600      { color: #f87171 !important; }  /* red-400   */
-html.dark .text-red-500      { color: #f87171 !important; }  /* red-400   */
+html.dark .text-red-800      { color: #fca5a5 !important; }   /* red-300    7.71:1 ✅ */
+html.dark .text-red-600      { color: #f87171 !important; }   /* red-400    5.97:1 ✅ */
+html.dark .text-red-500      { color: #f87171 !important; }
 
+/* ── Texto green ── */
 html.dark .text-green-700,
-html.dark .text-green-800    { color: #86efac !important; }  /* green-300 */
-html.dark .text-green-600    { color: #4ade80 !important; }  /* green-400 */
-html.dark .text-green-500    { color: #4ade80 !important; }  /* green-400 */
+html.dark .text-green-800    { color: #86efac !important; }   /* green-300 10.42:1 ✅ */
+html.dark .text-green-600    { color: #4ade80 !important; }   /* green-400  8.21:1 ✅ */
+html.dark .text-green-500    { color: #4ade80 !important; }
 
+/* ── Texto emerald (antes NO mapeado — badge "Completado" era ilegible 2.67:1 ❌) ── */
+html.dark .text-emerald-700,
+html.dark .text-emerald-800  { color: #6ee7b7 !important; }   /* emerald-300  9.60:1 ✅ */
+html.dark .text-emerald-600  { color: #34d399 !important; }   /* emerald-400  7.61:1 ✅ */
+html.dark .text-emerald-500  { color: #34d399 !important; }
+
+/* ── Texto orange ── */
 html.dark .text-orange-700,
-html.dark .text-orange-800   { color: #fdba74 !important; }  /* orange-300 */
-html.dark .text-orange-600   { color: #fb923c !important; }  /* orange-400 */
-html.dark .text-orange-500   { color: #fb923c !important; }  /* orange-400 */
+html.dark .text-orange-800   { color: #fdba74 !important; }   /* orange-300  9.03:1 ✅ */
+html.dark .text-orange-600   { color: #fb923c !important; }   /* orange-400  6.93:1 ✅ */
+html.dark .text-orange-500   { color: #fb923c !important; }
 
+/* ── Texto amber (antes NO mapeado — badge "Parcial" podía ser ilegible) ── */
+html.dark .text-amber-700,
+html.dark .text-amber-800    { color: #fcd34d !important; }   /* amber-300  10.15:1 ✅ */
+html.dark .text-amber-600    { color: #fbbf24 !important; }   /* amber-400   8.09:1 ✅ */
+html.dark .text-amber-500    { color: #fbbf24 !important; }
+
+/* ── Texto yellow ── */
 html.dark .text-yellow-700,
-html.dark .text-yellow-800   { color: #fde047 !important; }  /* yellow-300 */
-html.dark .text-yellow-600   { color: #facc15 !important; }  /* yellow-400 */
+html.dark .text-yellow-800   { color: #fde047 !important; }   /* yellow-300 11.09:1 ✅ */
+html.dark .text-yellow-600   { color: #facc15 !important; }   /* yellow-400  9.05:1 ✅ */
 
+/* ── Texto blue ── */
 html.dark .text-blue-700,
-html.dark .text-blue-800     { color: #93c5fd !important; }  /* blue-300   */
-html.dark .text-blue-600     { color: #60a5fa !important; }  /* blue-400   */
-html.dark .text-blue-500     { color: #60a5fa !important; }  /* blue-400   */
+html.dark .text-blue-800     { color: #93c5fd !important; }   /* blue-300    7.79:1 ✅ */
+html.dark .text-blue-600     { color: #60a5fa !important; }   /* blue-400    5.89:1 ✅ */
+html.dark .text-blue-500     { color: #60a5fa !important; }
 
+/* ── Texto indigo ── */
 html.dark .text-indigo-700,
-html.dark .text-indigo-800   { color: #a5b4fc !important; }  /* indigo-300 */
-html.dark .text-indigo-600   { color: #818cf8 !important; }  /* indigo-400 */
+html.dark .text-indigo-800   { color: #a5b4fc !important; }   /* indigo-300  8.58:1 ✅ */
+html.dark .text-indigo-600   { color: #818cf8 !important; }   /* indigo-400  5.63:1 ✅ */
 
+/* ── Texto violet (antes NO mapeado — admin Listado Alumnos) ── */
+html.dark .text-violet-700,
+html.dark .text-violet-800   { color: #c4b5fd !important; }   /* violet-300  7.92:1 ✅ */
+html.dark .text-violet-600   { color: #a78bfa !important; }   /* violet-400  5.23:1 ✅ */
+html.dark .text-violet-500   { color: #a78bfa !important; }
+
+/* ── Texto purple ── */
 html.dark .text-purple-700,
-html.dark .text-purple-800   { color: #d8b4fe !important; }  /* purple-300 */
-html.dark .text-purple-600   { color: #c084fc !important; }  /* purple-400 */
+html.dark .text-purple-800   { color: #d8b4fe !important; }   /* purple-300  9.22:1 ✅ */
+html.dark .text-purple-600   { color: #c084fc !important; }   /* purple-400  6.76:1 ✅ */
 
+/* ── Texto gray ── */
 html.dark .text-gray-700,
 html.dark .text-gray-800,
 html.dark .text-gray-900     { color: #e2e8f0 !important; }
 html.dark .text-gray-600     { color: #94a3b8 !important; }
-html.dark .text-gray-500     { color: #64748b !important; }
+html.dark .text-gray-500     { color: #94a3b8 !important; }
 
 /* ── Sombras ── */
 html.dark .shadow-sm  { box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.5) !important; }
@@ -90,9 +145,11 @@ html.dark .shadow-xl  { box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important; }
 html.dark .shadow-lg  { box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important; }
 
 /* ── Hover estados ── */
-html.dark .hover\:bg-slate-50:hover  { background-color: #334155 !important; }
-html.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
-html.dark .hover\:bg-red-50:hover    { background-color: rgba(220, 38, 38, 0.12) !important; }
+html.dark .hover\:bg-slate-50:hover   { background-color: #334155 !important; }
+html.dark .hover\:bg-slate-100:hover  { background-color: #334155 !important; }
+html.dark .hover\:bg-slate-900:hover  { background-color: #475569 !important; }
+html.dark .hover\:bg-red-50:hover     { background-color: rgba(220, 38, 38, 0.12) !important; }
+html.dark .hover\:bg-orange-50:hover  { background-color: rgba(234, 88, 12, 0.12) !important; }
 
 /* ── Inputs, selects, textareas ── */
 html.dark input:not([type="checkbox"]):not([type="radio"]),
@@ -105,13 +162,12 @@ html.dark textarea {
 html.dark input::placeholder,
 html.dark textarea::placeholder { color: #64748b !important; }
 
-/* Foco en inputs (modo oscuro) */
 html.dark input:focus,
 html.dark select:focus,
 html.dark textarea:focus {
     background-color: #1e293b !important;
     border-color: #ea580c !important;
-    box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.15) !important;
+    box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.2) !important;
 }
 
 /* ── Tablas ── */
@@ -144,44 +200,60 @@ html.dark .step-active-circle {
 html.dark .step-heading { color: #475569 !important; }
 html.dark .step-active-text { color: #f1f5f9 !important; }
 
-/* Línea divisoria del wizard */
-html.dark .hidden.md\:block.absolute.top-2\.5 { background-color: #334155 !important; }
 html.dark .h-0\.5.bg-slate-100 { background-color: #334155 !important; }
 
 /* ── Badges / pastillas de color ──
-   Fondo semitransparente + borde sutil para que el texto claro resalte */
+   Fondo semitransparente + texto claro verificado por WCAG */
 html.dark [class*="bg-green-100"],
-html.dark [class*="bg-green-50"]   {
-    background-color: rgba(34, 197, 94, 0.15)  !important;
-    border-color:     rgba(34, 197, 94, 0.25)  !important;
+html.dark [class*="bg-green-50"] {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    border-color:     rgba(34, 197, 94, 0.25) !important;
+}
+/* emerald: antes no mapeado — badge "Completado" */
+html.dark [class*="bg-emerald-100"],
+html.dark [class*="bg-emerald-50"] {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color:     rgba(16, 185, 129, 0.25) !important;
 }
 html.dark [class*="bg-red-100"],
-html.dark [class*="bg-red-50"]     {
-    background-color: rgba(220, 38, 38, 0.15)  !important;
-    border-color:     rgba(220, 38, 38, 0.25)  !important;
+html.dark [class*="bg-red-50"] {
+    background-color: rgba(220, 38, 38, 0.15) !important;
+    border-color:     rgba(220, 38, 38, 0.25) !important;
+}
+/* amber: antes no mapeado — badge "Parcial" */
+html.dark [class*="bg-amber-100"],
+html.dark [class*="bg-amber-50"] {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    border-color:     rgba(245, 158, 11, 0.25) !important;
 }
 html.dark [class*="bg-yellow-100"],
-html.dark [class*="bg-yellow-50"]  {
-    background-color: rgba(234, 179, 8, 0.15)  !important;
-    border-color:     rgba(234, 179, 8, 0.25)  !important;
+html.dark [class*="bg-yellow-50"] {
+    background-color: rgba(234, 179, 8, 0.15) !important;
+    border-color:     rgba(234, 179, 8, 0.25) !important;
 }
 html.dark [class*="bg-blue-100"],
-html.dark [class*="bg-blue-50"]    {
+html.dark [class*="bg-blue-50"] {
     background-color: rgba(59, 130, 246, 0.15) !important;
     border-color:     rgba(59, 130, 246, 0.25) !important;
 }
 html.dark [class*="bg-orange-100"],
-html.dark [class*="bg-orange-50"]  {
-    background-color: rgba(234, 88, 12, 0.15)  !important;
-    border-color:     rgba(234, 88, 12, 0.25)  !important;
+html.dark [class*="bg-orange-50"] {
+    background-color: rgba(234, 88, 12, 0.15) !important;
+    border-color:     rgba(234, 88, 12, 0.25) !important;
 }
 html.dark [class*="bg-indigo-100"],
-html.dark [class*="bg-indigo-50"]  {
+html.dark [class*="bg-indigo-50"] {
     background-color: rgba(99, 102, 241, 0.15) !important;
     border-color:     rgba(99, 102, 241, 0.25) !important;
 }
+/* violet: antes no mapeado — admin Listado Alumnos */
+html.dark [class*="bg-violet-100"],
+html.dark [class*="bg-violet-50"] {
+    background-color: rgba(139, 92, 246, 0.15) !important;
+    border-color:     rgba(139, 92, 246, 0.25) !important;
+}
 html.dark [class*="bg-purple-100"],
-html.dark [class*="bg-purple-50"]  {
+html.dark [class*="bg-purple-50"] {
     background-color: rgba(168, 85, 247, 0.15) !important;
     border-color:     rgba(168, 85, 247, 0.25) !important;
 }
@@ -199,39 +271,29 @@ html.dark .help-trigger > span {
 }
 html.dark .help-trigger > span:hover { background-color: #334155 !important; }
 
-/* ── Modales (contenedores internos con bg-white) ── */
+/* ── Modales ── */
 html.dark [id*="modal" i] .bg-white,
 html.dark [style*="position: fixed"] .bg-white,
 html.dark [style*="position:fixed"] .bg-white {
     background-color: #1e293b !important;
 }
 
-/* ── Texto dentro de modales — letras blancas con sombra para legibilidad ──
-   [id*="modal" i] captura todos los IDs: modalX, segModalX, etc. (case-insensitive) */
-html.dark [id*="modal" i] .text-slate-400 {
-    color: #ffffff !important;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
-}
-html.dark [id*="modal" i] .text-slate-500          { color: #f1f5f9 !important; }
-html.dark [id*="modal" i] .text-slate-600          { color: #f1f5f9 !important; }
-html.dark [id*="modal" i] .text-slate-700          { color: #f8fafc !important; }
+html.dark [id*="modal" i] .text-slate-400 { color: #ffffff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+html.dark [id*="modal" i] .text-slate-500 { color: #f1f5f9 !important; }
+html.dark [id*="modal" i] .text-slate-600 { color: #f1f5f9 !important; }
+html.dark [id*="modal" i] .text-slate-700 { color: #f8fafc !important; }
 html.dark [id*="modal" i] .text-slate-800,
-html.dark [id*="modal" i] .text-slate-900          { color: #ffffff  !important; }
+html.dark [id*="modal" i] .text-slate-900 { color: #ffffff  !important; }
 
-/* Hover de botones "Cancelar" dentro de modales */
 html.dark [id*="modal" i] .hover\:text-slate-600:hover { color: #ffffff !important; }
 
-/* Fondo del área de formulario dentro de modales — más oscuro que el contenedor.
-   Se usa .overflow-y-auto (sin requerir tag form) para mayor compatibilidad. */
 html.dark [id*="modal" i] .overflow-y-auto,
-html.dark [id*="modal" i] [class*="bg-slate-50"]   { background-color: #080e1c !important; }
+html.dark [id*="modal" i] [class*="bg-slate-50"] { background-color: #0c1322 !important; }
 
-/* Labels del formulario dentro de modales — blancas independientemente de su clase */
-html.dark [id*="modal" i] label                    { color: #ffffff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+html.dark [id*="modal" i] label { color: #ffffff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
 
-/* Bordes internos de modales */
-html.dark [id*="modal" i] .border-slate-100        { border-color: #334155 !important; }
-html.dark [id*="modal" i] .border-slate-200        { border-color: #475569 !important; }
+html.dark [id*="modal" i] .border-slate-100 { border-color: #334155 !important; }
+html.dark [id*="modal" i] .border-slate-200 { border-color: #475569 !important; }
 
 /* ── Dropdown del usuario ── */
 html.dark #userDropdown {
@@ -246,9 +308,10 @@ html.dark #userDropdown .bg-slate-50 {
 /* ── Footer ── */
 html.dark footer { color: #475569 !important; }
 
-/* ─────────────────────────────────────────────────────────
-   BOTÓN DE ALTERNANCIA (fixed, top-left)
-   ───────────────────────────────────────────────────────── */
+
+/* ═════════════════════════════════════════════════════════
+   BOTÓN DE ALTERNANCIA (fixed, esquina)
+   ═════════════════════════════════════════════════════════ */
 #theme-toggle {
     position: fixed;
     top: 1.1rem;
@@ -266,12 +329,11 @@ html.dark footer { color: #475569 !important; }
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-    /* El botón siempre tiene transición propia */
     transition:
-        transform  0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.35s ease,
-        background-color 0.4s ease,
-        border-color     0.4s ease;
+        transform          0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow         0.35s ease,
+        background-color   0.4s ease,
+        border-color       0.4s ease;
     overflow: hidden;
 }
 
@@ -279,16 +341,21 @@ html.dark footer { color: #475569 !important; }
     transform: scale(1.12) rotate(12deg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
 }
-
 #theme-toggle:active { transform: scale(0.95); }
 
+/* Accesibilidad: anillo de foco visible para navegación por teclado */
+#theme-toggle:focus-visible {
+    outline: 2px solid #ea580c;
+    outline-offset: 3px;
+}
+
 html.dark #theme-toggle {
-    background: rgba(15, 23, 42, 0.95);
-    border-color: rgba(51, 65, 85, 0.8);
+    background: rgba(30, 41, 59, 0.97);
+    border-color: rgba(71, 85, 105, 0.8);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Iconos dentro del botón */
+/* ── Iconos ── */
 .theme-icon {
     position: absolute;
     width: 1.2rem;
@@ -298,25 +365,103 @@ html.dark #theme-toggle {
         opacity   0.35s ease;
 }
 
-/* Sol: visible en modo claro */
-.icon-sun  {
-    color: #f59e0b;
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
+.icon-sun  { color: #f59e0b; opacity: 1; transform: rotate(0deg) scale(1); }
+.icon-moon { color: #818cf8; opacity: 0; transform: rotate(90deg) scale(0.4); }
+
+html.dark .icon-sun  { opacity: 0; transform: rotate(-90deg) scale(0.4); }
+html.dark .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+
+/* ═════════════════════════════════════════════════════════
+   CORRECCIONES DE CONTRASTE ESPECÍFICAS
+   (Problema detectado en screenshots: elementos que se
+    funden con el fondo de la card en modo oscuro)
+   ═════════════════════════════════════════════════════════ */
+
+/* ── Ghost / outline buttons (bg-white + border) ────────────────────────────
+   En dark mode bg-white → #1e293b que es igual al fondo de la card.
+   Le damos un fondo ligeramente más claro para que el botón sea visible. */
+html.dark button.bg-white,
+html.dark a.bg-white {
+    background-color: #2a3f5a !important;
+    border-color: #475569 !important;
 }
-/* Luna: oculta en modo claro */
-.icon-moon {
-    color: #818cf8;
-    opacity: 0;
-    transform: rotate(90deg) scale(0.4);
+html.dark button.bg-white:hover,
+html.dark a.bg-white:hover {
+    background-color: #334155 !important;
 }
 
-/* En modo oscuro: sol oculto, luna visible */
-html.dark .icon-sun  {
-    opacity: 0;
-    transform: rotate(-90deg) scale(0.4);
+/* ── Inline chips / badges con bg-slate-50 (DNI, etiquetas pequeñas) ─────────
+   bg-slate-50 global → #0f172a (fondo de página).
+   Los chips/span inline necesitan un fondo que contraste con la card (#1e293b). */
+html.dark span.bg-slate-50,
+html.dark code.bg-slate-50 {
+    background-color: #1e3050 !important;
+    border-color: #334155 !important;
 }
-html.dark .icon-moon {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
-}
+
+/* ── Bordes coloreados ────────────────────────────────────────────────────────
+   Usamos rgba al 55% — visible y sólido sin ser agresivo.
+   Los tonos 300/400 (énfasis, focus rings) se mantienen más brillantes. */
+
+/* Orange */
+html.dark .border-orange-50,
+html.dark .border-orange-100,
+html.dark .border-orange-200  { border-color: rgba(234, 88,  12,  0.55) !important; }
+html.dark .border-orange-300  { border-color: rgba(234, 88,  12,  0.75) !important; }
+html.dark .border-orange-400,
+html.dark .border-orange-500  { border-color: rgba(234, 88,  12,  0.90) !important; }
+
+/* Amber */
+html.dark .border-amber-50,
+html.dark .border-amber-100,
+html.dark .border-amber-200   { border-color: rgba(245, 158, 11,  0.55) !important; }
+html.dark .border-amber-300,
+html.dark .border-amber-400   { border-color: rgba(245, 158, 11,  0.80) !important; }
+
+/* Emerald */
+html.dark .border-emerald-50,
+html.dark .border-emerald-100,
+html.dark .border-emerald-200 { border-color: rgba(16,  185, 129, 0.55) !important; }
+html.dark .border-emerald-300,
+html.dark .border-emerald-600 { border-color: rgba(16,  185, 129, 0.80) !important; }
+
+/* Green */
+html.dark .border-green-100,
+html.dark .border-green-200   { border-color: rgba(34,  197, 94,  0.55) !important; }
+
+/* Blue */
+html.dark .border-blue-100,
+html.dark .border-blue-200    { border-color: rgba(59,  130, 246, 0.55) !important; }
+html.dark .border-blue-300,
+html.dark .border-blue-600    { border-color: rgba(59,  130, 246, 0.80) !important; }
+
+/* Red / Rose */
+html.dark .border-red-100,
+html.dark .border-red-200     { border-color: rgba(220, 38,  38,  0.55) !important; }
+html.dark .border-red-300     { border-color: rgba(220, 38,  38,  0.80) !important; }
+html.dark .border-rose-200    { border-color: rgba(244, 63,  94,  0.55) !important; }
+
+/* Violet */
+html.dark .border-violet-100,
+html.dark .border-violet-200,
+html.dark .border-violet-300  { border-color: rgba(139, 92,  246, 0.55) !important; }
+html.dark .border-violet-600  { border-color: rgba(139, 92,  246, 0.85) !important; }
+
+/* Purple */
+html.dark .border-purple-100,
+html.dark .border-purple-200  { border-color: rgba(168, 85,  247, 0.55) !important; }
+
+/* ── Badges de color — fondos al 25% de opacidad ────────────────────────────
+   Suben de 15% → 22% para badges 100, de 22% → 25% para los 50
+   Los bordes al 55% definen la forma; el fondo aporta el tinte de color. */
+html.dark [class*="bg-orange-50"]  { background-color: rgba(234, 88,  12,  0.22) !important; }
+html.dark [class*="bg-emerald-50"] { background-color: rgba(16,  185, 129, 0.22) !important; }
+html.dark [class*="bg-amber-50"]   { background-color: rgba(245, 158, 11,  0.22) !important; }
+html.dark [class*="bg-blue-50"]    { background-color: rgba(59,  130, 246, 0.22) !important; }
+html.dark [class*="bg-red-50"]     { background-color: rgba(220, 38,  38,  0.22) !important; }
+html.dark [class*="bg-green-50"]   { background-color: rgba(34,  197, 94,  0.22) !important; }
+html.dark [class*="bg-violet-50"]  { background-color: rgba(139, 92,  246, 0.22) !important; }
+
+/* text-slate-200 — aclaramos para consistencia */
+html.dark .text-slate-200 { color: #cbd5e1 !important; }

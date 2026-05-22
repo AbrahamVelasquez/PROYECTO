@@ -1,11 +1,19 @@
 <?php
 
-// Vista/Admin/Components/Modales_TC.php
+/**
+ * Vista/Admin/Components/Modales_TC.php — Modales de gestión de convenios válidos (admin)
+ *
+ * Contiene los overlays para las acciones sobre la tabla de convenios activos:
+ *   - Confirmar eliminación de convenio (nombre de empresa inyectado por JS).
+ *   - Editar todos los campos del convenio (empresa, CIF, fechas, especialidad, etc.).
+ *
+ * Los modales se abren desde Tabla_Convenios.php mediante funciones JS que
+ * inyectan el num_convenio y los datos actuales en los campos del formulario.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
+validarAcceso('admin');
 
 ?>
 <div id="modalEliminarConvenio" style="display:none" class="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -44,7 +52,7 @@ validarAcceso('admin');
             <button onclick="cerrarEditarConvenio()" class="text-slate-400 hover:text-slate-600 text-2xl cursor-pointer">✕</button>
         </div>
 
-        <form action="index.php" method="POST" class="overflow-y-auto p-8 bg-slate-50/30">
+        <form action="index.php" method="POST" class="overflow-y-auto p-8 bg-slate-50/30" novalidate onsubmit="return validarForm(this)">
             <input type="hidden" name="accion" value="actualizarConvenio">
             <input type="hidden" name="num_convenio" id="edit_conv_id">
             <input type="hidden" name="cif_original" id="edit_conv_cif_old">
@@ -53,15 +61,15 @@ validarAcceso('admin');
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-1">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nº Convenio</label>
-                    <input type="text" name="num_conv" id="edit_conv_num" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-blue-100">
+                    <input type="text" name="num_conv" id="edit_conv_num" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre Empresa</label>
-                    <input type="text" name="nombre_empresa" id="edit_conv_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-blue-100">
+                    <input type="text" name="nombre_empresa" id="edit_conv_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">CIF</label>
-                    <input type="text" name="cif" id="edit_conv_cif" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold uppercase outline-none focus:ring-2 focus:ring-blue-100">
+                    <input type="text" name="cif" id="edit_conv_cif" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Teléfono</label>
@@ -77,7 +85,7 @@ validarAcceso('admin');
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Localidad</label>
-                    <input type="text" name="localidad" id="edit_conv_localidad" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none">
+                    <input type="text" name="localidad" id="edit_conv_localidad" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">CP</label>
@@ -90,7 +98,7 @@ validarAcceso('admin');
                 
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre y Apellidos</label>
-                    <input type="text" name="representante" id="edit_conv_rep" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none">
+                    <input type="text" name="representante" id="edit_conv_rep" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none">
                 </div>
 
                 <div class="md:col-span-3 mt-4 pt-4 border-t border-slate-200 flex items-center gap-2">
@@ -101,8 +109,7 @@ validarAcceso('admin');
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Especialidad Actual</label>
                     <select name="especialidad" id="edit_conv_especialidad" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm bg-white focus:ring-2 focus:ring-blue-100">
                         <?php
-                            $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
-                            foreach ($todosLosCiclos as $c):
+                                                        foreach ($todosLosCiclos as $c):
                                 $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
                                 $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
                         ?>
@@ -218,9 +225,13 @@ validarAcceso('admin');
                     <p class="text-2xl mb-2">✅</p>
                     <p class="text-sm font-black text-emerald-700" id="imp_conv_texto_ok"></p>
                 </div>
-                <div id="imp_conv_resultado_errores" style="display:none" class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <p class="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-2">Filas omitidas</p>
-                    <ul id="imp_conv_lista_errores" class="text-[10px] text-amber-600 font-bold space-y-1"></ul>
+                <div id="imp_conv_resultado_errores" style="display:none" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
+                    <p class="text-[10px] font-black text-red-700 uppercase tracking-widest mb-2">⛔ Filas no importadas</p>
+                    <ul id="imp_conv_lista_errores" class="text-[10px] text-red-600 font-bold space-y-1.5"></ul>
+                </div>
+                <div id="imp_conv_resultado_advertencias" style="display:none" class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
+                    <p class="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-2">⚠ Avisos (importadas sin especialidad)</p>
+                    <ul id="imp_conv_lista_advertencias" class="text-[10px] text-amber-600 font-bold space-y-1.5"></ul>
                 </div>
                 <div class="flex justify-center mt-4">
                     <button onclick="cerrarModalImportarConveniosYRecargar()" class="px-8 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 cursor-pointer uppercase tracking-widest">
@@ -387,7 +398,12 @@ async function importarConveniosExcel() {
             if (data.errores && data.errores.length > 0) {
                 document.getElementById('imp_conv_resultado_errores').style.display = 'block';
                 document.getElementById('imp_conv_lista_errores').innerHTML =
-                    data.errores.map(e => `<li>• ${e}</li>`).join('');
+                    data.errores.map(e => `<li class="leading-relaxed">• ${e}</li>`).join('');
+            }
+            if (data.advertencias && data.advertencias.length > 0) {
+                document.getElementById('imp_conv_resultado_advertencias').style.display = 'block';
+                document.getElementById('imp_conv_lista_advertencias').innerHTML =
+                    data.advertencias.map(a => `<li class="leading-relaxed">• ${a}</li>`).join('');
             }
         } else {
             const okDiv = document.getElementById('imp_conv_resultado_ok');
@@ -403,3 +419,37 @@ async function importarConveniosExcel() {
     }
 }
 </script>
+
+<!-- ── Modal: Convenio en Uso (no se puede eliminar) ── -->
+<div id="modalConvenioEnUso" style="display:none"
+     class="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+     onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center border border-slate-100"
+         onclick="event.stopPropagation()">
+
+        <!-- Icono advertencia -->
+        <div class="w-16 h-16 bg-amber-50 border-2 border-amber-200 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                 fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+        </div>
+
+        <h3 class="text-base font-black text-slate-900 uppercase tracking-tight mb-2">
+            Convenio en uso
+        </h3>
+        <p class="text-slate-500 text-xs leading-relaxed mb-6">
+            No se puede eliminar este convenio porque tiene
+            <span class="font-bold text-slate-700">alumnos asignados</span>.
+            Reasigna o elimina los alumnos del ciclo correspondiente antes de eliminarlo.
+        </p>
+
+        <button onclick="document.getElementById('modalConvenioEnUso').style.display='none'"
+                class="w-full py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-700 transition-all cursor-pointer">
+            Entendido
+        </button>
+    </div>
+</div>
+

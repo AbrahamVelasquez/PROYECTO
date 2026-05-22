@@ -1,13 +1,23 @@
-<?php 
+<?php
 
-// Vista/Admin/Sections/Tabla_Tutores.php
+/**
+ * Vista/Admin/Sections/Tabla_Tutores.php — Sección "Personal Docente" del panel admin
+ *
+ * Muestra la tabla paginada de tutores registrados en el sistema.
+ * Acciones disponibles por fila: editar datos y ciclo asignado, eliminar tutor.
+ * También incluye los formularios de importación (Excel) y alta manual de nuevos tutores.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_tut/pag_tut.
+ * Los modales de edición y confirmación de borrado están en Modales_Tutores.php.
+ *
+ * Variables recibidas del controlador: $tutores (array completo para contar y paginar).
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+validarAcceso('admin');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_tut    = leerPorPagina('pp_tut', 10);
@@ -38,20 +48,28 @@ $tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
     </div>
 </div>
 
-<form method="GET" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
+<?php
+$_tut_ajax = rtrim(str_replace('\\', '/', preg_replace('/\/Vista(\/Admin(\/Sections)?)?$/i', '', dirname($_SERVER['SCRIPT_NAME']))), '/') . '/Public/ajax/Autocompletar.php';
+?>
+<form method="POST" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center" id="form-tut-adm" autocomplete="off">
     <input type="hidden" name="accion" value="mostrarTutores">
 
-    <div class="flex-1 relative w-full">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" name="busqueda" value="<?= htmlspecialchars($_GET['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O APELLIDOS..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+    <div class="flex-1 relative w-full" id="tut-wrap">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">🔍</span>
+        <input type="text" name="busqueda" id="tut-input"
+               value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>"
+               placeholder="BUSCAR POR NOMBRE O APELLIDOS..."
+               autocomplete="off"
+               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all uppercase">
+        <ul id="tut-list" class="hidden absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto"></ul>
     </div>
-
+    
     <div class="flex items-center gap-3 w-full md:w-auto">
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Ordenar por:</span>
         <select name="ordenar" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
-            <option value="id"        <?= (!isset($_GET['ordenar']) || $_GET['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
-            <option value="apellidos" <?= ($_GET['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
-            <option value="ciclo"     <?= ($_GET['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
+            <option value="id"        <?= (!isset($_POST['ordenar']) || $_POST['ordenar'] == 'id') ? 'selected' : '' ?>>Nº REGISTRO (ID)</option>
+            <option value="apellidos" <?= ($_POST['ordenar'] ?? '') == 'apellidos' ? 'selected' : '' ?>>APELLIDOS (A-Z)</option>
+            <option value="ciclo"     <?= ($_POST['ordenar'] ?? '') == 'ciclo'     ? 'selected' : '' ?>>CURSO Y CICLO</option>
         </select>
     </div>
 
@@ -59,17 +77,13 @@ $tutoresPag = paginarArray($tutores ?? [], $pp_tut, $pag_tut);
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Curso:</span>
         <select name="filtro_curso" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-bold outline-none cursor-pointer uppercase">
             <option value="">TODOS LOS CURSOS</option>
-            <option value="Primero" <?= ($_GET['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
-            <option value="Segundo" <?= ($_GET['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
+            <option value="Primero" <?= ($_POST['filtro_curso'] ?? '') == 'Primero' ? 'selected' : '' ?>>1º CURSO</option>
+            <option value="Segundo" <?= ($_POST['filtro_curso'] ?? '') == 'Segundo' ? 'selected' : '' ?>>2º CURSO</option>
         </select>
     </div>
 
     <button type="submit" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-[10px] hover:bg-orange-600 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
         BUSCAR
-    </button>
-    <button type="button" onclick="limpiarFormTutores(this)"
-        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
-        Mostrar todos
     </button>
 </form>
 <script>
@@ -85,16 +99,12 @@ function limpiarFormTutores(btn) {
 <!-- Barra superior: contador + config paginación -->
 <div class="flex items-center justify-between mb-2">
     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-        <?php if ($pp_tut > 0 && $total_tut > $pp_tut): ?>
-            Mostrando <?= ($pag_tut - 1) * $pp_tut + 1 ?>–<?= min($pag_tut * $pp_tut, $total_tut) ?> de <?= $total_tut ?>
-        <?php elseif ($total_tut > 0): ?>
-            <?= $total_tut ?> tutor<?= $total_tut !== 1 ? 's' : '' ?>
-        <?php endif; ?>
+        Mostrando <?= ($pag_tut - 1) * $pp_tut + 1 ?>–<?= min($pag_tut * $pp_tut, $total_tut) ?> de <?= $total_tut ?>
     </span>
     <button type="button" onclick="document.getElementById('modal-pag-tut').style.display='flex'" title="Configurar filas por página"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span><?= $pp_tut > 0 ? $pp_tut . '/pág' : 'Todos' ?></span>
+        <span><?= $pp_tut . '/pág' ?></span>
     </button>
 </div>
 
@@ -181,6 +191,68 @@ function limpiarFormTutores(btn) {
 
 <?= renderizarNavPaginacion($total_tut, $pag_tut, $pp_tut, 'pag_tut', 'orange', ['accion' => 'mostrarTutores']) ?>
 
-<?php $pag_prefix = 'tut'; $pag_color = 'orange'; $pag_extra_params = ['accion' => 'mostrarTutores']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'tut'; 
+$pag_color = 'orange'; 
+$pag_extra_params = ['accion' => 'mostrarTutores']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
 
 <?php include 'Vista/Admin/Components/Modales_Tutores.php'; ?>
+
+<script>
+(function () {
+    var inp  = document.getElementById('tut-input');
+    var list = document.getElementById('tut-list');
+    var wrap = document.getElementById('tut-wrap');
+    var form = document.getElementById('form-tut-adm');
+    var url  = '<?= $_tut_ajax ?>';
+    if (!inp || !list || !form) return;
+    var timer, idx = -1;
+
+    function hide() { list.classList.add('hidden'); list.innerHTML = ''; idx = -1; }
+    function pick(v) { inp.value = v; hide(); form.submit(); }
+    function hl() { list.querySelectorAll('li').forEach(function(li, i) { li.classList.toggle('bg-orange-50', i === idx); }); }
+
+    function show(data) {
+        list.innerHTML = ''; idx = -1;
+        if (!data.length) { hide(); return; }
+        data.forEach(function (s) {
+            var li = document.createElement('li');
+            li.className = 'px-5 py-3 cursor-pointer hover:bg-orange-50 border-b border-slate-100 last:border-b-0';
+            li.innerHTML = '<div class="text-[11px] font-black text-slate-800 uppercase">' + s.etiqueta + '</div>'
+                         + '<div class="text-[10px] font-bold text-slate-400 mt-0.5">' + s.sublabel + '</div>';
+            li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(s.valor); });
+            list.appendChild(li);
+        });
+        list.classList.remove('hidden');
+    }
+
+    inp.addEventListener('input', function () {
+        clearTimeout(timer);
+        var q = inp.value.trim();
+        if (q.length < 2) { hide(); return; }
+        timer = setTimeout(function () {
+            fetch(url + '?tipo=tutor&q=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(show)
+                .catch(hide);
+        }, 250);
+    });
+
+    inp.addEventListener('keydown', function (e) {
+        var items = list.querySelectorAll('li');
+        if (e.key === 'ArrowDown')  { e.preventDefault(); idx = Math.min(idx + 1, items.length - 1); hl(); }
+        else if (e.key === 'ArrowUp')   { e.preventDefault(); idx = Math.max(idx - 1, -1); hl(); }
+        else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (idx >= 0 && items[idx]) { inp.value = items[idx].querySelector('div').textContent.trim(); hide(); }
+            form.submit();
+        }
+        else if (e.key === 'Escape') { hide(); }
+    });
+
+    document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) hide(); });
+})();
+</script>

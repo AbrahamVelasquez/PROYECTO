@@ -1,8 +1,20 @@
 <?php
 
-// Vista/Login.php
+/**
+ * Vista/Login.php — Formulario de inicio de sesión
+ *
+ * Sólo se puede incluir desde index.php (require ROOT_PATH definida); cualquier
+ * acceso directo por URL redirige al index para no dejar la vista expuesta sola.
+ * Si ya hay sesión activa, redirige al index usando la ruta dinámica del servidor
+ * (compatible con cualquier subdirectorio de despliegue).
+ *
+ * El formulario envía usuario + contraseña a index.php (POST btnLogIn).
+ * Los errores de credenciales llegan de vuelta como ?mensaje= en la URL.
+ * La validación JS (validacion.js) evita envíos con campos vacíos.
+ * El toggle de visibilidad de contraseña lo gestiona script_password.js.
+ */
 
-// 1. Definimos si el acceso es legal (si viene del index tendrá ROOT_PATH definido)
+// Sólo accesible si ha sido incluido desde index.php
 if (!defined('ROOT_PATH')) {
     // Si alguien entra directo a la URL, lo mandamos al index real
     // Usamos una ruta que suba niveles para encontrar el index
@@ -14,9 +26,15 @@ if (!defined('ROOT_PATH')) {
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 if (isset($_SESSION['usuario'])) {
-    // Calculamos la URL base para el index.php
+    // CAMBIO AQUÍ: Calculamos la subcarpeta del proyecto de manera dinámica usando SCRIPT_NAME
+    // Esto reemplaza el "/pruebas/" o "/proyecto/" estático por la ruta real del despliegue.
+    $ruta_proyecto_web = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    // Como este Login.php se incluye desde el index o está en una subcarpeta Vista/, 
+    // nos aseguramos de limpiar el tramo final de la ruta web si fuera necesario.
+    $ruta_proyecto_web = preg_replace('/\/Vista$/i', '', $ruta_proyecto_web);
+
     $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-    $urlIndex = $protocolo . "://" . $_SERVER['HTTP_HOST'] . "/PROYECTO/index.php";
+    $urlIndex = $protocolo . "://" . $_SERVER['HTTP_HOST'] . $ruta_proyecto_web . "/index.php";
     
     header("Location: $urlIndex");
     exit();
@@ -29,9 +47,9 @@ if (isset($_SESSION['usuario'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Gestión FFE</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Anti-parpadeo: aplica tema antes de pintar -->
     <script>if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}</script>
     <link rel="stylesheet" href="Public/css/dark-mode.css">
+    <script src="Public/js/validacion.js"></script>
 </head>
 <body class="min-h-svh bg-slate-50 flex items-center justify-center p-6 antialiased font-sans">
 
@@ -42,7 +60,7 @@ if (isset($_SESSION['usuario'])) {
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-10">
-            <form action="index.php" method="POST" class="space-y-6">
+            <form action="index.php" method="POST" class="space-y-6" novalidate onsubmit="return validarForm(this)">
                 
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">
