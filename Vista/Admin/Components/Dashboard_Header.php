@@ -1,11 +1,19 @@
-<?php 
+<?php
 
-// Vista/Admin/Components/Dashboard_Header.php
+/**
+ * Vista/Admin/Components/Dashboard_Header.php — Cabecera del panel admin
+ *
+ * Barra superior fija del dashboard: título, descripción y menú desplegable
+ * de usuario con botón de cierre de sesión (POST btnLogOut a index.php).
+ * El menú se abre/cierra con JS inline en Dashboard_Admin.php (stopPropagation
+ * en el botón para que el listener global del documento no lo cierre al instante).
+ *
+ * El avatar del admin muestra la letra "A" fija (no hay nombre de admin en sesión).
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
+validarAcceso('admin');
 
 ?>
 <div class="pt-6 px-8 pb-6 border-b border-slate-100"> 

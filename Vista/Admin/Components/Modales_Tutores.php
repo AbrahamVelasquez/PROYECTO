@@ -1,11 +1,20 @@
-<?php 
+<?php
 
-// Vista/Admin/Components/Modales_Tutores.php
+/**
+ * Vista/Admin/Components/Modales_Tutores.php — Modales de gestión de tutores (admin)
+ *
+ * Contiene los overlays HTML para las acciones sobre tutores:
+ *   - Confirmar eliminación de tutor (con el nombre del tutor inyectado por JS).
+ *   - Editar datos de tutor (nombre, DNI, email, teléfono, ciclo asignado).
+ *   - Alta de nuevo tutor con creación simultánea de cuenta de usuario.
+ *
+ * Todos los modales se abren/cierran con JS en Tabla_Tutores.php.
+ * Los formularios de edición y alta envían POST a index.php con la acción correspondiente.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
+validarAcceso('admin');
 
 ?>
 <div id="modalConfirmarEliminar" style="display:none" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
@@ -54,8 +63,8 @@ validarAcceso('admin');
             <button onclick="document.getElementById('modalAgregarTutor').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
         </div>
 
-        <form method="POST" action="index.php">
-            <input type="hidden" name="accion" value="guardarTutor">
+        <form method="POST" action="index.php" novalidate onsubmit="return validarForm(this)">
+                <input type="hidden" name="accion" value="guardarTutor">
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Ciclo Disponible <span class="text-red-500">*</span></label>
@@ -70,18 +79,18 @@ validarAcceso('admin');
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
-                <input type="text" name="nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Apellidos <span class="text-red-500">*</span></label>
-                <input type="text" name="apellidos" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="apellidos" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
 
             <div class="flex gap-3 mb-4">
                 <div class="flex-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE <span class="text-red-500">*</span></label>
-                    <input type="text" name="dni" required maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                    <input type="text" name="dni" required maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
                 <div class="flex-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono <span class="text-red-500">*</span></label>
@@ -119,16 +128,15 @@ validarAcceso('admin');
             <button onclick="document.getElementById('modalEditarTutor').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
         </div>
 
-        <form method="POST" action="index.php">
-            <input type="hidden" name="accion" value="actualizarTutor">
+        <form method="POST" action="index.php" novalidate onsubmit="return validarForm(this)">
+                <input type="hidden" name="accion" value="actualizarTutor">
             <input type="hidden" name="id_tutor" id="edit_id">
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cambiar Ciclo Asignado</label>
                 <select name="id_ciclo" id="edit_ciclo" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm bg-white">
                     <?php 
-                        $todosLosCiclos = $this->admin->obtenerTodosLosCiclos(); 
-                        foreach ($todosLosCiclos as $c): 
+                                                foreach ($todosLosCiclos as $c): 
                             $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
                             $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
                             
@@ -156,12 +164,12 @@ validarAcceso('admin');
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre</label>
-                <input type="text" name="nombre" id="edit_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 transition-all">
+                <input type="text" name="nombre" id="edit_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 transition-all">
             </div>
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Apellidos</label>
-                <input type="text" name="apellidos" id="edit_apellidos" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 transition-all">
+                <input type="text" name="apellidos" id="edit_apellidos" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 transition-all">
             </div>
 
             <div class="flex gap-3 mb-6">
@@ -270,4 +278,12 @@ validarAcceso('admin');
             document.getElementById('modalAgregarTutor').style.display = 'none';
         }
     });
+</script>
+<script>
+/* Carga validacion.js si no lo incluyó el dashboard */
+if (typeof validarForm === 'undefined') {
+    const _vs = document.createElement('script');
+    _vs.src = 'Public/js/validacion.js';
+    document.head.appendChild(_vs);
+}
 </script>

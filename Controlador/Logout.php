@@ -1,26 +1,20 @@
 <?php
 
-// Controlador/Logout.php
+/**
+ * Controlador/Logout.php — Cierre de sesión
+ *
+ * Se incluye desde index.php cuando el usuario pulsa el botón de salida.
+ * Destruye todos los datos de la sesión y redirige al index.php,
+ * que al no encontrar $_SESSION['usuario'] mostrará automáticamente el login.
+ *
+ * Si alguien intenta acceder a esta URL sin sesión activa, simplemente
+ * no hace nada (la condición no se cumple y no hay error).
+ */
 
-// Al ser incluido este fichero, lo que hace
-// comprobar si hay sesión o no, en caso que 
-// haya se encarga de cerrarla y devolverte  
-// al "index.php" el cual, a su vez, entrará 
-// en el else que me lleva al "Login.php" 
-// al todavía no tener el array $_SESSION 
-// creado con datos. 
-
-// Y en caso de intentar acceder a este 
-// fichero sin tener una sesión, le muestro
-// una opción para regresar al "index.php"
-// (En el fondo el "Login.php") 
-
-if(isset($_SESSION['usuario'])){
-  
+if (isset($_SESSION['usuario'])) {
     session_unset();
     session_destroy();
     header("Location: index.php");
-    
 }
 
 ?>

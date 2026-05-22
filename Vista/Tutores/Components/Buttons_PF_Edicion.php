@@ -1,8 +1,20 @@
 <?php
 
-// Vista/Tutores/Components/Buttons_PF_Edicion.php
+/**
+ * Vista/Tutores/Components/Buttons_PF_Edicion.php — Botonera del editor de Plan Formativo
+ *
+ * Barra de acciones que aparece al final del formulario de edición PF (PF_Edicion.php):
+ *   - Volver al listado: llama a volverALista() en JS para volver a PF_Tabla sin recargar.
+ *   - Devolver alumno: desmarca el alumno como firmado (quita del Plan Formativo).
+ *   - Guardar y exportar PF individual: envía el formulario a Exportar_PF.php y
+ *     descarga el .xlsx del alumno actualmente en edición ($_GET['editar']).
+ *   - Guardar cambios: guarda los datos sin exportar.
+ *
+ * El id_asignacion del alumno en edición viene de $_GET['editar'] (leído en PHP).
+ */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
+
 validarAcceso('tutor');
 
 ?>
@@ -43,7 +55,7 @@ validarAcceso('tutor');
 
 <script>
 function volverALista() {
-    window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
+    window.location.href = "index.php?tab=3";
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -133,7 +145,7 @@ window.exportarYMarcar = async function(idAsignacion) {
         if (el) formGuardar.append(key, el.value);
     }
     try {
-        const resBD = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
+        const resBD = await fetch('index.php?accion=marcarComoExportado', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formGuardar.toString()
@@ -150,7 +162,7 @@ window.exportarYMarcar = async function(idAsignacion) {
     const campos = recogerDatosFormulario(idDefinitivo);
     const form   = document.createElement('form');
     form.method  = 'POST';
-    form.action  = 'index.php?controlador=Tutores&accion=exportarExcelPF';
+    form.action  = 'index.php?accion=exportarExcelPF';
     form.style.display = 'none';
 
     for (const [key, value] of Object.entries(campos)) {
@@ -166,7 +178,7 @@ window.exportarYMarcar = async function(idAsignacion) {
 
     // 3. Redirigir al listado tras la descarga
     setTimeout(() => {
-        window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
+        window.location.href = "index.php?tab=3";
     }, 1500);
 };
 
@@ -205,7 +217,7 @@ window.guardarBorrador = async function(idAsignacion) {
     }
 
     try {
-        const res = await fetch('index.php?controlador=Tutores&accion=marcarComoExportado', {
+        const res = await fetch('index.php?accion=marcarComoExportado', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
@@ -216,7 +228,7 @@ window.guardarBorrador = async function(idAsignacion) {
         const data = JSON.parse(texto.substring(inicio, texto.lastIndexOf('}') + 1));
 
         if (data.success) {
-            window.location.href = "index.php?controlador=Tutores&accion=mostrarPanel&tab=3";
+            window.location.href = "index.php?tab=3";
         } else {
             alert("Error: " + (data.error || "No se pudo guardar."));
         }

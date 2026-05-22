@@ -1,11 +1,19 @@
-<?php 
+<?php
 
-// Vista/Admin/Components/Dashboard_Section.php
+/**
+ * Vista/Admin/Components/Dashboard_Sections.php — Página de inicio del panel admin
+ *
+ * Cuadrícula de 4 tarjetas que actúan como menú principal: Personal Docente,
+ * Convenios Pendientes, Convenios Válidos y Listado de Alumnos.
+ * Cada tarjeta es un <form POST> con accion= oculto; al hacer clic envía
+ * la acción al Controlador_Admin, que decide qué $subVista cargar a continuación.
+ *
+ * Se muestra como sub-vista por defecto cuando el admin entra sin seleccionar sección.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
+validarAcceso('admin');
 
 ?>
 <div class="flex flex-col items-center justify-center h-full py-10">

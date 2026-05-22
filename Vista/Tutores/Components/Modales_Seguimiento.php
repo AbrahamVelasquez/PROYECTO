@@ -1,11 +1,28 @@
 ﻿<?php
-// Vista/Tutores/Components/Modales_Seguimiento.php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+/**
+ * Vista/Tutores/Components/Modales_Seguimiento.php — Modales del paso 4 (Seguimiento)
+ *
+ * Contiene los overlays de gestión de documentos de FCT por alumno:
+ *   - Ver documentos: lista los archivos subidos para el tipo seleccionado
+ *     (Plan Formativo, Fichas de Seguimiento o Valoraciones). La lista se
+ *     carga mediante fetch() a Seguimiento_Listar.php al abrir el modal.
+ *   - Subir documento: formulario de subida con validación de tipo MIME y
+ *     tamaño antes de enviarlo a Seguimiento_Subir.php vía fetch() multipart.
+ *   - Confirmar borrado de documento con su nombre inyectado por JS.
+ *
+ * Todos los modales son accionados desde Steps/Seguimiento.php mediante
+ * funciones JS que fijan el id_alumno y el tipo de documento activo.
+ */
+
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
+
 validarAcceso('tutor');
+
 ?>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- MODAL: VER DOCUMENTOS (Plan Formativo / Fichas)                   -->
+<!-- MODAL: VER DOCUMENTOS (Plan Formativo / Fichas / Valoraciones)    -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div id="modalVerDocumentos" style="display:none"
      class="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4"
@@ -61,7 +78,7 @@ validarAcceso('tutor');
     </div>
 </div>
 
-<!-- Modal confirmación eliminar — z MAYOR que el padre para no quedar bloqueado -->
+<!-- Modal confirmación eliminar -->
 <div id="segModalConfirmarEliminar" style="display:none"
      class="fixed inset-0 bg-black/60 z-[300] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
@@ -90,7 +107,7 @@ validarAcceso('tutor');
     </div>
 </div>
 
-<!-- Modal advertencia archivo duplicado — z MAYOR que todos los anteriores -->
+<!-- Modal advertencia archivo duplicado -->
 <div id="segModalDuplicado" style="display:none"
      class="fixed inset-0 bg-black/60 z-[400] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
@@ -125,22 +142,25 @@ validarAcceso('tutor');
 
 <script>
 // ─── Estado del modal ────────────────────────────────────────────────────────
-let _docTipo             = '';   // 'plan_formativo' | 'fichas'
-let _docCiclo            = '';   // ej: '2DAW'
-let _docAlumno           = '';   // ej: 'GARCIA_SANCHEZ_JOSUE'
+let _docTipo             = '';   // 'plan_formativo' | 'fichas' | 'valoraciones'
+let _docCiclo            = '';
+let _docAlumno           = '';
 let _archivoAEliminar    = '';
-let _docArchivosActuales = [];   // nombres de archivos ya subidos en esta carpeta
+let _docArchivosActuales = [];
 
 // ─── Abrir modal ─────────────────────────────────────────────────────────────
-// tipo: 'plan_formativo' | 'fichas'
-// alumno: nombre saneado del alumno (pasado desde el botón en la tabla)
 function abrirModalDocumentos(tipo, alumno) {
     _docTipo             = tipo;
     _docCiclo            = window.SEGUIMIENTO_CICLO || '';
     _docAlumno           = alumno;
     _docArchivosActuales = [];
 
-    const titulo = tipo === 'plan_formativo' ? 'Plan Formativo Firmado' : 'Fichas Firmadas';
+    const titulos = {
+        'plan_formativo': 'Plan Formativo Firmado',
+        'fichas':         'Fichas Firmadas',
+        'valoraciones':   'Valoraciones',
+    };
+    const titulo = titulos[tipo] ?? 'Documentos';
     document.getElementById('modalDocTitulo').innerHTML =
         `<span class="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-600 text-white text-xs">📁</span> ${titulo}`;
 
@@ -311,8 +331,6 @@ function pedirConfirmacionEliminar(nombre) {
     _archivoAEliminar = nombre;
     document.getElementById('segEliminarNombreArchivo').textContent = nombre;
     document.getElementById('segModalConfirmarEliminar').style.display = 'flex';
-
-    // Asignar handler en cada apertura para que tenga el nombre correcto
     document.getElementById('segBtnConfirmarEliminar').onclick = segConfirmarEliminarDoc;
 }
 
@@ -357,7 +375,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -394,6 +411,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wide cursor-pointer transition-all hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600">
                         📄 Fichas
                     </button>
+                    <button type="button" id="masivoBtnValoraciones" onclick="masivoSetTipo('valoraciones')"
+                        class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wide cursor-pointer transition-all hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600">
+                        ⭐ Valoraciones
+                    </button>
                 </div>
             </div>
 
@@ -405,8 +426,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     seguido de cualquier sufijo.<br>
                     Plan Formativo: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2.pdf</span>
                     · <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_signed.pdf</span><br>
-                    Fichas: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_marzo26.pdf</span>
-                    · <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_abril26_corregida.pdf</span>
+                    Fichas: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_marzo26.pdf</span><br>
+                    Valoraciones: <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_valoracion_dwec.pdf</span>
+                    · <span class="text-orange-600 font-black">Garcia_Lopez_DAW2_dwes.pdf</span>
                 </p>
             </div>
 
@@ -480,12 +502,13 @@ function masivoSetTipo(tipo) {
 function _masivoActualizarBotonesTipo() {
     const activo   = 'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-orange-500 bg-orange-50 text-orange-700 text-[10px] font-black uppercase tracking-wide cursor-pointer transition-all';
     const inactivo = 'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wide cursor-pointer transition-all hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600';
-    document.getElementById('masivoBtnPF').className     = _masivoTipo === 'plan_formativo' ? activo : inactivo;
-    document.getElementById('masivoBtnFichas').className = _masivoTipo === 'fichas'          ? activo : inactivo;
+    document.getElementById('masivoBtnPF').className           = _masivoTipo === 'plan_formativo' ? activo : inactivo;
+    document.getElementById('masivoBtnFichas').className       = _masivoTipo === 'fichas'          ? activo : inactivo;
+    document.getElementById('masivoBtnValoraciones').className = _masivoTipo === 'valoraciones'    ? activo : inactivo;
 }
 
 function _masivoNormalizar(s) {
-    const s2 = s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+    const s2 = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '_');
     return s2.replace(/^_+/, '').replace(/_+$/, '');
 }
 
@@ -498,16 +521,14 @@ async function onMasivoFilesSelected(input) {
 }
 
 async function _masivoMostrarPreview(files) {
-    // Recoge todos los alumnos del DOM (incluyendo filas ocultas por filtros/paginación)
-    const alumnos = Array.from(document.querySelectorAll('tr.seg-fila')).map(tr => ({
-        carpeta: tr.dataset.carpeta || '',
-        nombre:  tr.dataset.nombre  || '',
-        flat:    (tr.dataset.carpeta || '').replace(/_/g, ''),
+    const alumnos = (window.SEGUIMIENTO_ALUMNOS_ALL || []).map(al => ({
+        carpeta: al.carpeta,
+        nombre:  al.nombre,
+        flat:    al.carpeta.replace(/_/g, ''),
     }));
 
     const ciclo = window.SEGUIMIENTO_CICLO || '';
 
-    // Para cada alumno con ficheros asignados, cargamos sus archivos actuales
     const archivosExistentes = {};
     const alumnosImplicados = new Set();
     files.forEach(file => {
@@ -525,21 +546,20 @@ async function _masivoMostrarPreview(files) {
     }));
 
     _masivoArchivos = files.map((file, i) => {
-        // El prefijo del alumno es GARCIA_LOPEZ_DAW2 — el fichero debe empezar por él
-        const base     = file.name.replace(/\.[^.]+$/, '');           // sin extensión
-        const baseNorm = _masivoNormalizar(base);                     // normalizado
+        const base     = file.name.replace(/\.[^.]+$/, '');
+        const baseNorm = _masivoNormalizar(base);
         const match    = alumnos.find(al => {
             const prefijo = _masivoNormalizar(al.carpeta);
             return baseNorm.startsWith(prefijo);
         });
-        const nombreNorm = file.name.toLowerCase();
+        const nombreNorm  = file.name.toLowerCase();
         const existentes  = match ? (archivosExistentes[match.carpeta] || []) : [];
         const esDuplicado = existentes.includes(nombreNorm);
         return { file, idx: i, matched: !!match, carpeta: match?.carpeta ?? null, nombreAlumno: match?.nombre ?? null, duplicado: esDuplicado };
     });
 
-    const svgOk  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>`;
-    const svgNo  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 shrink-0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    const svgOk   = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const svgNo   = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 shrink-0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     const svgWarn = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
 
     document.getElementById('masivoLista').innerHTML = _masivoArchivos.map(item => {
@@ -561,6 +581,9 @@ async function _masivoMostrarPreview(files) {
                 <p class="text-[10px] font-black text-slate-700 truncate">${item.file.name}</p>
                 <p id="masivo-status-${item.idx}" class="text-[9px] font-bold mt-0.5 ${statusColor}">${statusText}</p>
             </div>
+            <button type="button" onclick="masivoEliminarItem(${item.idx})"
+                title="Quitar archivo"
+                class="ml-1 text-slate-300 hover:text-red-500 transition-colors cursor-pointer shrink-0 leading-none text-base font-black">✕</button>
         </div>`;
     }).join('');
 
@@ -572,6 +595,37 @@ async function _masivoMostrarPreview(files) {
     let resumen = `${matchCount} de ${total} archivo${total !== 1 ? 's' : ''} asignado${matchCount !== 1 ? 's' : ''}`;
     if (dupCount > 0) resumen += ` · ⚠ ${dupCount} ya exist${dupCount !== 1 ? 'en' : 'e'}`;
     document.getElementById('masivoResumenTexto').textContent = resumen;
+    const btn = document.getElementById('masivoBtnSubir');
+    btn.disabled    = matchCount === 0;
+    btn.textContent = matchCount > 0
+        ? `Subir ${matchCount} archivo${matchCount !== 1 ? 's' : ''}`
+        : 'Subir archivos';
+}
+
+function masivoEliminarItem(idx) {
+    _masivoArchivos = _masivoArchivos.filter(a => a.idx !== idx);
+
+    const el = document.getElementById(`masivo-item-${idx}`);
+    if (el) el.remove();
+
+    if (_masivoArchivos.length === 0) {
+        document.getElementById('masivoListaWrapper').style.display = 'none';
+        document.getElementById('masivoInputFicheros').value = '';
+        document.getElementById('masivoNombreFicheros').textContent = 'Ningún fichero seleccionado';
+    }
+
+    const matchCount = _masivoArchivos.filter(a => a.matched).length;
+    const dupCount   = _masivoArchivos.filter(a => a.matched && a.duplicado).length;
+    const total      = _masivoArchivos.length;
+
+    if (total > 0) {
+        let resumen = `${matchCount} de ${total} archivo${total !== 1 ? 's' : ''} asignado${matchCount !== 1 ? 's' : ''}`;
+        if (dupCount > 0) resumen += ` · ⚠ ${dupCount} ya exist${dupCount !== 1 ? 'en' : 'e'}`;
+        document.getElementById('masivoResumenTexto').textContent = resumen;
+    } else {
+        document.getElementById('masivoResumenTexto').textContent = '';
+    }
+
     const btn = document.getElementById('masivoBtnSubir');
     btn.disabled    = matchCount === 0;
     btn.textContent = matchCount > 0

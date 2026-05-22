@@ -1,9 +1,21 @@
 <?php
 
-// Vista/Tutores/Components/Header.php
+/**
+ * Vista/Tutores/Components/Header.php — Cabecera del wizard del tutor
+ *
+ * Renderiza la barra superior del dashboard con dos zonas:
+ *   - Título + menú de usuario con el nombre del tutor, su ciclo/curso asignado
+ *     (variables $nombreTutor, $cicloTutor, $cursoTutor del controlador) y botón
+ *     de cierre de sesión (POST btnLogOut a index.php).
+ *   - Indicadores de los 4 pasos del wizard (div.step-label con data-step).
+ *     script_tabs.js añade/quita .step-active-circle y .step-active-text
+ *     para marcar el paso activo sin recargar la página.
+ *     Cada paso tiene un tooltip de ayuda (CSS puro, hover) que describe su función.
+ *
+ * Variables recibidas: $nombreTutor, $cicloTutor, $cursoTutor.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('tutor'); 
 

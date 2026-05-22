@@ -1,8 +1,24 @@
 <?php
-// Vista/Admin/Sections/Listado_Alumnos.php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+
+/**
+ * Vista/Admin/Sections/Listado_Alumnos.php — Sección "Listado de Alumnos" del panel admin
+ *
+ * Vista de sólo lectura (no edición) que muestra todos los alumnos del sistema
+ * con sus datos de asignación: empresa, ciclo, fechas y estado.
+ * El admin puede filtrar por ciclo y exportar el listado completo.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_ladm/pag_ladm.
+ * Los tooltips de estado de cada fila se implementan con CSS puro ([data-tooltip]).
+ * Los modales están en Modales_LA.php.
+ *
+ * Variables recibidas del controlador: $alumnos (array completo).
+ */
+
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
+
 validarAcceso('admin');
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_ladm    = leerPorPagina('pp_ladm', 10);
@@ -64,13 +80,17 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
         <!-- Buscador -->
-        <div class="relative flex-1">
+        <div class="relative flex-1" id="ladm-dropdown-wrapper">
             <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
             <input type="search" id="buscadorAlumnos"
                 placeholder="Buscar por nombre o apellidos…"
+                autocomplete="off"
                 class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"/>
+            <ul id="ladm-dropdown"
+                class="hidden absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+            </ul>
         </div>
 
         <!-- Filtro ciclo -->
@@ -103,26 +123,17 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
             ?>
         </select>
 
-        <button type="button" onclick="limpiarFiltrosAdmin()"
-            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
-            Mostrar todos
-        </button>
-
     </div>
 
     <!-- Barra superior: contador + config paginación -->
     <div class="flex items-center justify-between mb-2">
         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            <?php if ($pp_ladm > 0 && $total_ladm > $pp_ladm): ?>
-                Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
-            <?php elseif ($total_ladm > 0): ?>
-                <?= $total_ladm ?> alumno<?= $total_ladm !== 1 ? 's' : '' ?>
-            <?php endif; ?>
+            Mostrando <?= ($pag_ladm - 1) * $pp_ladm + 1 ?>–<?= min($pag_ladm * $pp_ladm, $total_ladm) ?> de <?= $total_ladm ?>
         </span>
         <button type="button" onclick="document.getElementById('modal-pag-ladm').style.display='flex'" title="Configurar filas por página"
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer uppercase tracking-wide">
             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span><?= $pp_ladm > 0 ? $pp_ladm . '/pág' : 'Todos' ?></span>
+            <span><?= $pp_ladm . '/pág' ?></span>
         </button>
     </div>
 
@@ -265,78 +276,108 @@ $alumnosPag = paginarArray($alumnos ?? [], $pp_ladm, $pag_ladm);
         </table>
     </div>
 
+
     <?= renderizarNavPaginacion($total_ladm, $pag_ladm, $pp_ladm, 'pag_ladm', 'violet', ['accion' => 'mostrarListadoAlumnos']) ?>
 
 </div><!-- end .space-y-6 -->
 
-<div id="modal-firma-admin" style="display:none"
-     class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-     onclick="if(event.target===this) this.style.display='none'">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs">✍️</span>
-                CONFIRMAR FIRMA
-            </h3>
-            <button onclick="cerrarModalFirmaAdmin()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">✕</button>
-        </div>
-
-        <p class="text-xs font-bold text-slate-500 mb-1 text-center uppercase tracking-widest">¿Confirmar que este alumno está firmado?</p>
-        <p id="firma-admin-nombre" class="text-sm font-black text-slate-900 mb-4 text-center uppercase"></p>
-
-        <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">
-                Número de anexo <span class="text-emerald-600">*</span>
-            </label>
-            <input type="text" id="firma-admin-anexo" placeholder="Ej: 1"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-center outline-none focus:ring-2 focus:ring-emerald-200 transition-all"
-                oninput="document.getElementById('firma-admin-error').style.display='none'">
-            <p id="firma-admin-error" style="display:none"
-                class="text-[10px] font-bold text-red-500 text-center mt-2 uppercase tracking-wide">
-                Debes introducir el número de anexo antes de confirmar.
-            </p>
-        </div>
-
-        <form method="POST" action="index.php?accion=firmarAlumnoAdmin">
-            <input type="hidden" name="id_asignacion" id="firma-admin-id">
-            <input type="hidden" name="anexo"         id="firma-admin-anexo-hidden">
-            <div class="flex gap-3 justify-center">
-                <button type="button" onclick="cerrarModalFirmaAdmin()"
-                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
-                <button  type="button" onclick="confirmarFirmaAdmin()"
-                    class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-md cursor-pointer">Sí, confirmar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <script>
-function abrirModalFirmaAdmin(idAsignacion, nombre) {
-    document.getElementById('firma-admin-id').value        = idAsignacion;
-    document.getElementById('firma-admin-nombre').textContent = nombre;
-    document.getElementById('firma-admin-anexo').value     = '';
-    document.getElementById('modal-firma-admin').style.display = 'flex';
+
+function filtrarAlumnosAdmin() {
+    const texto   = document.getElementById('buscadorAlumnos').value.trim().toUpperCase();
+    const ciclo   = document.getElementById('filtroCiclo').value.toUpperCase();
+    const empresa = document.getElementById('filtroEmpresa').value.toUpperCase();
+
+    document.querySelectorAll('#tablaAlumnosBody tr.ladm-fila').forEach(tr => {
+        const nombre      = tr.querySelector('td:first-child').textContent.toUpperCase();
+        const dataCiclo   = (tr.dataset.ciclo   || '').toUpperCase();
+        const dataEmpresa = (tr.dataset.empresa  || '').toUpperCase();
+        const visible = (!texto   || nombre.includes(texto))
+                     && (!ciclo   || dataCiclo === ciclo)
+                     && (!empresa || dataEmpresa === empresa);
+        tr.style.display = visible ? '' : 'none';
+    });
 }
 
-function cerrarModalFirmaAdmin() {
-    document.getElementById('modal-firma-admin').style.display = 'none';
+function limpiarFiltrosAdmin() {
+    document.getElementById('buscadorAlumnos').value = '';
+    document.getElementById('filtroCiclo').value     = '';
+    document.getElementById('filtroEmpresa').value   = '';
+    filtrarAlumnosAdmin();
 }
 
-function confirmarFirmaAdmin() {
-    const anexo = document.getElementById('firma-admin-anexo').value.trim();
-    if (!anexo) {
-        document.getElementById('firma-admin-error').style.display = 'block';
-        return;
+document.getElementById('filtroCiclo').addEventListener('change',     filtrarAlumnosAdmin);
+document.getElementById('filtroEmpresa').addEventListener('change',   filtrarAlumnosAdmin);
+
+// ── Dropdown Listado Alumnos Admin ─────────────────────────────────────────
+(function(){
+    const input = document.getElementById('buscadorAlumnos');
+    const dropdown = document.getElementById('ladm-dropdown');
+    const wrapper = document.getElementById('ladm-dropdown-wrapper');
+    let activeIndex = -1;
+
+    function getSugerencias(q) {
+        const txt = q.toLowerCase().trim();
+        if (!txt) return [];
+        const vistas = new Set(), res = [];
+        document.querySelectorAll('tr.ladm-fila').forEach(tr => {
+            const nombre = (tr.querySelector('td:first-child p:first-child')?.textContent || '').trim();
+            const dni    = (tr.children[1]?.textContent || '').trim();
+            [[nombre, dni], [dni, nombre]].forEach(([v, sub]) => {
+                if (v && v.toLowerCase().includes(txt) && !vistas.has(v)) {
+                    vistas.add(v); res.push({ valor: v, sublabel: sub });
+                }
+            });
+        });
+        return res.slice(0, 10);
     }
-    document.getElementById('firma-admin-anexo-hidden').value = anexo;
-    document.querySelector('#modal-firma-admin form').submit();
-}
+    function resaltar(t, q) {
+        return t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'),
+            '<mark class="bg-slate-200 text-slate-800 rounded px-0.5">$1</mark>');
+    }
+    function ocultar() { dropdown.classList.add('hidden'); dropdown.innerHTML=''; activeIndex=-1; }
+    function seleccionar(v) { input.value=v; ocultar(); filtrarAlumnosAdmin(); }
+    function resaltarActivo() { dropdown.querySelectorAll('li').forEach((li,i)=>li.classList.toggle('bg-slate-100',i===activeIndex)); }
 
-// Sincroniza el input visible con el hidden antes de enviar
-document.querySelector('#modal-firma-admin form').addEventListener('submit', () => {
-    document.getElementById('firma-admin-anexo-hidden').value =
-        document.getElementById('firma-admin-anexo').value;
-});
+    function mostrar(sugs) {
+        dropdown.innerHTML=''; activeIndex=-1;
+        if (!sugs.length) { ocultar(); return; }
+        sugs.forEach(s => {
+            const li = document.createElement('li');
+            li.className = 'px-5 py-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0';
+            li.innerHTML = `<div class="text-[11px] font-bold text-slate-800">${resaltar(s.valor, input.value)}</div>
+                            <div class="text-[10px] font-bold text-slate-400 font-mono mt-0.5">${s.sublabel}</div>`;
+            li.addEventListener('mousedown', e => { e.preventDefault(); seleccionar(s.valor); });
+            dropdown.appendChild(li);
+        });
+        dropdown.classList.remove('hidden');
+    }
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (q.length < 2) { ocultar(); return; }
+        mostrar(getSugerencias(q));
+    });
+    input.addEventListener('keydown', e => {
+        const items = dropdown.querySelectorAll('li');
+        if (e.key==='ArrowDown') { e.preventDefault(); activeIndex=Math.min(activeIndex+1,items.length-1); resaltarActivo(); }
+        else if (e.key==='ArrowUp') { e.preventDefault(); activeIndex=Math.max(activeIndex-1,-1); resaltarActivo(); }
+        else if (e.key==='Enter') {
+            e.preventDefault();
+            if (activeIndex>=0 && items[activeIndex]) { input.value=items[activeIndex].querySelector('div').textContent.trim(); ocultar(); }
+            filtrarAlumnosAdmin();
+        } else if (e.key==='Escape') ocultar();
+    });
+    document.addEventListener('click', e => { if (!wrapper.contains(e.target)) ocultar(); });
+})();
 </script>
 
-<?php $pag_prefix = 'ladm'; $pag_color = 'violet'; $pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'ladm'; 
+$pag_color = 'violet'; 
+$pag_extra_params = ['accion' => 'mostrarListadoAlumnos']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
+
+<?php include 'Vista/Admin/Components/Modales_LA.php'; ?>

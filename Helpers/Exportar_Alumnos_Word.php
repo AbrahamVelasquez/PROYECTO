@@ -1,9 +1,36 @@
 <?php
-// Controlador/Exportar_Alumnos_Word.php
 
-require_once __DIR__ . '/../Core/Conexion.php';
+/**
+ * Helpers/Exportar_Alumnos_Word.php — Genera el anexo 11 (tabla resumen de alumnos) en Word
+ *
+ * Endpoint POST invocado desde el wizard del tutor (step 2 Alumnos).
+ * Acepta dos modos según el parámetro POST:
+ *   - Selección manual: los IDs de alumno vienen en exportar_ids[] (checkboxes del tutor).
+ *   - Exportar todo:    exportar_todo=1 → consulta server-side de todos los alumnos
+ *     del ciclo con estado "Completado", sin depender del DOM paginado.
+ *
+ * Flujo interno:
+ *   1. Validar acceso y recoger IDs.
+ *   2. Obtener datos de alumnos y tutor vía Exportar.php (modelo).
+ *   3. Marcar asignaciones como enviado=1 (cambia el badge de estado).
+ *   4. Cargar la plantilla plantilla_word.docx con PhpWord y rellenar variables
+ *      de metadatos (código grupo, ciclo, tutor).
+ *   5. Construir la tabla de 12 columnas con PhpWord programáticamente
+ *      (fila de cabecera fija + filas de alumnos + relleno hasta 15 filas).
+ *   6. Inyectar la tabla en el marcador {{tablaAlumnos}} de la plantilla
+ *      y enviar el .docx como descarga.
+ *
+ * formatearHorarioExportacion() y formatearDiasYHorasExportacion() son locales
+ * porque el formato Word (letras de días comprimidas + saltos de línea) difiere
+ * del formato Excel usado por Exportar::formatearHorario().
+ *
+ * MVC: Helper de exportación. Toda la BD pasa por Exportar.php; aquí solo vive
+ * la lógica de construcción del documento Word.
+ */
+
 require_once __DIR__ . '/../Seguridad/Control_Accesos.php';
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../Modelo/Exportar.php';
 
 use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\Element\Table;
@@ -15,70 +42,35 @@ validarAcceso('tutor');
 // ──────────────────────────────────────────────────────────────────────────────
 // 1. RECOGER IDs
 // ──────────────────────────────────────────────────────────────────────────────
-$ids = $_POST['exportar_ids'] ?? [];
-if (empty($ids) || !is_array($ids)) {
-    http_response_code(400);
-    echo 'No se recibieron IDs de alumnos.';
-    exit;
-}
-$ids = array_map('intval', $ids);
 $exportarTodo = isset($_POST['exportar_todo']) && $_POST['exportar_todo'] === '1';
 
+if ($exportarTodo) {
+    // Exportar todo: consulta server-side para no depender del DOM paginado
+    $idCiclo = (int)($_SESSION['id_ciclo'] ?? 0);
+    $ids = Exportar::obtenerIdsAlumnosCompletados($idCiclo);
+    if (empty($ids)) {
+        http_response_code(400);
+        echo 'No hay alumnos con estado Completado en este ciclo.';
+        exit;
+    }
+} else {
+    $ids = $_POST['exportar_ids'] ?? [];
+    if (empty($ids) || !is_array($ids)) {
+        http_response_code(400);
+        echo 'No se recibieron IDs de alumnos.';
+        exit;
+    }
+    $ids = array_map('intval', $ids);
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
-// 2. CONSULTAS A BD
+// 2. CONSULTAS A BD VIA MODELO
 // ──────────────────────────────────────────────────────────────────────────────
-function obtenerAlumnosWord(array $ids): array {
-    try {
-        $conn = Conexion::getConexion();
-        $ph   = implode(',', array_fill(0, count($ids), '?'));
-        $sql  = "SELECT a.id_alumno, a.nombre, a.apellido1, a.apellido2, a.dni, a.sexo,
-                        asig.num_convenio, asig.horario, asig.num_total_horas, asig.horas_dia,
-                        asig.fecha_inicio, asig.fecha_final, asig.nombre_tutor_empresa,
-                        asig.horario_excepciones,
-                        conv.nombre_empresa, conv.localidad, conv.direccion
-                 FROM alumnos a
-                 LEFT JOIN asignaciones asig ON a.id_alumno  = asig.id_alumno
-                 LEFT JOIN convenios conv    ON asig.num_convenio = conv.num_convenio
-                 WHERE a.id_alumno IN ($ph)
-                 ORDER BY a.apellido1 ASC, a.apellido2 ASC, a.nombre ASC";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($ids);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) { return []; }
-}
-
-function obtenerDatosTutorWord(): array {
-    try {
-        $conn = Conexion::getConexion();
-        $sql  = "SELECT t.nombre, t.apellidos, t.dni,
-                        ci.id_ciclo, ci.nombre_ciclo,
-                        cu.nombre_curso
-                 FROM tutores t
-                 INNER JOIN usuarios u  ON t.id_usuario = u.id_usuario
-                 INNER JOIN ciclos ci   ON t.id_ciclo   = ci.id_ciclo
-                 INNER JOIN cursos cu   ON ci.id_curso   = cu.id_curso
-                 WHERE u.username = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$_SESSION['usuario'] ?? '']);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-    } catch (PDOException $e) { return []; }
-}
-
-function marcarAlumnosComoEnviados(array $ids): bool {
-    try {
-        $conn = Conexion::getConexion();
-        $ph   = implode(',', array_fill(0, count($ids), '?'));
-        $sql  = "UPDATE asignaciones SET enviado = 1 WHERE id_alumno IN ($ph)";
-        $stmt = $conn->prepare($sql);
-        return $stmt->execute($ids);
-    } catch (PDOException $e) { return false; }
-}
-
-$alumnos     = obtenerAlumnosWord($ids);
-$tutor       = obtenerDatosTutorWord();
+$alumnos = Exportar::obtenerAlumnosWord($ids);
+$tutor   = Exportar::obtenerDatosTutorWord($_SESSION['usuario'] ?? '');
 
 if (!empty($alumnos)) {
-    marcarAlumnosComoEnviados($ids);
+    Exportar::marcarAlumnosComoEnviados($ids);
 }
 
 // Procesamiento de metadatos
@@ -151,18 +143,61 @@ function formatearHorarioExportacion(array $al): string {
     }
 }
 
+function formatearDiasYHorasExportacion($al) {
+    $excepciones = trim($al['horario_excepciones'] ?? '');
+    $horasDia = $al['horas_dia'] ?? 0;
+    $ORDEN_DIAS = ['L'=>0, 'M'=>1, 'X'=>2, 'J'=>3, 'V'=>4, 'S'=>5, 'D'=>6];
+    if (!empty($excepciones)) {
+        $bloques = json_decode($excepciones, true);
+        if (is_array($bloques) && !empty($bloques)) {
+            $partes = [];
+            foreach ($bloques as $bloque) {
+                if (empty($bloque['dias']) || empty($bloque['inicio']) || empty($bloque['fin'])) continue;
+                $dias = $bloque['dias'];
+                usort($dias, fn($a, $b) => ($ORDEN_DIAS[$a] ?? 7) - ($ORDEN_DIAS[$b] ?? 7));
+                $esConsecutivo = true;
+                for ($i = 1; $i < count($dias); $i++) {
+                    if (($ORDEN_DIAS[$dias[$i]] ?? 7) !== ($ORDEN_DIAS[$dias[$i-1]] ?? 7) + 1) {
+                        $esConsecutivo = false;
+                        break;
+                    }
+                }
+                $labelDias = (count($dias) > 1 && $esConsecutivo)
+                    ? $dias[0] . '-' . $dias[count($dias)-1]
+                    : implode('', $dias);
+                try {
+                    $inicioDt = DateTime::createFromFormat('H:i', $bloque['inicio']);
+                    $finDt    = DateTime::createFromFormat('H:i', $bloque['fin']);
+                    if ($inicioDt && $finDt) {
+                        $diff = $inicioDt->diff($finDt);
+                        $horasBloque = $diff->h + ($diff->i / 60);
+                        $partes[] = $labelDias . ' ' . round($horasBloque, 1) . 'h';
+                    } else {
+                        $partes[] = $labelDias . ' ' . round($horasDia, 1) . 'h';
+                    }
+                } catch (Exception $e) {
+                    $partes[] = $labelDias . ' ' . round($horasDia, 1) . 'h';
+                }
+            }
+            return implode("\n", $partes);
+        }
+    }
+    if ($horasDia > 0) return 'L-V ' . round($horasDia, 1) . 'h';
+    return '';
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // 5. CREAR OBJETO TABLA (CONFIGURACIÓN DE MÁRGENES Y CENTRADO)
 // ──────────────────────────────────────────────────────────────────────────────
 $table = new Table([
     'unit'             => TblWidth::TWIP,
-    'width'            => $anchuraTotal, // Asegúrate de que $COLS sume lo que cabe en el ancho de página
-    'alignment'        => JcTable::CENTER, // Esto centra la tabla respecto a los márgenes
+    'width'            => $anchuraTotal, 
+    'alignment'        => JcTable::CENTER, 
     'cellMarginTop'    => 40,
     'cellMarginBottom' => 40,
     'cellMarginLeft'   => 0,
     'cellMarginRight'  => 108,
-    'layout'           => 'fixed', // Fuerza a que respete los anchos de columna que definiste
+    'layout'           => 'fixed', 
 ]);
 
 $fuenteHdr = ['name' => 'Courier New', 'size' => 7, 'color' => 'FFFFFF', 'bold' => true];
@@ -170,7 +205,7 @@ $fuenteDat = ['name' => 'Courier New', 'size' => 7, 'color' => '000000'];
 $parrafo   = ['spaceAfter' => 0, 'spaceBefore' => 0, 'alignment' => 'center'];
 
 // Cabecera con bordes definidos para que se vea "limpia"
-$rowHdr = $table->addRow(300); // Un poco más de altura para la cabecera
+$rowHdr = $table->addRow(300); 
 $cabeceras = [
     'APELLIDOS, NOMBRE ALUMNO', 'SEXO', 'DNI', 'NOMBRE EMPRESA', 'Nº CONVENIO', 
     'DIRECCIÓN CENTRO DE TRABAJO / MUNICIPIO', 'FECHA INICIO', 'FECHA FINAL', 
@@ -201,7 +236,7 @@ foreach ($alumnos as $al) {
         fmtFecha($al['fecha_final'] ?? ''),
         formatearHorarioExportacion($al),
         $al['num_total_horas'] ? $al['num_total_horas'] . 'h' : '',
-        $al['horas_dia'] ? $al['horas_dia'] . 'h' : '',
+        formatearDiasYHorasExportacion($al),
         $al['nombre_tutor_empresa'] ?? ''
     ];
 
@@ -212,7 +247,14 @@ foreach ($alumnos as $al) {
             'borderColor' => '000000'
         ]);
         $align = ($index === 0 || $index === 3 || $index === 5 || $index === 11) ? 'left' : 'center';
-        $cell->addText(htmlspecialchars($valor), $fuenteDat, array_merge($parrafo, ['alignment' => $align]));
+        if (($index === 8 || $index === 10) && strpos($valor, "\n") !== false) {
+            $lineas = explode("\n", $valor);
+            foreach ($lineas as $linea) {
+                $cell->addText(htmlspecialchars($linea), $fuenteDat, array_merge($parrafo, ['alignment' => $align]));
+            }
+        } else {
+            $cell->addText(htmlspecialchars($valor), $fuenteDat, array_merge($parrafo, ['alignment' => $align]));
+        }
     }
 }
 
@@ -228,11 +270,8 @@ for ($i = 0; $i < $faltantes; $i++) {
 // ──────────────────────────────────────────────────────────────────────────────
 // 6. INYECTAR TABLA Y DESCARGAR
 // ──────────────────────────────────────────────────────────────────────────────
-
-
 $templateProcessor->setComplexBlock('tablaAlumnos', $table);
 
-// Extraer número de curso (1, 2, 3) y ciclo (DAW, DAM...)
 $numCurso = match(true) {
     str_contains($nombreCurso, 'primero') => '1',
     str_contains($nombreCurso, 'segundo') => '2',

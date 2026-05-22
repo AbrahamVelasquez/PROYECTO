@@ -1,9 +1,26 @@
 <?php
 
-// Vista/Tutores/Dashboard_Tutores.php
+/**
+ * Vista/Tutores/Dashboard_Tutores.php — Shell del dashboard del tutor (wizard de 4 pasos)
+ *
+ * Punto de entrada visual para el rol tutor. Monta la estructura completa de la página:
+ * cabecera con indicadores de pasos (Header.php) y el contenedor con los 4 tabs de contenido.
+ * Cada tab incluye el step correspondiente; la lógica de qué tab mostrar la gestiona
+ * script_tabs.js leyendo el parámetro ?tab= de la URL.
+ *
+ * Si $_SESSION['error_convenio'] existe (set por Controlador_Convenios_Tutores cuando un
+ * convenio ya está en uso), inyecta un <script> inline que abre el modal de aviso
+ * antes de que el DOM esté completamente listo, limpiando la sesión tras mostrarlo.
+ *
+ * Variables recibidas del controlador (Controlador_Tutores.php):
+ *   $pestanaActiva — número del tab que debe estar activo al cargar (1–4)
+ *   + todas las variables de datos que usan los steps incluidos
+ *
+ * MVC: Vista shell. No contiene lógica de negocio; delega toda la presentación de
+ * datos a los steps incluidos y la interactividad a los scripts JS externos.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../Seguridad/Control_Accesos.php';
 
 validarAcceso('tutor'); 
 
@@ -87,6 +104,7 @@ validarAcceso('tutor');
         © <?= date('Y') ?> — Gestión FFE interna.
     </footer>
 
+    <script src="Public/js/validacion.js"></script>
     <script src="Public/js/script_tabs.js"></script>
     <script src="Public/js/dark-mode.js"></script>
 

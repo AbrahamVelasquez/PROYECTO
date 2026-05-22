@@ -1,89 +1,81 @@
 <?php
 
-// Seguridad/Control_Accesos.php
-
-// Su función es la de agregar una capa de seguridad en caso de conocer la
-// url exacta de un archivo, prevenir la sesión (si está conectado o no), y 
-// prevenir el rol (en caso de estar viendo contenido que no tiene permitido)
+/**
+ * Seguridad/Control_Accesos.php — Validación de sesión y permisos por rol
+ *
+ * Este archivo se incluye al inicio de vistas y helpers que requieren
+ * autenticación. Basta con llamar a validarAcceso('tutor') o
+ * validarAcceso('admin') para proteger cualquier recurso.
+ *
+ * Comprueba dos cosas en orden:
+ *   1. Que existe una sesión activa (el usuario se identificó)
+ *   2. Que el rol de la sesión coincide con el rol requerido
+ *
+ * Si alguna comprobación falla, el usuario ve una pantalla de error
+ * con código HTTP correcto (401 sin sesión, 403 sin permisos)
+ * y la ejecución se detiene con exit().
+ *
+ * MVC: Capa de seguridad transversal. No pertenece al flujo MVC
+ * pero es invocada por Vistas y Helpers antes de hacer cualquier cosa.
+ */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Elige el nivel de seguridad para cada vista: "tutor" o "admin".
-// En caso de algo que interese a ambos roles sería "cualquiera"
+/**
+ * Verifica que el usuario tiene sesión activa y el rol correcto.
+ * Usar 'cualquiera' como $rolPermitido solo comprueba que hay sesión,
+ * sin importar el rol.
+ */
 function validarAcceso($rolPermitido) {
-    // Inicializamos variables de control
-    $titulo = "";
-    $mensaje = "";
-    $hayError = false;
+    $titulo     = "";
+    $mensaje    = "";
+    $hayError   = false;
+    $codigoHttp = 200;
 
-    // 1. Verificar si la sesión está iniciada
     if (!isset($_SESSION['usuario'])) {
-        $titulo = "Sesión no iniciada";
-        $mensaje = "Para acceder a este apartado de la aplicación, es necesario identificarse primero.";
-        $hayError = true;
-    } 
-    // 2. Verificar si el rol coincide (solo si no hubo error previo)
+        $titulo     = "Sesión no iniciada";
+        $mensaje    = "Para acceder a este apartado de la aplicación, es necesario identificarse primero.";
+        $hayError   = true;
+        $codigoHttp = 401;
+    }
     else if ($rolPermitido !== 'cualquiera' && (!isset($_SESSION['rol']) || $_SESSION['rol'] !== $rolPermitido)) {
-        $titulo = "Acceso Restringido";
-        $mensaje = "Tu cuenta no tiene los permisos de <b>" . ucfirst($rolPermitido) . "</b> necesarios para ver esta sección.";
-        $hayError = true;
+        $titulo     = "Acceso Restringido";
+        $mensaje    = "Tu cuenta no tiene los permisos de <b>" . ucfirst($rolPermitido) . "</b> necesarios para ver esta sección.";
+        $hayError   = true;
+        $codigoHttp = 403;
     }
 
-    // Fuera de la condición: Si se detectó algún problema, disparamos el error
     if ($hayError) {
+        http_response_code($codigoHttp);
         mostrarError($titulo, $mensaje);
     }
 }
 
-// Esta es la versión "Universal". Funciona tanto en "localhost/PROYECTO/..." como en "mi-dominio.es/..." 
-
+/**
+ * Muestra la página de error 403 y detiene la ejecución.
+ * Reconstruye la ruta dinámica hacia /Errores/403.php para funcionar
+ * independientemente del nombre de la carpeta del proyecto.
+ * Elimina el fragmento "/Vista/..." de la ruta si la petición
+ * viene de una vista incluida directamente.
+ */
 function mostrarError($titulo, $mensaje) {
     $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
+    $host      = $_SERVER['HTTP_HOST'];
 
-    // --- MAGIA PARA LA RUTA DINÁMICA ---
-    // 1. Obtenemos la ruta del script que se está ejecutando (ej: /PROYECTO/index.php)
-    // 2. Quitamos el nombre del archivo para quedarnos solo con la carpeta
-    // 3. Nos aseguramos de que siempre apunte a la carpeta raíz
-    
-    $scriptName = $_SERVER['SCRIPT_NAME']; // Devuelve la ruta desde la raíz del servidor
+    $scriptName     = $_SERVER['SCRIPT_NAME'];
     $directorioRaiz = str_replace('\\', '/', dirname($scriptName));
-    
-    // Si estamos dentro de subcarpetas (como Vista/Admin), limpiamos hasta la raíz
-    // Buscamos la posición de "Vista" o "Controlador" y cortamos
-    $pos = strpos($directorioRaiz, '/Vista');
+
+    // Si la ruta incluye "/Vista", cortamos ahí para obtener la raíz del proyecto
+    $pos = stripos($directorioRaiz, '/vista');
     if ($pos !== false) {
         $directorioRaiz = substr($directorioRaiz, 0, $pos);
     }
-    
-    // Limpiamos barras finales y construimos la URL
+
     $directorioRaiz = rtrim($directorioRaiz, '/');
-    $urlInicio = $protocolo . "://" . $host . $directorioRaiz . "/index.php"; 
+    $urlInicio      = $protocolo . "://" . $host . $directorioRaiz . "/index.php";
 
-    // Elegimos el icono: Si el título contiene "Sesión", usamos un candado; si no, un aviso.
-    $iconPath = strpos($titulo, 'Sesión') !== false 
-    ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' // Candado
-    : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'; // Triángulo
-
-    die('
-        <script src="https://cdn.tailwindcss.com"></script>
-        <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
-            <div class="max-w-md w-full bg-white border-t-4 border-orange-500 rounded-lg shadow-2xl p-8 text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
-                <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' . $iconPath . '" />
-                </svg>
-                </div>
-                <h2 class="text-2xl font-extrabold text-gray-800 mb-2">' . $titulo . '</h2>
-                <p class="text-gray-600 mb-8">' . $mensaje . '</p>
-                <a href="' . $urlInicio . '" class="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
-                    Volver al Inicio
-                </a>
-            </div>
-        </div>
-    ');
+    include $_SERVER['DOCUMENT_ROOT'] . $directorioRaiz . '/Errores/403.php';
+    exit();
 }
-
-?>
