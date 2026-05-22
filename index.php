@@ -1,68 +1,71 @@
 <?php
 
-// Inicia
+/**
+ * index.php — Punto de entrada de la aplicación (Front Controller)
+ *
+ * Todo pasa por aquí. Este archivo actúa como router principal:
+ * comprueba el estado de la sesión y deriva la ejecución al
+ * controlador correcto según el rol del usuario o la acción solicitada.
+ *
+ * Flujo en orden de prioridad:
+ *   1. Logout       → destruye la sesión y redirige al login
+ *   2. Sesión activa → carga el controlador del rol (Tutores o Admin)
+ *   3. Submit login → delega credenciales a Controlador_Usuarios
+ *   4. Sin sesión   → muestra el formulario de login
+ *
+ * MVC: actúa como intermediario entre el navegador y los Controladores.
+ * No contiene lógica de negocio — solo enrutamiento y comprobaciones de sesión.
+ */
+
+ob_start();
 session_start();
 
-// Definimos la ruta raíz para efectos del Login
 define('ROOT_PATH', __DIR__ . '/');
 
-// 1. GESTIÓN DE LOGOUT
-if (isset($_POST['btnLogOut']) && isset($_SESSION['usuario'])) {
+// Cargamos el Enrutador antes que nada — gestiona errores críticos de forma centralizada
+require_once 'Core/Enrutador.php';
+
+// ── 1. GESTIÓN DE LOGOUT ──────────────────────────────────────────────────────
+// Se acepta tanto el botón del formulario (btnLogOut) como el parámetro directo (LogOut)
+if ((isset($_REQUEST['btnLogOut']) || isset($_REQUEST['LogOut'])) && isset($_SESSION['usuario'])) {
     require_once 'Controlador/Logout.php';
     exit();
 }
 
-// 2. SESIÓN ACTIVA
+// ── 2. SESIÓN ACTIVA ──────────────────────────────────────────────────────────
+// Si el usuario ya está identificado, cargamos su controlador según el rol
 else if (isset($_SESSION['usuario'])) {
 
-    // Determinamos el controlador según el Rol
     if ($_SESSION['rol'] == 'tutor') {
         $nomControlador = "Tutores";
     } else if ($_SESSION['rol'] == 'admin') {
         $nomControlador = "Admin";
     } else {
-        die("Error: Rol no reconocido.");
+        // Un rol desconocido en sesión es una anomalía — forzamos el cierre
+        Enrutador::mostrarError("403", "Acceso Denegado", "El rol asignado a tu cuenta no está reconocido.", "index.php?LogOut", "Cerrar sesión y volver");
     }
 
-    // Capturamos la acción (por defecto mostrarPanel)
+    // La acción por defecto siempre es mostrar el panel principal del rol
     $accion = $_REQUEST['accion'] ?? "mostrarPanel";
-
-    // Carga dinámica del controlador
     $rutaControlador = 'Controlador/Controlador_' . $nomControlador . ".php";
 
-    if (file_exists($rutaControlador)) {
-        require_once $rutaControlador;
-        $nombreClase = $nomControlador . "_Controlador";
-        $controlador = new $nombreClase();
-
-        // Verificamos si la acción existe en el controlador (sea mostrarPanel o guardarNuevoConvenio)
-        if (method_exists($controlador, $accion)) {
-            $controlador->$accion(); // Ejecución más limpia
-        } else {
-            die("Error: La acción [{$accion}] no existe en el controlador [{$nombreClase}].");
-        }
-    } else {
-        die("Error: No se encontró el archivo del controlador en: {$rutaControlador}");
-    }
+    // El Enrutador se encarga de cargar el archivo, instanciar la clase y llamar al método
+    Enrutador::ejecutarControladorProtegido($rutaControlador, $nomControlador, $accion);
 }
 
-// 3. PROCESO DE LOGIN
+// ── 3. PROCESO DE LOGIN ───────────────────────────────────────────────────────
+// Solo llega aquí si hay datos en el POST del formulario de login
 else if (!empty($_REQUEST['btnLogIn'])) {
-    require_once 'Controlador/Controlador_Usuarios.php';
-    $user = new Usuarios_Controlador();
-    $user->validarUsuario();
+    $rutaAuth       = 'Controlador/Controlador_Usuarios.php';
+    $rutaModeloUser = 'Modelo/Usuarios.php';
+
+    // El Enrutador comprueba que ambos archivos existen antes de intentar cargarlos
+    Enrutador::ejecutarLoginProtegido($rutaAuth, $rutaModeloUser);
 }
 
-// 4. PANTALLA INICIAL O REDIRECCIÓN
+// ── 4. PANTALLA INICIAL ───────────────────────────────────────────────────────
+// Sin sesión y sin POST de login → mostramos la pantalla de acceso
 else {
-    if (isset($_SESSION['usuario'])) {
-        // Si por algún motivo llegamos aquí pero hay sesión, 
-        // recargamos para que entre en la Sección 2
-        header("Location: index.php");
-        exit();
-    }
     require_once './Vista/Login.php';
     exit();
 }
-
-?>

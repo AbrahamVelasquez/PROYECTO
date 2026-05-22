@@ -1,15 +1,18 @@
 <?php
-/**
- * Vista/Shared/Modal_Paginacion.php
- * Modal de configuración de paginación — lógica 100 % PHP (GET form).
- *
- * Variables requeridas antes del include:
- *   $pag_prefix  — prefijo de la tabla, p.ej. 'alum', 'conv', 'tut'
- *   $pag_color   — color Tailwind, p.ej. 'orange', 'blue', 'violet'
- *
- * El botón de apertura en la vista debe llamar:
- *   onclick="document.getElementById('modal-pag-PREFIX').style.display='flex'"
- */
+/*
+
+Vista/Shared/Modal_Paginacion.php
+Modal de configuración de paginación — lógica 100 % PHP (GET form).
+
+Variables requeridas antes del include:
+$pag_prefix  — prefijo de la tabla, p.ej. 'alum', 'conv', 'tut'
+$pag_color   — color Tailwind, p.ej. 'orange', 'blue', 'violet'
+
+El botón de apertura en la vista debe llamar:
+onclick="document.getElementById('modal-pag-PREFIX').style.display='flex'"
+
+*/
+
 $c   = $pag_color;
 $pfx = $pag_prefix;
 $ppParam  = 'pp_'  . $pfx;
@@ -43,24 +46,25 @@ $_pag_merged = array_merge($_GET, $pag_extra_params ?? []);
         </div>
 
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Acceso rápido</p>
+        <?php $presetsConv = [5, 10, 15, 20, 25, 50]; $esPersonalizado = !in_array($ppActual, $presetsConv); ?>
         <div class="flex flex-wrap gap-2 mb-4">
-            <?php foreach ([5, 10, 15, 20, 25, 50] as $n): ?>
+            <?php foreach ($presetsConv as $n): ?>
+            <?php $esActivo = ($ppActual === $n); ?>
             <button type="button"
                     onclick="document.getElementById('pp-val-<?= $pfx ?>').value=<?= $n ?>;document.getElementById('pp-custom-<?= $pfx ?>').value=<?= $n ?>;this.closest('form').submit()"
-                    class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-<?= $c ?>-400 hover:bg-<?= $c ?>-50 hover:text-<?= $c ?>-700 transition-all cursor-pointer"><?= $n ?></button>
+                    class="px-3 py-2 rounded-lg border text-[11px] font-black transition-all cursor-pointer <?= $esActivo ? 'border-'.$c.'-500 bg-'.$c.'-600 text-white shadow-sm' : 'border-slate-200 text-slate-600 hover:border-'.$c.'-400 hover:bg-'.$c.'-50 hover:text-'.$c.'-700' ?>"><?= $n ?></button>
             <?php endforeach; ?>
-            <button type="button"
-                    onclick="document.getElementById('pp-val-<?= $pfx ?>').value=0;document.getElementById('pp-custom-<?= $pfx ?>').value='';this.closest('form').submit()"
-                    class="px-3 py-2 rounded-lg border border-slate-200 text-[11px] font-black text-slate-600 hover:border-<?= $c ?>-400 hover:bg-<?= $c ?>-50 hover:text-<?= $c ?>-700 transition-all cursor-pointer">Todos</button>
         </div>
 
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Cantidad personalizada</p>
-        <div class="flex items-center gap-3 mb-5">
+        <p class="text-[10px] font-bold uppercase tracking-widest mb-2 <?= $esPersonalizado ? 'text-'.$c.'-600' : 'text-slate-400' ?>">
+            Personalizado<?= $esPersonalizado ? ' ✓' : '' ?>
+        </p>
+        <div class="flex items-center gap-3 mb-5 <?= $esPersonalizado ? 'p-2 rounded-xl bg-'.$c.'-50 border border-'.$c.'-200' : '' ?>">
             <input type="number" id="pp-custom-<?= $pfx ?>" min="1" max="200" placeholder="Ej: 12"
                    value="<?= $ppActual > 0 ? $ppActual : '' ?>"
                    oninput="document.getElementById('pp-val-<?= $pfx ?>').value=this.value?parseInt(this.value):0"
                    onkeydown="if(event.key==='Enter'){event.preventDefault();this.closest('form').submit()}"
-                   class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-<?= $c ?>-200 transition-all">
+                   class="flex-1 px-4 py-2.5 rounded-xl border text-sm font-bold text-center outline-none focus:ring-2 focus:ring-<?= $c ?>-200 transition-all <?= $esPersonalizado ? 'border-'.$c.'-400 bg-white' : 'border-slate-200' ?>">
             <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">por página</span>
         </div>
 

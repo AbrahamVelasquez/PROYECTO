@@ -1,11 +1,23 @@
-<?php 
+<?php
 
-// Vista/Admin/Sections/Tabla_Convenios.php
+/**
+ * Vista/Admin/Sections/Tabla_Convenios.php — Sección "Convenios Válidos" del panel admin
+ *
+ * Tabla paginada de convenios activos con empresas colaboradoras.
+ * Permite al admin editar los datos de cada convenio y eliminarlo.
+ * También incluye los formularios de importación masiva desde Excel.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_conv/pag_conv.
+ * Los modales de edición están en Modales_TC.php.
+ *
+ * Variables recibidas del controlador: $convenios (array completo).
+ */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('admin');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_conv    = leerPorPagina('pp_conv', 10);
@@ -36,34 +48,87 @@ $conveniosPag = paginarArray($convenios ?? [], $pp_conv, $pag_conv);
     </div>
 </div>
 
-<form method="POST" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center">
+<?php
+$_ruta_ajax_adm_conv = rtrim(str_replace('\\', '/', preg_replace('/\/Vista(\/Admin(\/Sections)?)?$/i', '', dirname($_SERVER['SCRIPT_NAME']))), '/') . '/Public/ajax/Autocompletar.php';
+?>
+<form method="POST" action="index.php" class="flex flex-col lg:flex-row gap-4 mb-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 items-center" id="form-busq-conv-adm" autocomplete="off">
     <input type="hidden" name="accion" value="mostrarConvenios">
-    <div class="flex-1 relative w-full">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-        <input type="text" name="busqueda" value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>" placeholder="BUSCAR POR NOMBRE O CIF..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-blue-100 transition-all uppercase">
+    <div class="flex-1 relative w-full" id="conv-adm-dropdown-wrapper">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">🔍</span>
+        <input type="text" name="busqueda" id="conv-adm-search"
+            value="<?= htmlspecialchars($_POST['busqueda'] ?? '') ?>"
+            placeholder="BUSCAR POR NOMBRE O CIF..."
+            autocomplete="off"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold outline-none focus:ring-2 focus:ring-blue-100 transition-all uppercase">
+        <ul id="conv-adm-dropdown"
+            class="hidden absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+        </ul>
     </div>
     <button type="submit" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-[10px] hover:bg-blue-600 transition-all shadow-sm uppercase tracking-wider cursor-pointer">
         BUSCAR
     </button>
-    <button type="button" onclick="this.closest('form').querySelector('[name=busqueda]').value=''; this.closest('form').submit();"
-        class="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer uppercase tracking-wide whitespace-nowrap">
-        Mostrar todos
-    </button>
 </form>
+
+<script>
+(function(){
+    const input = document.getElementById('conv-adm-search');
+    const dropdown = document.getElementById('conv-adm-dropdown');
+    const wrapper = document.getElementById('conv-adm-dropdown-wrapper');
+    const form = document.getElementById('form-busq-conv-adm');
+    const ajaxUrl = '<?= $_ruta_ajax_adm_conv ?>';
+    let timer, activeIndex = -1;
+
+    function resaltar(t, q) {
+        return t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'),
+            '<mark class="bg-blue-100 text-blue-700 rounded px-0.5">$1</mark>');
+    }
+    function ocultar() { dropdown.classList.add('hidden'); dropdown.innerHTML=''; activeIndex=-1; }
+    function seleccionar(v) { input.value=v; ocultar(); form.submit(); }
+    function resaltarActivo() { dropdown.querySelectorAll('li').forEach((li,i)=>li.classList.toggle('bg-blue-50',i===activeIndex)); }
+
+    function mostrar(sugs) {
+        dropdown.innerHTML=''; activeIndex=-1;
+        if (!sugs.length) { ocultar(); return; }
+        sugs.forEach(s => {
+            const li = document.createElement('li');
+            li.className = 'px-5 py-3 cursor-pointer hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0';
+            li.innerHTML = `<div class="text-[11px] font-black text-slate-800 uppercase tracking-wide">${resaltar(s.etiqueta, input.value)}</div>
+                            <div class="text-[10px] font-bold text-slate-400 mt-0.5">${s.sublabel}</div>`;
+            li.addEventListener('mousedown', e => { e.preventDefault(); seleccionar(s.valor); });
+            dropdown.appendChild(li);
+        });
+        dropdown.classList.remove('hidden');
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (q.length < 2) { ocultar(); return; }
+        timer = setTimeout(async () => {
+            try { const r = await fetch(`${ajaxUrl}?tipo=convenio&q=${encodeURIComponent(q)}`); mostrar(await r.json()); }
+            catch(e) { ocultar(); }
+        }, 250);
+    });
+    input.addEventListener('keydown', e => {
+        const items = dropdown.querySelectorAll('li');
+        if (e.key==='ArrowDown') { e.preventDefault(); activeIndex=Math.min(activeIndex+1,items.length-1); resaltarActivo(); }
+        else if (e.key==='ArrowUp') { e.preventDefault(); activeIndex=Math.max(activeIndex-1,-1); resaltarActivo(); }
+        else if (e.key==='Enter' && activeIndex>=0 && items[activeIndex]) { e.preventDefault(); input.value=items[activeIndex].querySelector('div').textContent.trim(); ocultar(); form.submit(); }
+        else if (e.key==='Escape') ocultar();
+    });
+    document.addEventListener('click', e => { if (!wrapper.contains(e.target)) ocultar(); });
+})();
+</script>
 
 <!-- Barra superior: contador + config paginación -->
 <div class="flex items-center justify-between mb-2">
     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-        <?php if ($pp_conv > 0 && $total_conv > $pp_conv): ?>
-            Mostrando <?= ($pag_conv - 1) * $pp_conv + 1 ?>–<?= min($pag_conv * $pp_conv, $total_conv) ?> de <?= $total_conv ?>
-        <?php elseif ($total_conv > 0): ?>
-            <?= $total_conv ?> convenio<?= $total_conv !== 1 ? 's' : '' ?>
-        <?php endif; ?>
+        Mostrando <?= ($pag_conv - 1) * $pp_conv + 1 ?>–<?= min($pag_conv * $pp_conv, $total_conv) ?> de <?= $total_conv ?>
     </span>
     <button type="button" onclick="document.getElementById('modal-pag-conv').style.display='flex'" title="Configurar filas por página"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer uppercase tracking-wide">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span><?= $pp_conv > 0 ? $pp_conv . '/pág' : 'Todos' ?></span>
+        <span><?= $pp_conv . '/pág' ?></span>
     </button>
 </div>
 
@@ -120,6 +185,24 @@ $conveniosPag = paginarArray($convenios ?? [], $pp_conv, $pag_conv);
 
 <?= renderizarNavPaginacion($total_conv, $pag_conv, $pp_conv, 'pag_conv', 'blue', ['accion' => 'mostrarConvenios']) ?>
 
-<?php $pag_prefix = 'conv'; $pag_color = 'blue'; $pag_extra_params = ['accion' => 'mostrarConvenios']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'conv'; 
+$pag_color = 'blue'; 
+$pag_extra_params = ['accion' => 'mostrarConvenios']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
+
+<?php if (!empty($_SESSION['error_convenio_en_uso'])): ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('modalConvenioEnUso').style.display = 'flex';
+        });
+    </script>
+
+    <?php unset($_SESSION['error_convenio_en_uso']); ?>
+
+<?php endif; ?>
 
 <?php include 'Vista/Admin/Components/Modales_TC.php'; ?>

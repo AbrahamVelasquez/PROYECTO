@@ -1,8 +1,22 @@
 <?php
 
-// Vista/Tutores/Components/PF_Edicion.php
+/**
+ * Vista/Tutores/Components/PF_Edicion.php — Formulario de edición del Plan Formativo
+ *
+ * Formulario completo para rellenar los datos del PF de un alumno:
+ * datos del alumno y empresa (pre-rellenados desde asignaciones), fechas,
+ * horario, horas totales, modalidad de seguimiento, campos del centro docente,
+ * y opciones de adaptación/autorización.
+ *
+ * Se muestra cuando Plan_Formativo.php está en modo edición (?editar=ID).
+ * El controlador pre-carga $datosPF con todos los campos del alumno seleccionado.
+ * Al guardar envía POST a index.php con accion=guardarPF.
+ *
+ * Variables recibidas: $datosPF (array con todos los campos de asignación + alumno + convenio).
+ */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
+
 validarAcceso('tutor'); 
 
 ?>
@@ -24,7 +38,7 @@ validarAcceso('tutor');
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Régimen</label>
-                <select id="pf_edit_regimen" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
+                <select id="pf_edit_regimen" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
                     <option value="GENERAL">GENERAL</option>
                     <option value="INTENSIVO">INTENSIVO</option>
                 </select>
@@ -49,18 +63,18 @@ validarAcceso('tutor');
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Curso</label>
-                <select id="pf_edit_curso_selector" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
+                <select id="pf_edit_curso_selector" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer">
                     <option value="1">1º CURSO</option>
                     <option value="2">2º CURSO</option>
                 </select>
             </div>
             <div class="md:col-span-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ciclo / Especialización / Programa</label>
-                <input type="text" id="pf_edit_nombre_ciclo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_nombre_ciclo" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold outline-none cursor-not-allowed transition-all text-slate-500">
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Código</label>
-                <input type="text" id="pf_edit_codigo_ciclo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_codigo_ciclo" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold font-mono outline-none cursor-not-allowed transition-all text-slate-500">
             </div>
         </div>
 
@@ -68,7 +82,7 @@ validarAcceso('tutor');
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre Completo</label>
-                <input type="text" id="pf_edit_nombre_completo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all bg-white">
+                <input type="text" id="pf_edit_nombre_completo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all bg-white">
             </div>
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico</label>
@@ -84,7 +98,7 @@ validarAcceso('tutor');
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Centro Docente</label>
-                <input type="text" id="pf_edit_centro_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_centro_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Centro</label>
@@ -96,7 +110,7 @@ validarAcceso('tutor');
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a del Centro</label>
-                <input type="text" id="pf_edit_tutor_centro_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_tutor_centro_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Tutor</label>
@@ -112,19 +126,19 @@ validarAcceso('tutor');
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">ID Convenio</label>
-                <input type="text" id="pf_id_convenio" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_id_convenio" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre de la Empresa</label>
-                <input type="text" id="pf_edit_nombre_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_nombre_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-1">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">N.I.F.</label>
-                <input type="text" id="pf_edit_nif_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 cursor-not-allowed  focus:ring-orange-100 transition-all text-center">
+                <input type="text" id="pf_edit_nif_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed  focus:ring-orange-100 transition-all text-center">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico Empresa</label>
-                <input type="email" id="pf_edit_email_empresa" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 cursor-not-allowed focus:ring-orange-100 transition-all">
+                <input type="email" id="pf_edit_email_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Teléfono Empresa</label>
@@ -132,7 +146,7 @@ validarAcceso('tutor');
             </div>
             <div class="md:col-span-2">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tutor/a de Empresa</label>
-                <input type="text" id="pf_edit_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                <input type="text" id="pf_edit_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-100 transition-all">
             </div>
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Tutor Emp.</label>
@@ -340,4 +354,15 @@ window.pfRenderizarExcepciones = function(jsonStr) {
         contenedor.classList.add('hidden');
     }
 };
+</script>
+<?php
+// Calcular periodo dominante directamente en PHP — fiable, sin depender del DOM
+$_periodos_ra = array_column($rasExistentes ?? [], 'periodo');
+$_conteo_periodos = array_count_values(array_filter($_periodos_ra));
+arsort($_conteo_periodos);
+$_periodo_dominante = (string)(key($_conteo_periodos) ?: '1');
+?>
+<script>
+// Preseleccionar el periodo dominante calculado por PHP
+document.getElementById('pf_edit_periodo_planificacion').value = '<?= $_periodo_dominante ?>';
 </script>

@@ -1,11 +1,19 @@
-<?php 
+<?php
 
-// Vista/Admin/Components/Modales_TCP.php
+/**
+ * Vista/Admin/Components/Modales_TCP.php — Modales de convenios pendientes (admin)
+ *
+ * Contiene los overlays para las acciones sobre solicitudes de convenio pendientes:
+ *   - Confirmar validación: mueve el convenio pendiente a la tabla de convenios activos.
+ *   - Confirmar rechazo: elimina la solicitud sin promoverla.
+ *
+ * Ambos modales muestran el nombre de empresa y reciben el ID del convenio pendiente
+ * vía JS antes de enviar el formulario POST de aprobación o rechazo.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('admin'); 
+validarAcceso('admin');
 
 ?>
 <div id="modalConfirmarValidacion" style="display:none" class="fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -50,11 +58,11 @@ validarAcceso('admin');
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre Empresa</label>
-                    <input type="text" name="nombre_empresa" id="rev_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <input type="text" name="nombre_empresa" id="rev_nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">CIF</label>
-                    <input type="text" name="cif" id="rev_cif" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <input type="text" name="cif" id="rev_cif" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Teléfono</label>
@@ -74,7 +82,7 @@ validarAcceso('admin');
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Localidad</label>
-                    <input type="text" name="localidad" id="rev_localidad" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <input type="text" name="localidad" id="rev_localidad" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">CP</label>
@@ -85,7 +93,7 @@ validarAcceso('admin');
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1 tracking-widest">Nombre y Apellidos</label>
-                    <input type="text" name="representante" id="rev_representante" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
+                    <input type="text" name="representante" id="rev_representante" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-100 transition-all">
                 </div>
                 <div class="md:col-span-3 mt-4 pt-4 border-t border-slate-200 flex items-center gap-2">
                     <span class="text-[10px] font-black bg-slate-700 text-white px-3 py-1 rounded-lg">DATOS ADICIONALES</span>
@@ -95,8 +103,7 @@ validarAcceso('admin');
                     <select name="especialidad" id="rev_especialidad" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-[11px] font-black uppercase outline-none transition-all cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-100">
                         <option value="">— Sin especialidad —</option>
                         <?php
-                            $todosLosCiclos = $this->admin->obtenerTodosLosCiclos();
-                            foreach ($todosLosCiclos as $c):
+                                foreach ($todosLosCiclos as $c):
                                 $cursoLimpio = mb_strtolower(trim($c['nombre_curso']));
                                 $prefijo = ($cursoLimpio == 'primero') ? "1º" : (($cursoLimpio == 'segundo') ? "2º" : $c['nombre_curso']);
                         ?>
