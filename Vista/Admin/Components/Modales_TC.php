@@ -52,7 +52,7 @@ validarAcceso('admin');
             <button onclick="cerrarEditarConvenio()" class="text-slate-400 hover:text-slate-600 text-2xl cursor-pointer">✕</button>
         </div>
 
-        <form action="index.php" method="POST" class="overflow-y-auto p-8 bg-slate-50/30" novalidate onsubmit="return validarForm(this)">
+        <form action="index.php" method="POST" id="formEditarConvenio" class="overflow-y-auto p-8 bg-slate-50/30" novalidate onsubmit="return validarForm(this)">
             <input type="hidden" name="accion" value="actualizarConvenio">
             <input type="hidden" name="num_convenio" id="edit_conv_id">
             <input type="hidden" name="cif_original" id="edit_conv_cif_old">
@@ -243,6 +243,28 @@ validarAcceso('admin');
     </div>
 </div>
 
+<!-- ALERTA: Fechas de vigencia incorrectas -->
+<div id="alertFechasConvenio" style="display:none"
+     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] w-80">
+    <div class="bg-white border-2 border-red-300 rounded-2xl shadow-2xl p-6">
+        <div class="text-center">
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h4 class="text-sm font-black text-red-700 uppercase tracking-wide mb-2">Fechas incorrectas</h4>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed mb-1">
+                La <span class="text-red-600 font-black">fecha nueva renovación</span>
+                no puede ser anterior a la <span class="text-red-600 font-black">fecha de alta</span>.
+            </p>
+            <p class="text-xs text-slate-500 mb-5">Corrígela antes de guardar los cambios.</p>
+            <button onclick="cerrarAlertFechasConvenio()"
+                class="w-full py-2.5 rounded-xl bg-red-600 text-white text-xs font-black uppercase tracking-wide hover:bg-red-700 transition-all cursor-pointer">
+                Corregir fecha
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
 html.dark #modalEditarConvenio .overflow-y-auto { background-color: #0f172a !important; }
 html.dark #modalEditarConvenio label            { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
@@ -331,6 +353,44 @@ function cerrarEditarConvenio() {
             });
         }
     });
+
+// ─── Validación de fechas de vigencia ────────────────────────────────────────
+function validarFechasConvenio() {
+    const alta  = document.getElementById('edit_conv_fecha_alta').value;
+    const nueva = document.getElementById('edit_conv_fecha_nueva').value;
+    const campoNueva = document.getElementById('edit_conv_fecha_nueva');
+    if (alta && nueva && nueva < alta) {
+        campoNueva.style.borderColor = '#f87171';
+        campoNueva.style.boxShadow   = '0 0 0 3px rgba(248,113,113,0.2)';
+        document.getElementById('alertFechasConvenio').style.display = 'block';
+        return false;
+    }
+    campoNueva.style.borderColor = '';
+    campoNueva.style.boxShadow   = '';
+    return true;
+}
+
+function cerrarAlertFechasConvenio() {
+    document.getElementById('alertFechasConvenio').style.display = 'none';
+    document.getElementById('edit_conv_fecha_nueva').focus();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const elAlta  = document.getElementById('edit_conv_fecha_alta');
+    const elNueva = document.getElementById('edit_conv_fecha_nueva');
+    const formConv = document.getElementById('formEditarConvenio');
+
+    if (elNueva) elNueva.addEventListener('change', validarFechasConvenio);
+    if (elAlta)  elAlta.addEventListener('change', function () {
+        if (document.getElementById('edit_conv_fecha_nueva').value) validarFechasConvenio();
+    });
+    if (formConv) {
+        formConv.addEventListener('submit', function (e) {
+            if (!validarFechasConvenio()) e.preventDefault();
+        });
+    }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 function onFicheroConvenioSeleccionado(input) {
     const btn   = document.getElementById('imp_conv_btn_subir');

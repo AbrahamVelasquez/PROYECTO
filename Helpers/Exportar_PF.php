@@ -35,6 +35,17 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 validarAcceso('tutor');
 
 // ──────────────────────────────────────────────────────────────
+// FUNCIÓN PARA FORMATEAR NOMBRES (primera letra mayúscula, resto minúscula)
+// ──────────────────────────────────────────────────────────────
+
+function formatearNombreExcel($texto) {
+    if (empty($texto)) return '';
+    $texto = mb_strtolower($texto, 'UTF-8');
+    $texto = mb_convert_case($texto, MB_CASE_TITLE, 'UTF-8');
+    return $texto;
+}
+
+// ──────────────────────────────────────────────────────────────
 // HELPER LOCAL — solo setValorHoja (fmtFecha y formatearHorario viven en Exportar.php)
 // ──────────────────────────────────────────────────────────────
 
@@ -78,10 +89,15 @@ if (str_contains($nombreCompleto, ',')) {
 }
 $apellidosAlu = trim("$ape1Alu $ape2Alu");
 
-$tutorEmp   = strtoupper(trim($p['tutor_empresa'] ?? ''));
+$tutorEmp   = trim($p['tutor_empresa'] ?? '');
 $tutorParts = explode(' ', $tutorEmp, 2);
 $tutorNom   = $tutorParts[0] ?? '';
 $tutorApe   = $tutorParts[1] ?? '';
+
+// Formatear tutor empresa para Excel
+$tutorNomExcel = formatearNombreExcel($tutorNom);
+$tutorApeExcel = formatearNombreExcel($tutorApe);
+$tutorEmpExcel = trim("$tutorNomExcel $tutorApeExcel");
 
 $fechaIni = Exportar::fmtFecha($p['fecha_inicio'] ?? '');
 $fechaFin = Exportar::fmtFecha($p['fecha_final']  ?? '');
@@ -131,7 +147,7 @@ setValorHoja($wsFijos, 'cod_curso',    $idCurso);
 setValorHoja($wsFijos, 'centro_docente',            $p['centro_nombre']       ?? 'IES CIUDAD ESCOLAR');
 setValorHoja($wsFijos, 'email_centro_docente',       $p['centro_correo']       ?? 'ies.ciudadescolar@educa.madrid.org');
 setValorHoja($wsFijos, 'telef_centro_docente',       $p['centro_tel']          ?? '917341244');
-setValorHoja($wsFijos, 'Tutor_centro_docente',       strtoupper($p['tutor_centro_nombre']  ?? ''));
+setValorHoja($wsFijos, 'Tutor_centro_docente',       formatearNombreExcel($p['tutor_centro_nombre'] ?? ''));
 setValorHoja($wsFijos, 'email_tutor_centro_docente', $p['tutor_centro_correo'] ?? '');
 setValorHoja($wsFijos, 'telef_tutor_centro_docente', $p['tutor_centro_tel']    ?? '');
 
@@ -168,13 +184,19 @@ $setVar = function(string $name, $value) use ($wsVar, $headers): void {
     $wsVar->getCell("{$colLetter}2")->setValue($value);
 };
 
+// Formatear nombre del alumno para Excel
+$nomAluExcel = formatearNombreExcel($nomAlu);
+$ape1AluExcel = formatearNombreExcel($ape1Alu);
+$ape2AluExcel = formatearNombreExcel($ape2Alu);
+$apellidosAluExcel = trim("$ape1AluExcel $ape2AluExcel");
+
 $setVar('num_convenio',            $p['num_convenio']    ?? '');
 $setVar('num_anexo',               $p['anexo']           ?? '');
-$setVar('Alumno',                  trim("$nomAlu $apellidosAlu"));
-$setVar('nom_alumno',              $nomAlu);
-$setVar('apellidos_alumno',        $apellidosAlu);
-$setVar('ape1_alumno',             $ape1Alu);
-$setVar('ape2_alumno',             $ape2Alu);
+$setVar('Alumno',                  trim("$nomAluExcel $apellidosAluExcel"));
+$setVar('nom_alumno',              $nomAluExcel);
+$setVar('apellidos_alumno',        $apellidosAluExcel);
+$setVar('ape1_alumno',             $ape1AluExcel);
+$setVar('ape2_alumno',             $ape2AluExcel);
 $setVar('email_alumno',            $p['email_alumno']    ?? '');
 $setVar('telef_alumno',            $p['tel_alumno']      ?? '');
 
@@ -182,9 +204,9 @@ $setVar('Empresa',                 strtoupper($p['nombre_empresa'] ?? ''));
 $setVar('cif_nif_empresa',         strtoupper($p['nif_empresa']   ?? ''));
 $setVar('email_empresa',           $p['email_empresa']   ?? '');
 $setVar('telef_empresa',           $p['tel_empresa']     ?? '');
-$setVar('tutor_empresa',           $tutorEmp);
-$setVar('tutor_empresa_nombre',    $tutorNom);
-$setVar('tutor_empresa_apellidos', $tutorApe);
+$setVar('tutor_empresa',           $tutorEmpExcel);
+$setVar('tutor_empresa_nombre',    $tutorNomExcel);
+$setVar('tutor_empresa_apellidos', $tutorApeExcel);
 $setVar('email_tutor_empresa',     $p['email_tutor_emp'] ?? '');
 $setVar('telef_tutor_empresa',     $p['tel_tutor_emp']   ?? '');
 
