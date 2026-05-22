@@ -1,8 +1,26 @@
-<?php 
-// Vista/Admin/Dashboard_Admin.php
+<?php
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+/**
+ * Vista/Admin/Dashboard_Admin.php — Shell del panel de administración
+ *
+ * Marco HTML para el rol admin. Incluye la cabecera fija (Dashboard_Header.php)
+ * y a continuación la sub-vista activa, cuya ruta llega en $subVista desde el
+ * controlador (Controlador_Admin.php).
+ *
+ * $subVista puede ser:
+ *   - Admin/Components/Dashboard_Sections.php (página de inicio con los 4 módulos)
+ *   - Admin/Sections/Tabla_Tutores.php
+ *   - Admin/Sections/Tabla_Convenios.php
+ *   - Admin/Sections/Tabla_Convenios_Pendientes.php
+ *   - Admin/Sections/Listado_Alumnos.php
+ *
+ * El include dinámico usa la ruta prefijada por "Vista/" para que funcione
+ * independientemente del subdirectorio desde el que se ejecuta index.php.
+ *
+ * MVC: Vista shell del admin. No contiene lógica de negocio.
+ */
+
+require_once __DIR__ . '/../../Seguridad/Control_Accesos.php';
 
 validarAcceso('admin'); 
 
@@ -62,6 +80,7 @@ validarAcceso('admin');
         btn?.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
         document.addEventListener('click', () => { dropdown?.classList.add('hidden'); });
     </script>
+    <script src="Public/js/validacion.js"></script>
     <script src="Public/js/dark-mode.js"></script>
 </body>
 </html>

@@ -1,11 +1,42 @@
 <?php
 
-// Vista/Tutores/Steps/Plan_Formativo.php
+/**
+ * Vista/Tutores/Steps/Plan_Formativo.php — Paso 3: Plan Formativo
+ *
+ * Orquesta la vista del plan formativo, que tiene dos modos de visualización
+ * gestionados por JavaScript mediante show/hide de divs:
+ *
+ *   1. Vista tabla (PF_Tabla.php):
+ *      Lista los alumnos firmados con su estado de exportación.
+ *      Desde aquí se puede abrir el editor de cada alumno.
+ *
+ *   2. Vista edición (PF_Edicion.php):
+ *      Formulario completo para revisar y actualizar los datos antes de exportar
+ *      el plan formativo en Excel. Incluye datos del alumno, empresa, tutor,
+ *      horario y resultados de aprendizaje.
+ *
+ * La función JS mostrarEdicion() es el punto de entrada entre ambas vistas:
+ * recibe todos los datos del alumno como parámetros y rellena el formulario
+ * de edición antes de mostrarlo.
+ *
+ * El script inline gestiona también:
+ *   - Radio buttons de "Discapacidad" y "Autorización": habilita/deshabilita
+ *     el campo de texto asociado según la selección (Sí/No)
+ *   - prepararCamposAutomaticos(): rellena el año académico y la fecha de hoy
+ *     a partir de los datos de la BD cuando se abre el editor
+ *
+ * Variables recibidas del Controlador_Tutores → mostrarPanel():
+ *   $alumnosFirmados → alumnos con asignación firmada listos para exportar
+ *   $modulosCiclo    → módulos del ciclo para el selector de RAs
+ *   $rasExistentes   → RAs ya guardados para el ciclo
+ *
+ * MVC: Vista. Los includes de PF_Tabla y PF_Edicion son sub-vistas
+ * que comparten las variables del scope de esta vista.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
 
 ?>
 <div id="contenedor-plan-formativo">

@@ -1,11 +1,24 @@
 <?php
 
-// Vista/Admin/Sections/Tabla_Convenios_Pendientes.php
+/**
+ * Vista/Admin/Sections/Tabla_Convenios_Pendientes.php — Sección "Convenios Pendientes"
+ *
+ * Muestra los convenios que los tutores han propuesto desde el paso 1 del wizard
+ * pero aún no han sido formalizados en la tabla principal de convenios.
+ * El admin puede aprobar (promover a convenio válido) o rechazar cada entrada.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_pend/pag_pend.
+ * Los modales de aprobación/rechazo están en Modales_TCP.php.
+ * El indicador pulsante (ping animation) en la cabecera da señal visual de pendientes.
+ *
+ * Variables recibidas del controlador: $pendientes (array completo).
+ */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('admin');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_pend    = leerPorPagina('pp_pend', 10);
@@ -121,6 +134,12 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
 
 <?= renderizarNavPaginacion($total_pend, $pag_pend, $pp_pend, 'pag_pend', 'emerald', ['accion' => 'mostrarConveniosPendientes']) ?>
 
-<?php $pag_prefix = 'pend'; $pag_color = 'emerald'; $pag_extra_params = ['accion' => 'mostrarConveniosPendientes']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'pend'; 
+$pag_color = 'emerald'; 
+$pag_extra_params = ['accion' => 'mostrarConveniosPendientes']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
 
 <?php include 'Vista/Admin/Components/Modales_TCP.php'; ?>

@@ -1,9 +1,21 @@
 <?php
 
-// Vista/Tutores/Components/Modales_Alumnos.php
+/**
+ * Vista/Tutores/Components/Modales_Alumnos.php — Modales del paso 2 (Alumnos)
+ *
+ * Contiene todos los overlays HTML del wizard de alumnos:
+ *   - Cargar alumnos desde Excel (importación masiva).
+ *   - Editar datos básicos de un alumno (nombre, apellidos, correo).
+ *   - Añadir/cambiar asignación: empresa, fechas, horario, tutor de empresa.
+ *   - Captura de firma del alumno (pad canvas con signature_pad.js).
+ *   - Confirmación de borrado de alumno.
+ *
+ * Los modales se abren desde Steps/Alumnos.php con JS que inyecta los datos
+ * actuales del alumno seleccionado antes de mostrar el formulario de edición.
+ * El modal de firma usa AJAX (fetch) para enviar el PNG al servidor.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('tutor'); 
 
@@ -60,24 +72,24 @@ validarAcceso('tutor');
             </h3>
             <button onclick="document.getElementById('modalAgregarAlumno').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
         </div>
-        <form method="POST" action="index.php">
+        <form method="POST" action="index.php" novalidate onsubmit="return validarForm(this)">
             <input type="hidden" name="accion" value="agregarAlumno">
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Primer Apellido <span class="text-red-500">*</span></label>
-                <input type="text" name="apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido <span class="text-red-500">*</span></label>
-                <input type="text" name="apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
-                <input type="text" name="nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="flex gap-3 mb-4">
                 <div class="flex-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE</label>
-                    <input type="text" name="dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                    <input type="text" name="dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
                 <div class="w-28">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo</span></label>
@@ -91,9 +103,23 @@ validarAcceso('tutor');
                 <input type="text" name="telefono" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all" placeholder="Ej: 600123456">
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Correo Electrónico</label>
                 <input type="email" name="correo" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+            </div>
+            <div class="mb-6">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Curso Académico</label>
+                <select name="anio_inicio" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+                    <?php
+                    $anioBase = (int)date('Y');
+                    for ($i = -1; $i <= 2; $i++):
+                        $ini = $anioBase + $i;
+                        $fin = $ini + 1;
+                        $label = sprintf('%02d-%02d', $ini % 100, $fin % 100);
+                    ?>
+                    <option value="<?= $ini ?>" <?= $i === 0 ? 'selected' : '' ?>><?= $label ?></option>
+                    <?php endfor; ?>
+                </select>
             </div>
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="document.getElementById('modalAgregarAlumno').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">Cancelar</button>
@@ -112,7 +138,7 @@ validarAcceso('tutor');
             </h3>
             <button onclick="document.getElementById('modalEditarAlumno').style.display='none'" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer">✕</button>
         </div>
-        <form method="POST" action="index.php" id="formEditarAlumno">
+        <form method="POST" action="index.php" id="formEditarAlumno" novalidate onsubmit="return validarForm(this)">
             <input type="hidden" name="accion" value="editarAlumno">
             <input type="hidden" name="id_alumno" id="edit_id_alumno">
             
@@ -120,21 +146,21 @@ validarAcceso('tutor');
             
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Primer Apellido <span class="text-red-500">*</span></label>
-                <input type="text" name="apellido1" id="edit_apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="apellido1" id="edit_apellido1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Segundo Apellido <span class="text-red-500">*</span></label>
-                <input type="text" name="apellido2" id="edit_apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="apellido2" id="edit_apellido2" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre <span class="text-red-500">*</span></label>
-                <input type="text" name="nombre" id="edit_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="nombre" id="edit_nombre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             
             <div class="flex gap-3 mb-4">
                 <div class="flex-1">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">DNI / NIE</label>
-                    <input type="text" name="dni" id="edit_dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                    <input type="text" name="dni" id="edit_dni" maxlength="9" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold font-mono outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
                 </div>
                 <div class="w-28">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sexo</label>
@@ -208,7 +234,7 @@ validarAcceso('tutor');
 
             <div class="mb-4">
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nombre Tutor de Empresa</label>
-                <input type="text" name="nombre_tutor_empresa" id="edit_nombre_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
+                <input type="text" name="nombre_tutor_empresa" id="edit_nombre_tutor_empresa" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all">
             </div>
             <div class="flex gap-3 mb-6">
                 <div class="flex-1">
@@ -235,10 +261,56 @@ validarAcceso('tutor');
             </div>
 
             <div class="flex gap-3 justify-end">
+                <button type="button"
+                        onclick="pedirConfirmacionEliminarAlumno()"
+                        class="mr-auto px-5 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 text-xs font-black uppercase hover:bg-red-600 hover:text-white transition-all cursor-pointer flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Eliminar alumno
+                </button>
                 <button type="button" onclick="document.getElementById('modalEditarAlumno').style.display='none'" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">Cancelar</button>
                 <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-all shadow-md cursor-pointer">Guardar Cambios</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- MODAL: Confirmar eliminación de alumno -->
+<div id="modalConfirmarEliminarAlumno" style="display:none" class="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100 text-center">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </div>
+        <h3 class="text-base font-black text-slate-900 uppercase mb-2">¿Eliminar alumno?</h3>
+        <p class="text-xs font-bold text-slate-500 leading-relaxed mb-1">Esta acción no se puede deshacer.</p>
+        <p id="nombreAlumnoEliminar" class="text-sm font-black text-slate-800 uppercase mb-6"></p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="document.getElementById('modalConfirmarEliminarAlumno').style.display='none'"
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer">
+                Cancelar
+            </button>
+            <button onclick="ejecutarEliminarAlumno()"
+                    class="px-5 py-2.5 rounded-xl bg-red-600 text-white text-xs font-black uppercase hover:bg-red-700 transition-all shadow-md cursor-pointer">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Alumno tiene asignación — debe ponerlo en Sin Asignar primero -->
+<div id="modalNoSePuedeEliminar" style="display:none" class="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100 text-center">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3 class="text-base font-black text-slate-900 uppercase mb-2">No se puede eliminar</h3>
+        <p class="text-xs font-bold text-slate-500 leading-relaxed mb-6">
+            Este alumno tiene una <span class="text-orange-600 font-black">asignación activa</span>.<br>
+            Primero retira el convenio asignado (déjalo en <span class="font-black text-slate-700">Sin Asignar</span>) y vuelve a intentarlo.
+        </p>
+        <button onclick="document.getElementById('modalNoSePuedeEliminar').style.display='none'"
+                class="px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-black uppercase hover:bg-orange-600 transition-all cursor-pointer">
+            Entendido
+        </button>
     </div>
 </div>
 
@@ -424,6 +496,23 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<div id="modalSinCompletadosExportar" style="display:none" class="fixed inset-0 bg-black/50 z-[130] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100 text-center">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3 class="text-base font-black text-slate-900 uppercase mb-2">Sin alumnos completados</h3>
+        <p class="text-xs font-bold text-slate-500 leading-relaxed mb-6">
+            No hay ningún alumno con estado <span class="text-emerald-600 font-black">COMPLETADO</span> para exportar.<br>
+            Un alumno está completado cuando tiene empresa, dirección, fechas y horario definidos.
+        </p>
+        <button onclick="document.getElementById('modalSinCompletadosExportar').style.display='none'"
+                class="px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-black uppercase hover:bg-orange-600 transition-all cursor-pointer">
+            Entendido
+        </button>
+    </div>
+</div>
+
 <div id="modalSinSeleccion" style="display:none" class="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-6">
@@ -462,6 +551,50 @@ validarAcceso('tutor');
     </div>
 </div>
 
+<!-- ALERTA: DNI Duplicado (pequeño, centrado, sin backdrop) -->
+<div id="alertDniDuplicado" style="display:none"
+     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] w-80"
+     style="filter: drop-shadow(0 25px 50px rgba(0,0,0,0.25))">
+    <div class="bg-white border-2 border-amber-300 rounded-2xl shadow-2xl p-6">
+        <div class="text-center">
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <h4 class="text-sm font-black text-slate-900 uppercase tracking-wide mb-2">DNI ya registrado</h4>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed mb-1">
+                El DNI introducido <span class="text-amber-700 font-black">ya pertenece a otro alumno</span> del sistema.
+            </p>
+            <p class="text-xs text-slate-500 mb-5">Revisa el número e inténtalo de nuevo.</p>
+            <button onclick="cerrarAlertDni()"
+                class="w-full py-2.5 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-wide hover:bg-slate-700 transition-all cursor-pointer">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ALERTA: Fechas incorrectas (pequeño, centrado, sin backdrop) -->
+<div id="alertFechasInvalidas" style="display:none"
+     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] w-80">
+    <div class="bg-white border-2 border-red-300 rounded-2xl shadow-2xl p-6">
+        <div class="text-center">
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h4 class="text-sm font-black text-red-700 uppercase tracking-wide mb-2">Fechas incorrectas</h4>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed mb-1">
+                La <span class="text-red-600 font-black">fecha de fin</span> de las prácticas
+                no puede ser anterior a la <span class="text-red-600 font-black">fecha de inicio</span>.
+            </p>
+            <p class="text-xs text-slate-500 mb-5">Corrígela antes de guardar los cambios.</p>
+            <button onclick="cerrarAlertFechas()"
+                class="w-full py-2.5 rounded-xl bg-red-600 text-white text-xs font-black uppercase tracking-wide hover:bg-red-700 transition-all cursor-pointer">
+                Corregir fecha
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="modalCargarAlumnos" style="display:none" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this) this.style.display='none'">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-6">
@@ -491,6 +624,21 @@ validarAcceso('tutor');
                 </a>
             </div>
  
+            <div class="mb-4">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Curso Académico</label>
+                <select id="anio_inicio_importar" name="anio_inicio" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all cursor-pointer">
+                    <?php
+                    $anioBase2 = (int)date('Y');
+                    for ($i = -1; $i <= 2; $i++):
+                        $ini2 = $anioBase2 + $i;
+                        $fin2 = $ini2 + 1;
+                        $label2 = sprintf('%02d-%02d', $ini2 % 100, $fin2 % 100);
+                    ?>
+                    <option value="<?= $ini2 ?>" <?= $i === 0 ? 'selected' : '' ?>><?= $label2 ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+
             <label class="block w-full cursor-pointer">
                 <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all">
                     <p class="text-2xl mb-2">📂</p>
@@ -499,7 +647,7 @@ validarAcceso('tutor');
                 </div>
                 <input type="file" id="inputFicheroAlumnos" accept=".xlsx,.xls" class="hidden" onchange="onFicheroSeleccionado(this)">
             </label>
- 
+
             <div class="flex gap-3 justify-end mt-6">
                 <button type="button" onclick="cerrarModalCargar()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">Cancelar</button>
                 <button type="button" id="btnSubirFichero" onclick="importarAlumnosExcel()" disabled
@@ -825,10 +973,69 @@ function haRefrescarBadgeEditar(jsonStr) {
 function haRestaurarResumenEdicion(jsonStr) {
     haRefrescarBadgeEditar(jsonStr);
 }
+
+// ─── Validación de fechas ─────────────────────────────────────────────────────
+function validarFechasAlumno() {
+    const inicio = document.getElementById('edit_fecha_inicio').value;
+    const final  = document.getElementById('edit_fecha_final').value;
+    const campoFinal = document.getElementById('edit_fecha_final');
+    if (inicio && final && final < inicio) {
+        campoFinal.style.borderColor = '#f87171';
+        campoFinal.style.boxShadow   = '0 0 0 3px rgba(248,113,113,0.2)';
+        document.getElementById('alertFechasInvalidas').style.display = 'block';
+        return false;
+    }
+    campoFinal.style.borderColor = '';
+    campoFinal.style.boxShadow   = '';
+    return true;
+}
+
+function cerrarAlertFechas() {
+    document.getElementById('alertFechasInvalidas').style.display = 'none';
+    document.getElementById('edit_fecha_final').focus();
+}
+
+function cerrarAlertDni() {
+    document.getElementById('alertDniDuplicado').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const elInicio = document.getElementById('edit_fecha_inicio');
+    const elFinal  = document.getElementById('edit_fecha_final');
+    const formEd   = document.getElementById('formEditarAlumno');
+
+    if (elFinal)  elFinal.addEventListener('change',  validarFechasAlumno);
+    if (elInicio) elInicio.addEventListener('change', function () {
+        if (document.getElementById('edit_fecha_final').value) validarFechasAlumno();
+    });
+    if (formEd) {
+        formEd.addEventListener('submit', function (e) {
+            if (!validarFechasAlumno()) e.preventDefault();
+        });
+    }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
 
+<?php
+// IDs de TODOS los alumnos COMPLETADOS — lista completa sin paginar
+// Misma lógica que determina el estado en Alumnos.php
+$_idsCompletados = [];
+foreach ($alumnos ?? [] as $_al) {
+    $tieneEmpresa   = !empty($_al['num_convenio']);
+    $tieneDireccion = !empty($_al['direccion']);
+    $tieneFechas    = !empty($_al['fecha_inicio']) && !empty($_al['fecha_final'])
+                      && $_al['fecha_inicio'] !== '0000-00-00';
+    $tieneHorario   = !empty($_al['horario']) && $_al['horas_dia'] > 0;
+    if ($tieneEmpresa && $tieneDireccion && $tieneFechas && $tieneHorario) {
+        $_idsCompletados[] = (int) $_al['id_alumno'];
+    }
+}
+?>
 <script>
+// Array con TODOS los IDs COMPLETADOS, independientemente de la página visible
+const TODOS_COMPLETADOS_IDS = <?= json_encode($_idsCompletados) ?>;
+
 function exportarAlumnosWord() {
     // Recoge los checkboxes seleccionados del formExportar
     const seleccionados = document.querySelectorAll('#formExportar input[name="exportar_ids[]"]:checked');
@@ -902,6 +1109,7 @@ async function importarAlumnosExcel() {
  
     const formData = new FormData();
     formData.append('fichero_alumnos', input.files[0]);
+    formData.append('anio_inicio', document.getElementById('anio_inicio_importar').value);
  
     try {
         const res  = await fetch('index.php?controlador=Tutores&accion=importarAlumnos', {
@@ -947,12 +1155,10 @@ function abrirModalExportarTodoAlumnos() {
 }
 
 function ejecutarExportarTodoAlumnos() {
-    // Recoge los IDs de la tabla principal filtrando data-estado="COMPLETADO"
-    // (incluye enviados, no enviados, firmados y no firmados)
-    const filas = document.querySelectorAll('tr[data-estado="COMPLETADO"][data-id-alumno]');
-    if (filas.length === 0) {
-        alert('No hay alumnos con estado COMPLETADO para exportar.');
+    // Usa el array generado por PHP con TODOS los COMPLETADOS (ignora paginación)
+    if (TODOS_COMPLETADOS_IDS.length === 0) {
         document.getElementById('modalExportarTodoAlumnos').style.display = 'none';
+        document.getElementById('modalSinCompletadosExportar').style.display = 'flex';
         return;
     }
 
@@ -961,18 +1167,17 @@ function ejecutarExportarTodoAlumnos() {
     form.action = 'index.php?controlador=Tutores&accion=exportarAlumnosWord';
     form.style.display = 'none';
 
-    // Indicar al PHP que es exportación total (sufijo "- Todos" en el nombre)
     const inputTodo = document.createElement('input');
     inputTodo.type  = 'hidden';
     inputTodo.name  = 'exportar_todo';
     inputTodo.value = '1';
     form.appendChild(inputTodo);
 
-    filas.forEach(fila => {
+    TODOS_COMPLETADOS_IDS.forEach(id => {
         const input = document.createElement('input');
         input.type  = 'hidden';
         input.name  = 'exportar_ids[]';
-        input.value = fila.getAttribute('data-id-alumno');
+        input.value = id;
         form.appendChild(input);
     });
 
@@ -985,5 +1190,60 @@ function ejecutarExportarTodoAlumnos() {
 
     document.getElementById('modalExportarTodoAlumnos').style.display = 'none';
 }
+
+
+// ── Eliminar alumno ────────────────────────────────────────────────────────
+function pedirConfirmacionEliminarAlumno() {
+    const convenio = document.getElementById('edit_id_convenio').value;
+
+    // Si tiene convenio asignado → no se puede eliminar, mostrar aviso directamente
+    if (convenio && convenio.trim() !== '') {
+        document.getElementById('modalEditarAlumno').style.display = 'none';
+        document.getElementById('modalNoSePuedeEliminar').style.display = 'flex';
+        return;
+    }
+
+    // Sin asignación → pedir confirmación
+    const ap1 = document.getElementById('edit_apellido1').value;
+    const ap2 = document.getElementById('edit_apellido2').value;
+    const nom = document.getElementById('edit_nombre').value;
+    document.getElementById('nombreAlumnoEliminar').textContent =
+        (ap1 + ' ' + ap2 + ', ' + nom).trim().replace(/\s+/g, ' ');
+    document.getElementById('modalEditarAlumno').style.display = 'none';
+    document.getElementById('modalConfirmarEliminarAlumno').style.display = 'flex';
+}
+
+function ejecutarEliminarAlumno() {
+    const idAlumno = document.getElementById('edit_id_alumno').value;
+    document.getElementById('modalConfirmarEliminarAlumno').style.display = 'none';
+
+    fetch('index.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'accion=eliminarAlumno&id_alumno=' + encodeURIComponent(idAlumno)
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
+    .then(data => {
+        if (data.ok) {
+            const fila = document.querySelector('tr[data-id-alumno="' + idAlumno + '"]');
+            if (fila) {
+                fila.remove();
+            } else {
+                window.location.href = 'index.php?tab=2';
+            }
+        } else if (data.motivo === 'tiene_asignacion') {
+            document.getElementById('modalNoSePuedeEliminar').style.display = 'flex';
+        } else {
+            window.location.href = 'index.php?tab=2';
+        }
+    })
+    .catch(() => {
+        window.location.href = 'index.php?tab=2';
+    });
+}
+
 
 </script>

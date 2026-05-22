@@ -1,12 +1,43 @@
-<?php 
+<?php
 
-// Vista/Tutores/Steps/Alumnos.php
+/**
+ * Vista/Tutores/Steps/Alumnos.php — Paso 2: Gestión de alumnos
+ *
+ * Tabla principal de alumnos del ciclo del tutor. Muestra el estado de cada
+ * alumno en el proceso de FCT (Sin Asignar / En Proceso / Completado) y
+ * permite gestionar todo su ciclo de vida desde esta misma pantalla.
+ *
+ * Acciones disponibles desde la tabla:
+ *   - Icono de edición → abre modal de edición completa (datos + asignación)
+ *   - Checkbox "Enviado" → marca el alumno como listo para firma
+ *   - Checkbox "Firmado" → inicia el flujo de confirmación y firma
+ *
+ * La vista es intencionalmente densa: cada fila contiene datos de cuatro tablas
+ * (alumnos, asignaciones, convenios, asignaciones_firmadas), todos preparados
+ * por el controlador antes de llegar aquí.
+ *
+ * El JavaScript de esta vista gestiona:
+ *   - abrirModalEditar(): petición AJAX para cargar datos del alumno en el modal
+ *   - prepararFirma(): consulta si ya está firmado antes de mostrar el modal
+ *   - Lógica de bloqueo: si el alumno ya está firmado, el checkbox de "enviado"
+ *     no se puede desmarcar (el JS lo restaura y muestra un aviso)
+ *
+ * El cálculo de "días y horas" de horario (con excepciones) se hace en PHP
+ * para que aparezca correctamente en el PDF exportado.
+ *
+ * Variables recibidas del Controlador_Tutores → mostrarPanel():
+ *   $alumnos    → listado filtrado y ordenado por listarPorCiclo()
+ *   $misConvenios → favoritos del tutor (para el selector de convenio)
+ *
+ * MVC: Vista. La lógica de estados (colorEstado, mensajeBloqueo) está aquí
+ * porque depende de la presentación visual, no de reglas de negocio.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_alum  = leerPorPagina('pp_alum', 10);
@@ -76,7 +107,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
     <button type="button" onclick="document.getElementById('modal-pag-alum').style.display='flex'" title="Configurar filas por página"
         class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[9px] font-black text-slate-400 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-wide">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span><?= $pp_alum > 0 ? $pp_alum . '/pág' : 'Todos' ?></span>
+        <span><?= $pp_alum . '/pág' ?></span>
     </button>
 </div>
 
@@ -94,7 +125,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
         <th class="w-24 text-center">F. INICIO</th>
         <th class="w-24 text-center">F. FINAL</th>
         <th class="w-28 text-center">HORARIO</th>
-        <th class="w-14 border-section text-center text-[9px]">H/DÍA</th>
+        <th class="w-28 text-center border-section">DÍAS / N° HORAS</th>
         <th class="w-24 text-center p-4">ESTADO</th> 
         <th class="w-16 text-center">ENVIADO</th>
         <th class="w-16 border-section text-center">FIRMADO</th>
@@ -112,6 +143,46 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
             $f_final = ($al['fecha_final'] && $al['fecha_final'] !== '0000-00-00') ? $al['fecha_final'] : null;
             $tieneFechas = ($f_inicio && $f_final);
             $tieneHorario = (!empty($al['horario']) && !empty($al['horas_dia']) && $al['horas_dia'] > 0);
+
+            $diasYHorasTexto = '';
+            $excepciones2 = trim($al['horario_excepciones'] ?? '');
+            $horasDia2 = $al['horas_dia'] ?? 0;
+            $ORDEN_DIAS = ['L'=>0, 'M'=>1, 'X'=>2, 'J'=>3, 'V'=>4, 'S'=>5, 'D'=>6];
+            if (!empty($excepciones2)) {
+                $bloques2 = json_decode($excepciones2, true);
+                if (is_array($bloques2) && !empty($bloques2)) {
+                    $partes2 = [];
+                    foreach ($bloques2 as $bloque2) {
+                        if (empty($bloque2['dias']) || empty($bloque2['inicio']) || empty($bloque2['fin'])) continue;
+                        $dias2 = $bloque2['dias'];
+                        usort($dias2, fn($a, $b) => ($ORDEN_DIAS[$a] ?? 7) - ($ORDEN_DIAS[$b] ?? 7));
+                        $esConsecutivo2 = true;
+                        for ($i = 1; $i < count($dias2); $i++) {
+                            if (($ORDEN_DIAS[$dias2[$i]] ?? 7) !== ($ORDEN_DIAS[$dias2[$i-1]] ?? 7) + 1) {
+                                $esConsecutivo2 = false;
+                                break;
+                            }
+                        }
+                        $labelDias2 = (count($dias2) > 1 && $esConsecutivo2)
+                            ? $dias2[0] . '-' . $dias2[count($dias2)-1]
+                            : implode('', $dias2);
+                        try {
+                            $inicioDt2 = DateTime::createFromFormat('H:i', $bloque2['inicio']);
+                            $finDt2    = DateTime::createFromFormat('H:i', $bloque2['fin']);
+                            if ($inicioDt2 && $finDt2) {
+                                $diff2 = $inicioDt2->diff($finDt2);
+                                $horasBloque2 = $diff2->h + ($diff2->i / 60);
+                                $partes2[] = $labelDias2 . ' ' . round($horasBloque2, 1) . 'h';
+                            } else {
+                                $partes2[] = $labelDias2 . ' ' . round($horasDia2, 1) . 'h';
+                            }
+                        } catch (Exception $e2) {
+                            $partes2[] = $labelDias2 . ' ' . round($horasDia2, 1) . 'h';
+                        }
+                    }
+                    $diasYHorasTexto = implode(', ', $partes2);
+                }
+            }
 
             if (!$tieneEmpresa) {
                 $estado = "SIN ASIGNAR"; $colorEstado = "bg-red-100 text-red-700 border-red-200";
@@ -190,7 +261,11 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
             <?php endif; endif; ?>
                 </td>
                 <td class="text-center border-section font-bold">
-                    <?= $tieneHorario ? number_format($al['horas_dia'], 0) : '-' ?>
+                    <?php if (!$tieneHorario): ?>
+                        <span class="text-orange-500 font-black italic text-[8px]">⚠️ SIN HORARIO</span>
+                    <?php else: ?>
+                        <?= !empty($diasYHorasTexto) ? htmlspecialchars($diasYHorasTexto) : '-' ?>
+                    <?php endif; ?>
                 </td>
 
                 <td class="text-center p-4">
@@ -242,7 +317,7 @@ include __DIR__ . '/../Components/Header_Alumnos.php';
   </table>
 </div>
 
-<?= renderizarNavPaginacion($total_alum, $pag_alum, $pp_alum, 'pag_alum', 'orange') ?>
+<?= renderizarNavPaginacion($total_alum, $pag_alum, $pp_alum, 'pag_alum', 'orange', ['tab' => '2']) ?>
 
 <?php
 // Incluimos todos los Modales
@@ -250,6 +325,16 @@ include __DIR__ . '/../Components/Modales_Alumnos.php';
 ?>
 
 <script>
+// Alerta DNI duplicado: aparece centrada sin bloquear la pantalla completa
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') !== 'dni_duplicado') return;
+    document.getElementById('alertDniDuplicado').style.display = 'block';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    history.replaceState(null, '', url.toString());
+})();
+
 let checkboxPendiente = null;
 
 function prepararFirma(idAsig, enviado, nombre, elemento) {
@@ -413,4 +498,10 @@ function mostrarErrorExportar(nombreAlumno, checkbox) {
 
 </script>
 
-<?php $pag_prefix = 'alum'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '2']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'alum'; 
+$pag_color = 'orange'; 
+$pag_extra_params = ['tab' => '2']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>

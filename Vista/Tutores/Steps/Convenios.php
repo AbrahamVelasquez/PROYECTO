@@ -1,12 +1,45 @@
-<?php 
+<?php
 
-// Vista/Tutores/Steps/Convenios.php
+/**
+ * Vista/Tutores/Steps/Convenios.php — Paso 1: Gestión de convenios
+ *
+ * Primera pantalla del wizard del tutor. Permite buscar convenios de la tabla
+ * oficial, gestionar el listado personal de favoritos y hacer seguimiento de los
+ * convenios nuevos que el tutor ha solicitado y están pendientes de validación.
+ *
+ * Tres secciones principales:
+ *
+ *   1. Búsqueda libre (Resultados de búsqueda):
+ *      Formulario de búsqueda por nombre o CIF con autocompletado AJAX.
+ *      Los resultados permiten añadir convenios al listado personal con un clic.
+ *
+ *   2. Mi Listado Personal (Favoritos):
+ *      Convenios que el tutor tiene guardados. Solo estos pueden asignarse
+ *      a alumnos en el Paso 2. Para quitar un favorito con alumnos asignados
+ *      se muestra un error (el modelo lo verifica antes de borrar).
+ *
+ *   3. Convenios en Proceso:
+ *      Convenios nuevos registrados por el tutor aún no validados por el admin.
+ *      El tutor puede editarlos o marcarlos como "Aprobados" (es decir, enviarlos
+ *      al admin para que los valide y los traslade a la tabla oficial).
+ *
+ * La URL del formulario de registro externo se genera dinámicamente aquí para
+ * que funcione en cualquier subdirectorio del servidor sin configuración.
+ *
+ * Variables recibidas del Controlador_Tutores → mostrarPanel():
+ *   $convenios        → resultados de la búsqueda actual
+ *   $misConvenios     → lista de favoritos del tutor
+ *   $conveniosProceso → convenios nuevos pendientes de validación del tutor
+ *
+ * MVC: Vista. Las tres paginaciones (rs, lp, cp) se calculan en PHP
+ * antes del HTML para controlar qué registros mostrar en cada tabla.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
-validarAcceso('tutor'); 
+validarAcceso('tutor');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP — Resultados de búsqueda
 $pp_rs  = leerPorPagina('pp_rs', 10);
@@ -26,11 +59,21 @@ $pag_cp = leerPaginaActual('pag_cp');
 $total_cp = count($conveniosProceso ?? []);
 $conveniosProcesoPag = paginarArray($conveniosProceso ?? [], $pp_cp, $pag_cp);
 
-// Preparamos la URL completa (ajusta la base si es necesario)
+/**
+ * CAMBIO AQUÍ: Calculamos la subcarpeta del proyecto de manera dinámica usando SCRIPT_NAME.
+ * Así eliminamos de raíz el "/pruebas/" o "/proyecto/" estático.
+ */
+$ruta_proyecto_web = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+// Si por la estructura de ruteo del index la URL arrastra tramos de carpetas de la vista, los limpiamos
+$ruta_proyecto_web = preg_replace('/\/Vista(\/Tutores(\/Steps)?)?$/i', '', $ruta_proyecto_web);
+
+// Preparamos la URL completa
 $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'];
 $id_ciclo = $_SESSION['id_ciclo'] ?? '';
-$urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
+
+// CAMBIO AQUÍ: Inyectamos la variable dinámica en los enlaces
+$urlCompartir = $protocolo . "://" . $host . $ruta_proyecto_web . "/Convenios/Registro.php?id_ciclo=" . urlencode($id_ciclo);
 
 ?>
 <div class="flex justify-between items-center mb-6">
@@ -46,25 +89,161 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
             </svg>
         </button>
 
-        <a href="Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
+        <a href="<?= $ruta_proyecto_web ?>/Convenios/Registro.php?id_ciclo=<?= urlencode($id_ciclo) ?>" 
            class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-900 transition-all shadow-lg">
             <span class="text-sm">+</span> Registro Convenio
         </a>
     </div>
 </div>
 
-<form action="index.php" method="POST" class="flex gap-3 w-full mb-10">
-    <input type="text" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>" 
-        placeholder="CIF O NOMBRE DE EMPRESA..." 
-        class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all">
+<?php
+// Ruta base para el endpoint AJAX (compatible con subdirectorios)
+$ruta_ajax_convenios = $ruta_proyecto_web . '/Public/ajax/Autocompletar.php';
+?>
+<form action="index.php" method="POST" class="flex gap-3 w-full mb-10" id="form-busqueda-convenio" autocomplete="off">
+    <input type="hidden" name="accion" value="mostrarPanel">
+
+    <!-- Search bar dropdown — Convenios -->
+    <div class="flex-1 relative" id="convenio-dropdown-wrapper">
+        <input
+            type="text"
+            name="busqueda_convenio"
+            id="convenio-search-input"
+            value="<?= htmlspecialchars($_REQUEST['busqueda_convenio'] ?? '') ?>"
+            placeholder="CIF O NOMBRE DE EMPRESA..."
+            autocomplete="off"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 outline-none focus:ring-4 focus:ring-orange-50 text-xs font-bold uppercase transition-all"
+        >
+        <!-- Dropdown list -->
+        <ul id="convenio-dropdown"
+            class="hidden absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+        </ul>
+    </div>
+
     <button type="submit" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg cursor-pointer">Buscar</button>
-    <button type="button" onclick="this.closest('form').querySelector('[name=busqueda_convenio]').value=''; this.closest('form').submit();"
-        class="flex items-center gap-1.5 px-6 py-4 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer uppercase tracking-widest shadow-sm whitespace-nowrap">
-        Mostrar todos
-    </button>
 </form>
 
-<?php if (isset($_POST['busqueda_convenio']) && trim($_POST['busqueda_convenio']) !== ''): ?>
+<script>
+(function () {
+    const input    = document.getElementById('convenio-search-input');
+    const dropdown = document.getElementById('convenio-dropdown');
+    const form     = document.getElementById('form-busqueda-convenio');
+    const ajaxUrl  = '<?= $ruta_ajax_convenios ?>';
+
+    let timer = null;
+    let activeIndex = -1;
+
+    function mostrarDropdown(sugerencias) {
+        dropdown.innerHTML = '';
+        activeIndex = -1;
+
+        if (!sugerencias.length) { ocultarDropdown(); return; }
+
+        sugerencias.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.setAttribute('data-index', i);
+            li.className = 'px-5 py-3 cursor-pointer hover:bg-orange-50 transition-colors border-b border-slate-100 last:border-b-0';
+            li.innerHTML = `
+                <div class="text-[11px] font-black text-slate-800 uppercase tracking-wide">${resaltar(s.etiqueta, input.value)}</div>
+                <div class="text-[10px] font-bold text-slate-400 mt-0.5">${s.sublabel}</div>
+            `;
+            li.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // evita que el input pierda el foco antes de escribir
+                seleccionar(s.valor);
+            });
+            dropdown.appendChild(li);
+        });
+
+        dropdown.classList.remove('hidden');
+    }
+
+    function ocultarDropdown() {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        activeIndex = -1;
+    }
+
+    function seleccionar(valor) {
+        input.value = valor;
+        ocultarDropdown();
+        form.submit();
+    }
+
+    function resaltar(texto, busqueda) {
+        if (!busqueda.trim()) return texto;
+        const escapado = busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + escapado + ')', 'gi');
+        return texto.replace(re, '<mark class="bg-orange-100 text-orange-700 rounded px-0.5">$1</mark>');
+    }
+
+    function actualizarResaltado() {
+        const items = dropdown.querySelectorAll('li');
+        items.forEach((li, i) => {
+            if (i === activeIndex) {
+                li.classList.add('bg-orange-50', 'text-orange-700');
+            } else {
+                li.classList.remove('bg-orange-50', 'text-orange-700');
+            }
+        });
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (q.length < 2) { ocultarDropdown(); return; }
+
+        timer = setTimeout(async () => {
+            try {
+                const res = await fetch(`${ajaxUrl}?tipo=convenio&q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                mostrarDropdown(data);
+            } catch (e) { ocultarDropdown(); }
+        }, 250);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        const items = dropdown.querySelectorAll('li');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, items.length - 1);
+            actualizarResaltado();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, -1);
+            actualizarResaltado();
+        } else if (e.key === 'Enter') {
+            if (activeIndex >= 0 && items[activeIndex]) {
+                e.preventDefault();
+                const texto = items[activeIndex].querySelector('div:first-child').textContent.trim();
+                // Usar el valor del item activo (sin las marcas HTML)
+                input.value = texto;
+                ocultarDropdown();
+                form.submit();
+            }
+            // Si no hay item activo, el form se envía normalmente con Enter
+        } else if (e.key === 'Escape') {
+            ocultarDropdown();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('convenio-dropdown-wrapper').contains(e.target)) {
+            ocultarDropdown();
+        }
+    });
+
+    input.addEventListener('focus', () => {
+        const q = input.value.trim();
+        if (q.length >= 2 && !dropdown.children.length) {
+            input.dispatchEvent(new Event('input'));
+        }
+    });
+})();
+</script>
+
+<?php if (isset($_REQUEST['busqueda_convenio']) && trim($_REQUEST['busqueda_convenio']) !== ''): ?>
     <div class="mb-10">
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Resultados de la búsqueda</h3>
         <div class="flex items-center justify-between mb-2">
@@ -110,22 +289,22 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                 <form action="index.php" method="POST">
                                     <input type="hidden" name="num_convenio_fav" value="<?= htmlspecialchars($c['num_convenio']) ?>">
                                     
-                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_REQUEST['busqueda_convenio'] ?? '') ?>">
                                     
                                     <button type="submit" name="btnFavorito" 
                                             class="px-4 py-2 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase hover:bg-orange-600 hover:text-white transition-all cursor-pointer">
-                                        ⭐ Añadir
+                                         ⭐ Añadir
                                     </button>
                                 </form>
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_POST['busqueda_convenio']) ?>".</td></tr>
+                        <tr><td colspan="6" class="px-6 py-16 text-center text-red-500 text-sm font-black uppercase italic">⚠ No hay convenios que coincidan con "<?= htmlspecialchars($_REQUEST['busqueda_convenio']) ?>".</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
-    <?= renderizarNavPaginacion($total_rs, $pag_rs, $pp_rs, 'pag_rs', 'orange', ['tab' => '1']) ?>
+    <?= renderizarNavPaginacion($total_rs, $pag_rs, $pp_rs, 'pag_rs', 'orange', ['tab' => '1', 'busqueda_convenio' => $_REQUEST['busqueda_convenio'] ?? '']) ?>
     </div>
 <?php endif; ?>
 
@@ -165,7 +344,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                         <td class="px-6 py-5 text-center">
                             <form action="index.php" method="POST" class="flex justify-center">
                                 <input type="hidden" name="num_convenio_eliminar" value="<?= htmlspecialchars($mc['num_convenio']) ?>">
-                                <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_REQUEST['busqueda_convenio'] ?? '') ?>">
                                 <input type="hidden" name="btnEliminarFav" value="1">
                                 <button type="button" onclick="abrirConfirmarEliminar('<?= htmlspecialchars($mc['num_convenio']) ?>', '<?= htmlspecialchars($mc['nombre_empresa']) ?>')"
                                         class="group flex items-center gap-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all border border-red-100 shadow-sm cursor-pointer">
@@ -243,7 +422,7 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
                                 <form action="index.php" method="POST" class="flex justify-center">
                                     <input type="hidden" name="accion" value="aprobarNuevo">
                                     <input type="hidden" name="id_convenio_nuevo" value="<?= $convP['id_convenio_nuevo'] ?>">
-                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_POST['busqueda_convenio'] ?? '') ?>">
+                                    <input type="hidden" name="busqueda_convenio" value="<?= htmlspecialchars($_REQUEST['busqueda_convenio'] ?? '') ?>">
                                     <button type="button" 
                                             onclick="abrirConfirmarAprobar('<?= $convP['id_convenio_nuevo'] ?>', '<?= addslashes($convP['nombre_empresa']) ?>')"
                                             class="group flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-5 py-2.5 rounded-xl transition-all border border-emerald-100 shadow-sm hover:shadow-emerald-200 cursor-pointer active:scale-95">
@@ -267,25 +446,45 @@ $urlCompartir = $protocolo . "://" . $host . "/PROYECTO/Convenios/Registro.php?i
     <?= renderizarNavPaginacion($total_cp, $pag_cp, $pp_cp, 'pag_cp', 'amber', ['tab' => '1']) ?>
 </div>
 
+<?php 
+// Modales de paginación para Resultados, Listado Personal y En Proceso
+$pag_prefix = 'rs'; 
+$pag_color = 'orange'; 
+$pag_extra_params = ['tab' => '1', 'busqueda_convenio' => $_REQUEST['busqueda_convenio'] ?? '']; 
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+
+$pag_prefix = 'lp'; 
+$pag_color = 'orange'; 
+$pag_extra_params = ['tab' => '1']; 
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+
+$pag_prefix = 'cp'; 
+$pag_color = 'amber';  
+$pag_extra_params = ['tab' => '1']; 
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
+
 <script>
 function copiarUrlRegistro(url, elemento) {
     navigator.clipboard.writeText(url).then(() => {
         const span = elemento.querySelector('#btn-text');
         const originalText = span.innerText;
+
+        // Feedback visual — se pinta de verde
         span.innerText = '¡COPIADO!';
         elemento.classList.remove('bg-slate-100', 'text-slate-600');
         elemento.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+
+        // Revertir después de 2 segundos
         setTimeout(() => {
             span.innerText = originalText;
             elemento.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
             elemento.classList.add('bg-slate-100', 'text-slate-600');
         }, 2000);
-    }).catch(err => console.error('Error al copiar: ', err));
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+    });
 }
 </script>
-
-<?php $pag_prefix = 'rs'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
-<?php $pag_prefix = 'lp'; $pag_color = 'orange'; $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
-<?php $pag_prefix = 'cp'; $pag_color = 'amber';  $pag_extra_params = ['tab' => '1']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
 
 <?php include 'Vista/Tutores/Components/Modales_Convenios.php'; ?>

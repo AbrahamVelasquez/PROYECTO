@@ -1,4 +1,25 @@
 <?php
+
+/**
+ * Convenios/Registro.php — Formulario público de solicitud de convenio
+ *
+ * Página accesible sin login (con un ?id_ciclo= en la URL) que permite a una
+ * empresa registrarse directamente como candidata a convenio de FCT.
+ * También es accesible desde el dashboard del tutor (con sesión activa).
+ *
+ * Dos modos de funcionamiento según $esExterno:
+ *   - Externo (sin sesión): el formulario envía POST a Procesar.php vía fetch().
+ *     Si el servidor responde 200, muestra el modal de éxito y limpia el formulario.
+ *   - Interno (con sesión tutor): el formulario envía POST a index.php con
+ *     accion=guardarNuevoConvenio, siguiendo el flujo normal del controlador.
+ *
+ * Sin id_ciclo y sin sesión, se muestra el modal de error y se bloquea el acceso
+ * para evitar que la página quede abierta sin contexto de ciclo.
+ *
+ * El modal de confirmación (abrirConfirmacion/cerrarConfirmacion) valida el formulario
+ * con validarForm() de validacion.js antes de enviar.
+ */
+
 session_start();
 $esExterno = !isset($_SESSION['usuario']);
 $id_ciclo = $_GET['id_ciclo'] ?? '';
@@ -17,6 +38,7 @@ if ($esExterno && empty($id_ciclo)) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sistema FCT — Registro de Convenio</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="../Public/js/validacion.js"></script>
 </head>
 <body class="min-h-svh bg-slate-50 text-slate-900 antialiased font-sans">
   <main class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -43,7 +65,7 @@ if ($esExterno && empty($id_ciclo)) {
         $id_ciclo_actual = $_GET['id_ciclo'] ?? $_SESSION['id_ciclo'] ?? ''; 
       ?>
 
-      <form id="formRegistro" action="<?= $esExterno ? 'Procesar.php' : '../index.php' ?>" method="POST" class="p-10 space-y-8">        
+      <form id="formRegistro" novalidate action="<?= $esExterno ? 'Procesar.php' : '../index.php' ?>" method="POST" class="p-10 space-y-8">        
         <input type="hidden" name="accion" value="guardarNuevoConvenio">
         <input type="hidden" name="id_ciclo" value="<?= htmlspecialchars($id_ciclo_actual) ?>"> 
 
@@ -51,35 +73,31 @@ if ($esExterno && empty($id_ciclo)) {
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="md:col-span-3">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Nombre de la empresa</label>
-              <input type="text" name="nombre_empresa" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="nombre_empresa" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">CIF</label>
-              <input type="text" name="cif" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="cif" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-4">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Dirección</label>
-              <input type="text" name="direccion" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="direccion" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-2">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Localidad</label>
-              <input type="text" name="localidad" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="localidad" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">CP</label>
-              <input type="text" name="cp" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="cp" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Tfno</label>
-              <input type="text" name="telefono" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="telefono" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">FAX</label>
-              <input type="text" name="fax" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Fecha de renovación</label>
-              <input type="date" name="fecha_nueva_renovacion" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="fax" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
           </div>
         </section>
@@ -89,7 +107,7 @@ if ($esExterno && empty($id_ciclo)) {
           <div class="grid grid-cols-1 gap-6">
             <div class="md:col-span-1">
               <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">Nombre y apellidos</label>
-              <input type="text" name="representante" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-orange-500/20">
+              <input type="text" name="representante" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
             </div>
           </div>
         </section>
@@ -117,10 +135,9 @@ if ($esExterno && empty($id_ciclo)) {
     function ejecutarEnvioReal() {
       const form = document.getElementById('formRegistro');
       
-      // Validación básica de HTML5 (required) antes de enviar
-      if (!form.checkValidity()) {
+      // Validación personalizada con lista de campos faltantes
+      if (!validarForm(form)) {
           cerrarConfirmacion();
-          form.reportValidity();
           return;
       }
 
