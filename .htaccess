@@ -1,0 +1,21 @@
+# Errores
+# Antes de /Errores/ debe ir el nombre de la carpeta que lo almacena
+# Ejemplos: /pruebas/ o /PROYECTO/ o /aplicacionffe/
+ErrorDocument 404 /PROYECTO/Errores/404.php
+ErrorDocument 403 /PROYECTO/Errores/403.php
+ErrorDocument 500 /PROYECTO/Errores/500.php
+
+# Evitar el "Directory Browsing" (Seguridad)
+# Si alguien entra a /raizProyecto/Vista/ o /raizProyecto/Public/css/, 
+# el servidor les dará un error 403 (Prohibido) en vez de mostrar la lista de archivos.
+Options -Indexes
+
+# Proteger archivos de configuración o críticos (Seguridad)
+# Evita que cualquiera pueda leer directamente archivos .env, .json, logs o el propio .htaccess
+<FilesMatch "^\.|\.(env|json|log|ini|sh)$">
+    Require all denied
+</FilesMatch>
+
+# Forzar que las peticiones vayan con UTF-8 (Opcional pero recomendado)
+# Evita problemas raros de acentos o eñes rotas si el servidor está mal configurado
+AddDefaultCharset UTF-8

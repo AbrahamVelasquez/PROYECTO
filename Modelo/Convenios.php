@@ -1,16 +1,38 @@
 <?php
 
-// Modelo/Convenios.php
+/**
+ * Modelo/Convenios.php — Gestión de convenios oficiales y favoritos del tutor
+ *
+ * Centraliza todas las operaciones sobre convenios en sus dos vertientes:
+ *
+ *   Paso 1 (tutor):
+ *     - Búsqueda libre por nombre o CIF
+ *     - Gestión del listado personal ("favoritos") de cada tutor (tabla mi_listado)
+ *     - Registro y seguimiento de convenios nuevos pendientes de validación
+ *     - Comprobación de uso antes de eliminar un favorito
+ *
+ *   Admin — Tabla Convenios:
+ *     - Listado completo con filtro y ordenación
+ *     - Edición y eliminación (con comprobación de uso global)
+ *     - Actualización de datos de un convenio oficial
+ *
+ * MVC: Modelo. Gestiona principalmente las tablas `convenios`, `mi_listado`,
+ * `convenios_nuevos` y `convenios_aprobados`.
+ */
 
-require_once __DIR__ . '/../Core/Conexion.php'; 
+require_once __DIR__ . '/../Core/Conexion.php';
 
 class Convenios {
-    private $conn; 
+    private $conn;
 
     public function __construct() {
         $this->conn = Conexion::getConexion();
     }
 
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PASO 1 — BÚSQUEDA DE CONVENIOS  (Resultados de búsqueda)
+    // ═══════════════════════════════════════════════════════════════════
     public function buscar($termino) {
         $query = "SELECT num_convenio, nombre_empresa, cif, localidad, telefono, representante 
                   FROM convenios 
@@ -21,6 +43,10 @@ class Convenios {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PASO 1 — MI LISTADO PERSONAL  (Favoritos del tutor)
+    // ═══════════════════════════════════════════════════════════════════
     public function añadirAFavoritos($id_tutor, $num_convenio) {
         try {
             $sql = "INSERT INTO mi_listado (id_tutor, num_convenio) VALUES (:id_t, :num_conv)";
@@ -70,6 +96,11 @@ class Convenios {
         return $stmt->fetchColumn() > 0;
     }
 
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PASO 1 — CONVENIOS EN PROCESO / REGISTRO
+    // Usado también por Admin → Convenios Pendientes
+    // ═══════════════════════════════════════════════════════════════════
     public function guardarNuevoConvenioPendiente($datos) {
         $query = "INSERT INTO convenios_nuevos 
                     (nombre_empresa, cif, direccion, localidad, cp, telefono, fax,
@@ -154,6 +185,73 @@ class Convenios {
             return false;
         }
     }
+
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ADMIN — TABLA CONVENIOS  (Vista: Admin/Sections/Tabla_Convenios.php)
+    // ═══════════════════════════════════════════════════════════════════
+
+    public function obtenerConvenios($busqueda = '', $ordenar = 'nombre_empresa') {
+        try {
+            $columnasPermitidas = ['nombre_empresa', 'cif', 'localidad', 'num_convenio'];
+            if (!in_array($ordenar, $columnasPermitidas)) $ordenar = 'nombre_empresa';
+
+            $sql = "SELECT * FROM convenios
+                    WHERE nombre_empresa LIKE :busqueda
+                    OR cif              LIKE :busqueda
+                    OR localidad        LIKE :busqueda
+                    ORDER BY $ordenar ASC";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':busqueda' => "%$busqueda%"]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en obtenerConvenios: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function eliminarConvenio($num_convenio) {
+        try {
+            return $this->conn->prepare("DELETE FROM convenios WHERE num_convenio = :id")
+                               ->execute([':id' => $num_convenio]);
+        } catch (PDOException $e) {
+            error_log("Error en eliminarConvenio: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function actualizarConvenio($num_convenio, $d) {
+        $stmt = $this->conn->prepare(
+            "UPDATE convenios SET
+                nombre_empresa         = ?, cif            = ?, direccion              = ?,
+                localidad              = ?, cp             = ?, telefono               = ?,
+                fax                    = ?, representante  = ?, especialidad           = ?,
+                fecha_alta_renovacion  = ?, fecha_nueva_renovacion = ?, observaciones = ?
+             WHERE num_convenio = ?"
+        );
+        return $stmt->execute([
+            $d['nombre_empresa'],        $d['cif'],                   $d['direccion'],
+            $d['localidad'],             $d['cp'],                    $d['telefono'],
+            $d['fax'],                   $d['representante'],          $d['especialidad']           ?? null,
+            $d['fecha_alta_renovacion'] ?? null,                       $d['fecha_nueva_renovacion'] ?? null,
+            $d['observaciones']         ?? null,
+            $num_convenio,
+        ]);
+    }
+
+    /**
+     * Comprueba si un convenio tiene alumnos asignados en cualquier ciclo.
+     * Usado por el admin antes de eliminar un convenio de la tabla oficial.
+     */
+    public function estaEnUsoGlobal($num_convenio): bool {
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) FROM asignaciones WHERE num_convenio = ?"
+        );
+        $stmt->execute([$num_convenio]);
+        return $stmt->fetchColumn() > 0;
+    }
+
 
 } // Llave de la clase
 

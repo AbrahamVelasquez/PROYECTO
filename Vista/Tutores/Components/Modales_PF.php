@@ -1,9 +1,18 @@
 <?php
 
-// Vista/Tutores/Components/Modales_PF.php
+/**
+ * Vista/Tutores/Components/Modales_PF.php — Modales del paso 3 (Plan Formativo)
+ *
+ * Overlay para la gestión de Resultados de Aprendizaje (RAs) de un alumno:
+ *   - Lista todos los RAs del ciclo con checkboxes para marcar cuáles
+ *     se impartirán en la empresa (impartido_empresa) y en qué periodo.
+ *   - El formulario envía POST a index.php con accion=guardarRAs.
+ *
+ * Se abre desde Steps/Plan_Formativo.php → PF_Tabla.php al pulsar el botón
+ * de gestionar RAs de un alumno; JS inyecta el id_asignacion antes de abrir.
+ */
 
-// Calcula la ruta desde la raíz del servidor hasta tu carpeta de proyecto
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('tutor'); 
 
@@ -676,7 +685,7 @@ window.abrirModalGestionarRA = async function() {
 
     try {
         // 2. Pedimos los datos al controlador
-        const res = await fetch('index.php?controlador=Tutores&accion=obtenerRAs');
+        const res = await fetch('index.php?accion=obtenerRAs');
         const data = await res.json(); // Intentamos leer JSON directo
 
         if (data && data.length > 0) {
@@ -725,7 +734,7 @@ async function aplicarRAsAlPF() {
     formData.append('ra_eliminar', JSON.stringify(_raEliminados));
 
     try {
-        const res = await fetch('index.php?controlador=Tutores&accion=guardarRA', {
+        const res = await fetch('index.php?accion=guardarRA', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
@@ -804,14 +813,10 @@ function abrirModalDevolver(idAlumno, nombre) {
     if (botonEjecutar) {
         botonEjecutar.onclick = function() {
             // Enviamos los parámetros de forma que el index.php no se pierda
-            const url = "index.php?controlador=Tutores&accion=devolverAlumnoAEnvio&id_alumno=" + idAlumno;
+            const url = "index.php?accion=devolverAlumnoAEnvio&id_alumno=" + idAlumno;
             window.location.href = url;
         };
     }
-}
-
-function cerrarModalDevolver() {
-    document.getElementById('modalConfirmarDevolver').style.display = 'none';
 }
 
 window.abrirModalExportarPF = function(idAsignacion) {
@@ -864,7 +869,7 @@ window.exportarTodoHandler = function() {
     // Enviar TODOS los IDs al PHP (el PHP se encarga de marcar como exportado los pendientes)
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = 'index.php?controlador=Tutores&accion=exportarTodoPF';
+    form.action = 'index.php?accion=exportarTodoPF';
     form.style.display = 'none';
 
     filas.forEach(fila => {
@@ -883,7 +888,7 @@ window.exportarTodoHandler = function() {
  
     // 3. Redirigir al listado tras un breve delay
     setTimeout(() => {
-        window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+        window.location.href = 'index.php?tab=3';
     }, 1500);
 };
 
@@ -930,7 +935,7 @@ async function procederConReinicioFinal() {
     formData.append('nuevo_estado', 0);
 
     try {
-        const res = await fetch('index.php?controlador=Tutores&accion=cambiarEstadoExportacion', {
+        const res = await fetch('index.php?accion=cambiarEstadoExportacion', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
@@ -940,7 +945,7 @@ async function procederConReinicioFinal() {
 
         if (data.success) {
             // Recarga limpia a la pestaña correspondiente
-            window.location.href = 'index.php?controlador=Tutores&accion=mostrarPanel&tab=3';
+            window.location.href = 'index.php?tab=3';
         } else {
             alert("Error al procesar: " + (data.error || "Desconocido"));
         }

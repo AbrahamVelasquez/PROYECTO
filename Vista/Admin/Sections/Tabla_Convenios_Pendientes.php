@@ -1,11 +1,24 @@
 <?php
 
-// Vista/Admin/Sections/Tabla_Convenios_Pendientes.php
+/**
+ * Vista/Admin/Sections/Tabla_Convenios_Pendientes.php — Sección "Convenios Pendientes"
+ *
+ * Muestra los convenios que los tutores han propuesto desde el paso 1 del wizard
+ * pero aún no han sido formalizados en la tabla principal de convenios.
+ * El admin puede aprobar (promover a convenio válido) o rechazar cada entrada.
+ *
+ * La paginación usa Paginador.php con clave de GET pp_pend/pag_pend.
+ * Los modales de aprobación/rechazo están en Modales_TCP.php.
+ * El indicador pulsante (ping animation) en la cabecera da señal visual de pendientes.
+ *
+ * Variables recibidas del controlador: $pendientes (array completo).
+ */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Seguridad/Control_Accesos.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Helpers/Paginador.php';
+require_once __DIR__ . '/../../../Seguridad/Control_Accesos.php';
 
 validarAcceso('admin');
+
+require_once __DIR__ . '/../../../Helpers/Paginador.php';
 
 // Paginación PHP
 $pp_pend    = leerPorPagina('pp_pend', 10);
@@ -25,7 +38,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
             Esperando incorporación al sistema: <?= count($pendientes) ?>
         </p>
     </div>
-
+    
     <form action="index.php" method="POST">
         <input type="hidden" name="accion" value="mostrarPanel">
         <button type="submit" class="flex items-center gap-2 text-slate-400 px-4 py-2 text-xs font-bold hover:text-emerald-600 transition-all cursor-pointer">
@@ -59,7 +72,7 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                 <th class="py-4 px-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
+        <tbody id="pend-tbody" class="divide-y divide-slate-100">
             <?php if (empty($pendientes)): ?>
                 <tr>
                     <td colspan="3" class="py-20 px-6 text-center">
@@ -88,8 +101,8 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                     </td>
                     <td class="py-5 px-6">
                         <div class="flex items-center justify-center gap-3">
-                            <button onclick='abrirModalRevision(<?= json_encode($p) ?>)'
-                                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                            <button onclick='abrirModalRevision(<?= json_encode($p) ?>)' 
+                                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer" 
                                     title="Revisar y Editar">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -100,8 +113,8 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
                             <form id="form-validar-<?= $p['id_convenio_nuevo'] ?>" method="POST" action="index.php">
                                 <input type="hidden" name="accion" value="validarConvenio">
                                 <input type="hidden" name="id_convenio_nuevo" value="<?= $p['id_convenio_nuevo'] ?>">
-
-                                <button type="button"
+                                
+                                <button type="button" 
                                         onclick="confirmarValidacionDirecta('<?= $p['id_convenio_nuevo'] ?>', '<?= htmlspecialchars($p['nombre_empresa']) ?>')"
                                         class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,6 +134,12 @@ $pendientesPag = paginarArray($pendientes ?? [], $pp_pend, $pag_pend);
 
 <?= renderizarNavPaginacion($total_pend, $pag_pend, $pp_pend, 'pag_pend', 'emerald', ['accion' => 'mostrarConveniosPendientes']) ?>
 
-<?php $pag_prefix = 'pend'; $pag_color = 'emerald'; $pag_extra_params = ['accion' => 'mostrarConveniosPendientes']; include $_SERVER['DOCUMENT_ROOT'] . '/PROYECTO/Vista/Shared/Modal_Paginacion.php'; ?>
+<?php 
+$pag_prefix = 'pend'; 
+$pag_color = 'emerald'; 
+$pag_extra_params = ['accion' => 'mostrarConveniosPendientes']; 
+
+include __DIR__ . '/../../Shared/Modal_Paginacion.php'; 
+?>
 
 <?php include 'Vista/Admin/Components/Modales_TCP.php'; ?>
