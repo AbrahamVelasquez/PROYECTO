@@ -31,6 +31,17 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 validarAcceso('tutor');
 
+// ──────────────────────────────────────────────────────────────
+// FUNCIÓN PARA FORMATEAR NOMBRES (primera letra mayúscula, resto minúscula)
+// ──────────────────────────────────────────────────────────────
+
+function formatearNombreExcel($texto) {
+    if (empty($texto)) return '';
+    $texto = mb_strtolower($texto, 'UTF-8');
+    $texto = mb_convert_case($texto, MB_CASE_TITLE, 'UTF-8');
+    return $texto;
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // 1. RECOGER IDs
 // ──────────────────────────────────────────────────────────────────────────────
@@ -125,7 +136,7 @@ setValorHoja($wsFijos, 'cod_curso',    $d0['id_ciclo'] ?? '');
 setValorHoja($wsFijos, 'centro_docente',            'IES CIUDAD ESCOLAR');
 setValorHoja($wsFijos, 'email_centro_docente',       'ies.ciudadescolar@educa.madrid.org');
 setValorHoja($wsFijos, 'telef_centro_docente',       '917341244');
-setValorHoja($wsFijos, 'Tutor_centro_docente',       strtoupper(trim(($d0['tutor_nombre'] ?? '') . ' ' . ($d0['tutor_apellidos'] ?? ''))));
+setValorHoja($wsFijos, 'Tutor_centro_docente',       formatearNombreExcel(trim(($d0['tutor_nombre'] ?? '') . ' ' . ($d0['tutor_apellidos'] ?? ''))));
 setValorHoja($wsFijos, 'email_tutor_centro_docente', $d0['tutor_email'] ?? '');
 setValorHoja($wsFijos, 'telef_tutor_centro_docente', $d0['tutor_tel']   ?? '');
 
@@ -193,34 +204,38 @@ foreach ($todosLosDatos as $d) {
 
     $copiarEstiloFilaPlantilla($filaActual);
 
-    $nomAlu  = $d['nombre']    ?? '';
-    $ape1Alu = $d['apellido1'] ?? '';
-    $ape2Alu = $d['apellido2'] ?? '';
-
-    $tutorEmp   = strtoupper(trim($d['nombre_tutor_empresa'] ?? ''));
-    $tutorParts = explode(' ', $tutorEmp, 2);
+    // Formatear nombres para Excel
+    $nomAluExcel  = formatearNombreExcel($d['nombre']    ?? '');
+    $ape1AluExcel = formatearNombreExcel($d['apellido1'] ?? '');
+    $ape2AluExcel = formatearNombreExcel($d['apellido2'] ?? '');
+    
+    $tutorEmpOriginal = trim($d['nombre_tutor_empresa'] ?? '');
+    $tutorParts = explode(' ', $tutorEmpOriginal, 2);
     $tutorNom   = $tutorParts[0] ?? '';
     $tutorApe   = $tutorParts[1] ?? '';
+    $tutorNomExcel = formatearNombreExcel($tutorNom);
+    $tutorApeExcel = formatearNombreExcel($tutorApe);
+    $tutorEmpExcel = trim("$tutorNomExcel $tutorApeExcel");
 
     $fechaIni = Exportar::fmtFecha($d['fecha_inicio'] ?? '');
     $fechaFin = Exportar::fmtFecha($d['fecha_final']  ?? '');
 
     $setVar($filaActual, 'num_convenio',            $d['num_convenio'] ?? '');
     $setVar($filaActual, 'num_anexo',               $d['anexo']        ?? '');
-    $setVar($filaActual, 'Alumno',                  trim("$nomAlu $ape1Alu $ape2Alu"));
-    $setVar($filaActual, 'nom_alumno',              $nomAlu);
-    $setVar($filaActual, 'apellidos_alumno',        trim("$ape1Alu $ape2Alu"));
-    $setVar($filaActual, 'ape1_alumno',             $ape1Alu);
-    $setVar($filaActual, 'ape2_alumno',             $ape2Alu);
+    $setVar($filaActual, 'Alumno',                  trim("$nomAluExcel $ape1AluExcel $ape2AluExcel"));
+    $setVar($filaActual, 'nom_alumno',              $nomAluExcel);
+    $setVar($filaActual, 'apellidos_alumno',        trim("$ape1AluExcel $ape2AluExcel"));
+    $setVar($filaActual, 'ape1_alumno',             $ape1AluExcel);
+    $setVar($filaActual, 'ape2_alumno',             $ape2AluExcel);
     $setVar($filaActual, 'email_alumno',            $d['correo']   ?? '');
     $setVar($filaActual, 'telef_alumno',            $d['telefono'] ?? '');
     $setVar($filaActual, 'Empresa',                 strtoupper($d['nombre_empresa'] ?? ''));
     $setVar($filaActual, 'cif_nif_empresa',         strtoupper($d['cif']           ?? ''));
     $setVar($filaActual, 'email_empresa',           $d['email_empresa'] ?? '');
     $setVar($filaActual, 'telef_empresa',           $d['tel_empresa']   ?? '');
-    $setVar($filaActual, 'tutor_empresa',           $tutorEmp);
-    $setVar($filaActual, 'tutor_empresa_nombre',    $tutorNom);
-    $setVar($filaActual, 'tutor_empresa_apellidos', $tutorApe);
+    $setVar($filaActual, 'tutor_empresa',           $tutorEmpExcel);
+    $setVar($filaActual, 'tutor_empresa_nombre',    $tutorNomExcel);
+    $setVar($filaActual, 'tutor_empresa_apellidos', $tutorApeExcel);
     $setVar($filaActual, 'email_tutor_empresa',     $d['correo_tutor_empresa'] ?? '');
     $setVar($filaActual, 'telef_tutor_empresa',     $d['tel_tutor_empresa']    ?? '');
     $setVar($filaActual, 'total_horas',             $d['num_total_horas'] ?? '');
